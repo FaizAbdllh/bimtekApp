@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('bimteks', function (Blueprint $table) {
+            $table->boolean('butuh_verifikasi_dokumen')->default(false)->after('syarat_tugas_wajib');
+            $table->json('jenis_dokumen_wajib')->nullable()->after('butuh_verifikasi_dokumen');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('bimteks', function (Blueprint $table) {
+            $table->dropColumn(['butuh_verifikasi_dokumen', 'jenis_dokumen_wajib']);
+        });
+    }
+};
