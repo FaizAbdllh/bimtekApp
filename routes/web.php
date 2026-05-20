@@ -109,6 +109,8 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     
     // Upload Surat Undangan Draft
     Route::post('/{bimtek}/upload-draft', [BimtekController::class, 'uploadDraft'])->name('upload-draft');
+    // Backward-compatible alias used by legacy tests/flow
+    Route::post('/{bimtek}/upload-undangan', [BimtekController::class, 'uploadDraft'])->name('upload-undangan');
     
     // Preview & Download Surat Draft
     Route::get('/{bimtek}/preview-draft', [BimtekController::class, 'previewDraft'])->name('preview-draft');

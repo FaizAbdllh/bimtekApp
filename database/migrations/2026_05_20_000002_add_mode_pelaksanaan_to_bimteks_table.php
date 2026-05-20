@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('bimteks', 'mode_pelaksanaan')) {
+            return;
+        }
+
         Schema::table('bimteks', function (Blueprint $table) {
             $table->enum('mode_pelaksanaan', ['offline', 'online', 'hybrid'])
                 ->default('offline')
@@ -23,6 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasColumn('bimteks', 'mode_pelaksanaan')) {
+            return;
+        }
+
         Schema::table('bimteks', function (Blueprint $table) {
             $table->dropColumn('mode_pelaksanaan');
         });

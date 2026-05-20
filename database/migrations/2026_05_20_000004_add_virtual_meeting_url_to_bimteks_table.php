@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('bimteks', 'virtual_meeting_url')) {
+            return;
+        }
+
         Schema::table('bimteks', function (Blueprint $table) {
             $table->string('virtual_meeting_url', 500)
                 ->nullable()
@@ -23,6 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasColumn('bimteks', 'virtual_meeting_url')) {
+            return;
+        }
+
         Schema::table('bimteks', function (Blueprint $table) {
             $table->dropColumn('virtual_meeting_url');
         });

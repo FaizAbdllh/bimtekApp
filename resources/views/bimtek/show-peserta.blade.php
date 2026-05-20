@@ -34,17 +34,26 @@
 
                     <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ $bimtek->judul_final }}</h2>
 
+                    @php
+                        $modeCode = $bimtek->mode_pelaksanaan_code;
+                        $modeBadge = [
+                            'offline' => 'bg-slate-100 text-slate-800',
+                            'online' => 'bg-sky-100 text-sky-800',
+                            'hybrid' => 'bg-emerald-100 text-emerald-800',
+                        ];
+                    @endphp
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                             <span class="text-gray-500">Mode Pelaksanaan:</span>
-                            <span class="text-gray-900 font-medium block">{{ $bimtek->pengajuan?->mode_pelaksanaan_label ?? $bimtek->mode_pelaksanaan_label }}</span>
+                            <span class="inline-flex mt-1 px-2.5 py-1 rounded-full text-xs font-semibold {{ $modeBadge[$modeCode] ?? 'bg-gray-100 text-gray-800' }}">{{ $bimtek->pengajuan?->mode_pelaksanaan_label ?? $bimtek->mode_pelaksanaan_label }}</span>
                         </div>
                         <div>
                             <span class="text-gray-500">Tautan Virtual:</span>
                             @if($bimtek->virtual_meeting_url)
                                 <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium block break-all">Buka Ruang Virtual</a>
                             @else
-                                <span class="text-gray-900 font-medium block">-</span>
+                                <span class="text-gray-500 block">{{ in_array($modeCode, ['online', 'hybrid']) ? 'Belum ditentukan' : '-' }}</span>
                             @endif
                         </div>
                         <div>

@@ -32,6 +32,7 @@
                     </a>
                     <div class="mt-2">
                         <p class="text-gray-600">{{ $bimtek->judul_final }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Mode: <span class="font-medium">{{ $bimtek->mode_pelaksanaan_label }}</span></p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -71,7 +72,7 @@
             @else
             @if(in_array($modePelaksanaan, ['online', 'hybrid']))
                 <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-                    Mode {{ ucfirst($modePelaksanaan) }} aktif. Peserta dapat melakukan presensi online langsung dari tombol <span class="font-semibold">Hadir Online</span>.
+                    Mode {{ ucfirst($modePelaksanaan) }} aktif. Peserta dapat melakukan presensi online melalui tombol <span class="font-semibold">Upload Bukti</span>.
                     @if($bimtek->virtual_meeting_url)
                         <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="font-semibold underline ml-1">Buka Ruang Virtual</a>
                     @endif

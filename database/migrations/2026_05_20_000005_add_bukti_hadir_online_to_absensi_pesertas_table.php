@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('absensi_pesertas', 'bukti_hadir_online_path')) {
+            return;
+        }
+
         Schema::table('absensi_pesertas', function (Blueprint $table) {
             $table->string('bukti_hadir_online_path')->nullable()->after('user_id');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasColumn('absensi_pesertas', 'bukti_hadir_online_path')) {
+            return;
+        }
+
         Schema::table('absensi_pesertas', function (Blueprint $table) {
             $table->dropColumn('bukti_hadir_online_path');
         });
