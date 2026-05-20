@@ -58,7 +58,7 @@ class PesertaAddedToBimtekMail extends Mailable
      */
     public function attachments(): array
     {
-        $path = $this->bimtek->file_surat_undangan_path;
+        $path = $this->bimtek->file_surat_final_path ?: $this->bimtek->file_surat_draft_path;
         if (!$path || !Storage::disk('public')->exists($path)) {
             return [];
         }

@@ -40,6 +40,7 @@ class UpdatePengajuanRequest extends FormRequest
         if ($isDraft) {
             return [
                 'judul_rencana' => ['required', 'string', 'max:255'],
+                'jumlah_peserta' => ['nullable', 'integer', 'min:1'],
                 'tempat_kegiatan' => ['nullable', 'string', 'max:255'],
                 'sumber_pembiayaan' => ['nullable', 'string', 'max:255'],
                 'tanggal_mulai_rencana' => ['nullable', 'date'],
@@ -56,6 +57,7 @@ class UpdatePengajuanRequest extends FormRequest
         // Validasi ketat untuk submit
         $rules = [
             'judul_rencana' => ['required', 'string', 'max:255'],
+            'jumlah_peserta' => ['nullable', 'integer', 'min:1'],
             'tempat_kegiatan' => ['required', 'string', 'max:255'],
             'sumber_pembiayaan' => ['required', 'string', 'max:255'],
             'tanggal_mulai_rencana' => ['required', 'date'],
@@ -84,6 +86,7 @@ class UpdatePengajuanRequest extends FormRequest
     {
         return [
             'judul_rencana' => 'judul kegiatan',
+            'jumlah_peserta' => 'jumlah peserta',
             'tempat_kegiatan' => 'tempat kegiatan',
             'sumber_pembiayaan' => 'sumber pembiayaan',
             'tanggal_mulai_rencana' => 'tanggal mulai',
@@ -103,6 +106,8 @@ class UpdatePengajuanRequest extends FormRequest
     {
         return [
             'judul_rencana.required' => 'Judul kegiatan wajib diisi.',
+            'jumlah_peserta.integer' => 'Jumlah peserta harus berupa angka.',
+            'jumlah_peserta.min' => 'Jumlah peserta minimal :min orang.',
             'tempat_kegiatan.required' => 'Tempat kegiatan wajib diisi.',
             'sumber_pembiayaan.required' => 'Sumber pembiayaan wajib diisi.',
             'tanggal_mulai_rencana.required' => 'Tanggal mulai wajib diisi.',

@@ -23,6 +23,7 @@ class Pengajuan extends Model
         'tanggal_mulai_rencana',
         'tanggal_selesai_rencana',
         'deskripsi_rencana',
+        'jumlah_peserta',
         'jenis_kegiatan',
         'status_pengajuan',
         'is_draft',
@@ -39,6 +40,7 @@ class Pengajuan extends Model
     protected $casts = [
         'tanggal_mulai_rencana' => 'date',
         'tanggal_selesai_rencana' => 'date',
+        'jumlah_peserta' => 'integer',
         'is_draft' => 'boolean',
         'kepala_approved_at' => 'datetime',
         'butuh_verifikasi_dokumen' => 'boolean',
@@ -70,14 +72,6 @@ class Pengajuan extends Model
     }
 
     /**
-     * Get the kebutuhan anggaran for the pengajuan.
-     */
-    public function kebutuhanAnggarans(): HasMany
-    {
-        return $this->hasMany(KebutuhanAnggaran::class);
-    }
-
-    /**
      * Get the fasilitas logistik for the pengajuan.
      */
     public function fasilitasLogistiks(): HasMany
@@ -86,11 +80,11 @@ class Pengajuan extends Model
     }
 
     /**
-     * Calculate total anggaran.
+     * Get the kebutuhan anggaran (RAB) for the pengajuan.
      */
-    public function getTotalAnggaranAttribute(): float
+    public function kebutuhanAnggarans(): HasMany
     {
-        return $this->kebutuhanAnggarans()->sum('total_biaya');
+        return $this->hasMany(KebutuhanAnggaran::class);
     }
 
     /**

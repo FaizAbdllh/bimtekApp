@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
         // Seed roles first
         $this->call(RoleSeeder::class);
 
+        // Seed SBM master reference data
+        $this->call(SbmMasterSeeder::class);
+
         $this->seedUsers();
     }
 

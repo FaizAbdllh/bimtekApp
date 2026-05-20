@@ -16,7 +16,7 @@ class ApprovalController extends Controller
      */
     public function indexKepala(Request $request): View
     {
-        $query = Pengajuan::with(['user', 'kebutuhanAnggarans'])
+        $query = Pengajuan::with(['user'])
             ->whereIn('status_pengajuan', ['diajukan', 'disetujui_kepala', 'ditolak', 'perlu_revisi']);
 
         // Filter berdasarkan status
@@ -52,7 +52,7 @@ class ApprovalController extends Controller
      */
     public function showKepala(Pengajuan $pengajuan): View
     {
-        $pengajuan->load(['user', 'kebutuhanAngGarans', 'fasilitasLogistiks']);
+        $pengajuan->load(['user', 'fasilitasLogistiks']);
         return view('approval.kepala.show', compact('pengajuan'));
     }
 
@@ -150,7 +150,7 @@ class ApprovalController extends Controller
      */
     public function indexPpk(Request $request): View
     {
-        $query = Pengajuan::with(['user', 'kebutuhanAngGarans'])
+        $query = Pengajuan::with(['user'])
             ->whereIn('status_pengajuan', ['disetujui_kepala', 'disetujui_ppk', 'disetujui_final']);
 
         // Filter berdasarkan status
@@ -185,7 +185,7 @@ class ApprovalController extends Controller
      */
     public function showPpk(Pengajuan $pengajuan): View
     {
-        $pengajuan->load(['user', 'kebutuhanAngGarans', 'fasilitasLogistiks']);
+        $pengajuan->load(['user', 'fasilitasLogistiks']);
         return view('approval.ppk.show', compact('pengajuan'));
     }
 
@@ -220,7 +220,6 @@ class ApprovalController extends Controller
             'lokasi_aktual' => $pengajuan->tempat_kegiatan,
             'tanggal_mulai_aktual' => $pengajuan->tanggal_mulai_rencana,
             'tanggal_selesai_aktual' => $pengajuan->tanggal_selesai_rencana,
-            'anggaran_disetujui' => $pengajuan->kebutuhanAngGarans->sum('total_biaya'),
             // Inherit verifikasi dokumen fields from pengajuan
             'butuh_verifikasi_dokumen' => $pengajuan->butuh_verifikasi_dokumen,
             'jenis_dokumen_wajib' => $pengajuan->jenis_dokumen_wajib,

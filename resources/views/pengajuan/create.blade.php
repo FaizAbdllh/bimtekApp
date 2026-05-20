@@ -41,8 +41,10 @@
                         kategori: 'lainnya', 
                         volume_1: '', 
                         satuan_primary: '',
+                        satuan_primary_suggestion: '',
                         volume_2: '',
                         satuan_secondary: '',
+                        satuan_secondary_suggestion: '',
                         harga_satuan: '',
                         harga_satuan_sbm: '',
                         total_biaya: '' 
@@ -77,11 +79,24 @@
                         item.sbm_master_id = selectedOption.value;
                         item.nama_item = selectedOption.dataset.nama || '';
                         item.kategori = selectedOption.dataset.kategori || 'lainnya';
-                        item.satuan_primary = selectedOption.dataset.satuanPrimary || '';
-                        item.satuan_secondary = selectedOption.dataset.satuanSecondary || '';
+                        // auto-fill satuan from SBM but keep editable for user
+                        const suggestedPrimary = selectedOption.dataset.satuanPrimary || '';
+                        const suggestedSecondary = selectedOption.dataset.satuanSecondary || '';
+                        item.satuan_primary = suggestedPrimary;
+                        item.satuan_secondary = suggestedSecondary;
+                        // clear suggestion trackers
+                        item.satuan_primary_suggestion = '';
+                        item.satuan_secondary_suggestion = '';
                         item.harga_satuan = parseFloat(selectedOption.dataset.harga) || 0;
                         item.harga_satuan_sbm = parseFloat(selectedOption.dataset.harga) || 0;
                         this.calculateTotal(item);
+                    } else {
+                        // cleared selection -> clear values
+                        item.satuan_primary = '';
+                        item.satuan_secondary = '';
+                        item.satuan_primary_suggestion = '';
+                        item.satuan_secondary_suggestion = '';
+                        item.harga_satuan_sbm = '';
                     }
                 },
 
@@ -93,9 +108,9 @@
                         return;
                     }
 
-                    const vol1 = parseFloat(item.volume_1) || 0;
-                    const vol2 = parseFloat(item.volume_2) || 0;
-                    const harga = parseFloat(item.harga_satuan) || 0;
+                    const vol1 = Number(item.volume_1) || 0;
+                    const vol2 = Number(item.volume_2) || 0;
+                    const harga = Number(item.harga_satuan) || 0;
                     item.total_biaya = vol1 * vol2 * harga;
                 },
 
@@ -106,11 +121,13 @@
                         kategori: 'lainnya',
                         volume_1: '',
                         satuan_primary: '',
+                        satuan_primary_suggestion: '',
                         volume_2: '',
                         satuan_secondary: '',
+                        satuan_secondary_suggestion: '',
                         harga_satuan: '',
                         harga_satuan_sbm: '',
-                        total_biaya: ''
+                        total_biaya: 0
                     });
                 },
 
@@ -314,22 +331,33 @@
                             @enderror
                         </div>
 
+                        {{-- Jumlah Peserta --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="jumlah_peserta" class="block text-sm font-medium text-gray-700">
+                                    Jumlah Peserta <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" name="jumlah_peserta" id="jumlah_peserta" value="{{ old('jumlah_peserta') }}" min="1" step="1"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('jumlah_peserta') border-red-500 @enderror"
+                                    placeholder="Contoh: 40">
+                                @error('jumlah_peserta')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         {{-- Verifikasi Dokumen --}}
-                        <div class="border-t pt-4">
+                        <div class="border-t pt-4" x-show="jenisKegiatan === 'eksternal'" x-cloak>
                             <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                                 <label class="flex items-start gap-3">
                                     <input type="checkbox" name="butuh_verifikasi_dokumen" value="1"
                                         {{ old('butuh_verifikasi_dokumen') ? 'checked' : '' }}
-                                        class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+                                        class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         id="toggle_verifikasi"
-                                        x-model="butuhVerifikasi"
-                                        :disabled="jenisKegiatan === 'internal'">
+                                        x-model="butuhVerifikasi">
                                     <span>
                                         <span class="block text-sm font-medium text-gray-700">Aktifkan verifikasi dokumen persyaratan peserta</span>
                                         <span class="block text-xs text-gray-500 mt-1">Peserta harus mengupload dan memverifikasi dokumen sebelum dapat mengikuti Absensi, Tugas, dan Sertifikat.</span>
-                                        <template x-if="jenisKegiatan === 'internal'">
-                                            <span class="block text-xs text-amber-700 mt-2">Untuk kegiatan internal, verifikasi dokumen dinonaktifkan otomatis.</span>
-                                        </template>
                                     </span>
                                 </label>
 
@@ -376,176 +404,128 @@
                     </div>
                 </div>
 
-                {{-- Section 2: Rincian Kebutuhan Anggaran (RAB) --}}
+                {{-- Section 2: Rancangan Anggaran Biaya (RAB) --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                     <div class="p-5 border-b border-gray-200 bg-primary-50 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-primary-800">2. Rincian Kebutuhan Anggaran (RAB)</h3>
-                        <span class="text-sm text-primary-600 bg-primary-100 px-3 py-1 rounded-full">Sesuai PMK 32/2025</span>
+                        <h3 class="text-lg font-semibold text-primary-800">2. Rancangan Anggaran Biaya (RAB)</h3>
+                        <button type="button" @click="addAnggaran()" class="inline-flex items-center px-3 py-1 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Tambah Item
+                        </button>
                     </div>
                     <div class="p-6">
-                        {{-- Info SBM --}}
-                        <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div class="flex items-start">
-                                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                </svg>
-                                <div>
-                                    <p class="text-sm font-medium text-blue-800 mb-1">Validasi Standar Biaya Masukan (SBM)</p>
-                                    <p class="text-xs text-blue-700">Pilih item SBM dari dropdown untuk auto-fill harga standar. Deviasi &gt;10% memerlukan persetujuan khusus.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Table --}}
-                        <div class="border border-gray-200 rounded-lg overflow-hidden">
-                            <table class="w-full table-fixed divide-y divide-gray-200 text-xs sm:text-sm">
+                        <div class="pb-2">
+                            <table class="w-full table-fixed">
                                 <colgroup>
-                                    <col style="width: 3%;">
-                                    <col style="width: 28%;">
+                                    <col style="width: 5%;">
+                                    <col style="width: 21%;">
+                                    <col style="width: 7%;">
                                     <col style="width: 6%;">
+                                    <col style="width: 7%;">
                                     <col style="width: 6%;">
-                                    <col style="width: 6%;">
-                                    <col style="width: 6%;">
-                                    <col style="width: 13%;">
-                                    <col style="width: 13%;">
-                                    <col style="width: 17%;">
-                                    <col style="width: 2%;">
+                                    <col style="width: 11%;">
+                                    <col style="width: 16%;">
+                                    <col style="width: 21%;">
                                 </colgroup>
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="px-2 py-2 text-left font-medium text-gray-600 uppercase">No</th>
-                                        <th class="px-2 py-2 text-left font-medium text-gray-600 uppercase">Uraian Kebutuhan</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-600 uppercase whitespace-nowrap">Vol 1</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-600 uppercase whitespace-nowrap">Satuan</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-600 uppercase whitespace-nowrap">Vol 2</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-600 uppercase whitespace-nowrap">Satuan</th>
-                                        <th class="px-2 py-2 text-right font-medium text-gray-600 uppercase whitespace-nowrap">Harga Satuan</th>
-                                        <th class="px-2 py-2 text-right font-medium text-gray-600 uppercase">Total</th>
-                                        <th class="px-2 py-2 text-left font-medium text-gray-600 uppercase">Ref. SBM</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-600 uppercase"></th>
+                                <thead>
+                                    <tr class="border-b-2 border-gray-200 bg-gray-50">
+                                        <th class="px-2 py-2.5 text-center text-xs font-semibold text-gray-700 whitespace-nowrap">Nomor</th>
+                                        <th class="px-2 py-2.5 pl-4 text-left text-xs font-semibold text-gray-700">Nama Item</th>
+                                        <th class="px-2 py-2.5 text-center text-xs font-semibold text-gray-700 whitespace-nowrap">Volume 1</th>
+                                        <th class="px-2 py-2.5 text-center text-xs font-semibold text-gray-700 whitespace-nowrap">Satuan 1</th>
+                                        <th class="px-2 py-2.5 text-center text-xs font-semibold text-gray-700 whitespace-nowrap">Volume 2</th>
+                                        <th class="px-2 py-2.5 text-center text-xs font-semibold text-gray-700 whitespace-nowrap">Satuan 2</th>
+                                        <th class="px-2 py-2.5 text-right text-xs font-semibold text-gray-700">Harga Satuan</th>
+                                        <th class="px-2 py-2.5 text-right text-xs font-semibold text-gray-700">Total Biaya</th>
+                                        <th class="px-2 py-2.5 text-left text-xs font-semibold text-gray-700">Referensi SBM</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-200">
                                     <template x-for="(item, index) in anggaranItems" :key="index">
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-2 py-2 text-gray-500 text-center font-medium" x-text="index + 1"></td>
-                                            
-                                            {{-- Uraian --}}
-                                            <td class="px-2 py-2">
-                                                <input type="text" x-model="item.nama_item" 
-                                                    :name="'anggaran['+index+'][nama_item]'" 
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
-                                                    placeholder="Contoh: Honor Narasumber">
-                                                <input type="hidden" :name="'anggaran['+index+'][kategori]'" x-model="item.kategori">
-                                                <input type="hidden" :name="'anggaran['+index+'][harga_satuan_sbm]'" x-model="item.harga_satuan_sbm">
+                                        <tr class="hover:bg-gray-50 transition">
+                                            <td class="px-2 py-2.5 text-sm text-gray-500 text-center align-top" x-text="index + 1"></td>
+                                                <td class="px-2 py-2.5 pl-4 align-top">
+                                                    <input type="text" x-model="item.nama_item" :name="'anggaran['+index+'][nama_item]'"
+                                                    class="w-full min-w-0 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
+                                                    placeholder="Nama item / manual">
                                             </td>
-
-                                            {{-- Volume 1 --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" x-model.number="item.volume_1" 
+                                            <td class="px-2 py-2.5 align-top">
+                                                <input type="number" x-model.number="item.volume_1" :name="'anggaran['+index+'][volume_1]'"
                                                     @input="calculateTotal(item)"
-                                                    :name="'anggaran['+index+'][volume_1]'" 
-                                                    min="0" step="1"
-                                                    class="no-spin block w-full rounded border-gray-300 px-2 py-2 text-center text-sm font-medium tabular-nums focus:border-primary-500 focus:ring-primary-500">
+                                                    class="w-full min-w-[6ch] rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-right no-spin py-1 pr-1"
+                                                    min="0" step="1" placeholder="0">
                                             </td>
-
-                                            {{-- Satuan Primary --}}
-                                                <td class="px-2 py-2">
-                                                <input type="text" x-model="item.satuan_primary" 
-                                                    :name="'anggaran['+index+'][satuan_primary]'" 
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-center text-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-2.5 align-top">
+                                                <input type="text" x-model="item.satuan_primary" :name="'anggaran['+index+'][satuan_primary]'"
+                                                    :placeholder="item.satuan_primary || item.satuan_primary_suggestion || 'Sat'"
+                                                    class="w-full min-w-[6ch] rounded border-gray-300 shadow-sm text-sm text-right py-1 pr-2 placeholder-gray-400">
                                             </td>
-
-                                            {{-- Volume 2 --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" x-model.number="item.volume_2" 
+                                            <td class="px-2 py-2.5 align-top">
+                                                <input type="number" x-model.number="item.volume_2" :name="'anggaran['+index+'][volume_2]'"
                                                     @input="calculateTotal(item)"
-                                                    :name="'anggaran['+index+'][volume_2]'" 
-                                                    min="0" step="1"
-                                                    class="no-spin block w-full rounded border-gray-300 px-2 py-2 text-center text-sm font-medium tabular-nums focus:border-primary-500 focus:ring-primary-500">
+                                                    class="w-full min-w-[6ch] rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-right no-spin py-1 pr-1"
+                                                    min="0" step="1" placeholder="0">
                                             </td>
-
-                                            {{-- Satuan Secondary --}}
-                                                <td class="px-2 py-2">
-                                                <input type="text" x-model="item.satuan_secondary" 
-                                                    :name="'anggaran['+index+'][satuan_secondary]'" 
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-center text-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-2.5 align-top">
+                                                <input type="text" x-model="item.satuan_secondary" :name="'anggaran['+index+'][satuan_secondary]'"
+                                                    :placeholder="item.satuan_secondary || item.satuan_secondary_suggestion || 'Sat'"
+                                                    class="w-full min-w-[6ch] rounded border-gray-300 shadow-sm text-sm text-right py-1 pr-2 placeholder-gray-400">
                                             </td>
-
-                                            {{-- Harga Satuan --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" x-model.number="item.harga_satuan" 
+                                            <td class="px-2 py-2.5 align-top">
+                                                <input type="number" x-model.number="item.harga_satuan" :name="'anggaran['+index+'][harga_satuan]'"
                                                     @input="calculateTotal(item)"
-                                                    :name="'anggaran['+index+'][harga_satuan]'" 
-                                                    min="0"
-                                                    class="no-spin block w-full rounded border-gray-300 px-2 py-2 text-right text-sm font-semibold tabular-nums focus:border-primary-500 focus:ring-primary-500">
+                                                    class="w-full min-w-0 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-right no-spin py-1"
+                                                    min="0" placeholder="0">
+                                                <input type="hidden" x-model="item.harga_satuan_sbm" :name="'anggaran['+index+'][harga_satuan_sbm]'">
                                             </td>
-
-                                            {{-- Total --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" x-model.number="item.total_biaya" 
-                                                    :name="'anggaran['+index+'][total_biaya]'" 
-                                                    readonly
-                                                    class="block w-full rounded border-gray-300 bg-gray-50 px-2 py-2 text-right text-sm font-semibold text-primary-700 tabular-nums">
+                                            <td class="px-2 py-2.5 text-right font-medium text-gray-900 align-top">
+                                                <span x-text="formatRupiah(item.total_biaya)"></span>
+                                                <input type="hidden" x-model="item.total_biaya" :name="'anggaran['+index+'][total_biaya]'">
+                                                <input type="hidden" x-model="item.kategori" :name="'anggaran['+index+'][kategori]'">
                                             </td>
-
-                                            {{-- SBM Dropdown --}}
-                                            <td class="px-2 py-2">
-                                                <select @change="onSbmChange(item, $event)" 
-                                                    :name="'anggaran['+index+'][sbm_master_id]'"
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-xs focus:border-primary-500 focus:ring-primary-500">
-                                                    <option value="">-- Pilih SBM (Opsional) --</option>
-                                                    @foreach($sbmMasters as $kategori => $items)
-                                                        <optgroup label="═══ {{ strtoupper($kategori) }} ═══">
-                                                            @foreach($items as $sbm)
-                                                                <option value="{{ $sbm->id }}" 
-                                                                    data-nama="{{ $sbm->nama_item }}"
-                                                                    data-kategori="{{ $sbm->kategori }}"
-                                                                    data-satuan-primary="{{ $sbm->satuan_primary }}"
-                                                                    data-satuan-secondary="{{ $sbm->satuan_secondary }}"
-                                                                    data-harga="{{ $sbm->harga_satuan }}">
-                                                                    {{ $sbm->nama_item }} - {{ $sbm->formatHarga() }}
-                                                                </option>
-                                                            @endforeach
-                                                        </optgroup>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-
-                                            {{-- Delete --}}
-                                            <td class="px-1 py-2 text-center">
-                                                <button type="button" @click="removeAnggaran(index)" 
-                                                    class="text-red-500 hover:text-red-700 transition" 
-                                                    x-show="anggaranItems.length > 1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                    </svg>
-                                                </button>
+                                            <td class="px-2 py-2.5 align-top">
+                                                <div class="flex items-center gap-1">
+                                                    <select x-model="item.sbm_master_id" :name="'anggaran['+index+'][sbm_master_id]'"
+                                                        @change="onSbmChange(item, $event)"
+                                                        class="w-full max-w-[130px] min-w-0 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1">
+                                                        <option value="">Pilih SBM atau Manual</option>
+                                                        @php
+                                                            foreach ($sbmMasters as $kategori => $items) {
+                                                                echo "<optgroup label=\"$kategori\">";
+                                                                foreach ($items as $sbm) {
+                                                                    echo "<option value=\"{$sbm->id}\" 
+                                                                        data-nama=\"{$sbm->nama_item}\"
+                                                                        data-kategori=\"{$sbm->kategori}\"
+                                                                        data-satuan-primary=\"{$sbm->satuan_primary}\"
+                                                                        data-satuan-secondary=\"{$sbm->satuan_secondary}\"
+                                                                        data-harga=\"{$sbm->harga_satuan}\">{$sbm->nama_item}</option>";
+                                                                }
+                                                                echo "</optgroup>";
+                                                            }
+                                                        @endphp
+                                                    </select>
+                                                    <button type="button" @click="removeAnggaran(index)" x-show="anggaranItems.length > 1"
+                                                        class="shrink-0 text-red-500 hover:text-red-700 transition">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
-                                <tfoot class="bg-primary-50">
-                                    <tr>
-                                        <td colspan="7" class="px-2 py-3 text-right text-base font-bold text-gray-700">
-                                            TOTAL ESTIMASI ANGGARAN
-                                        </td>
-                                        <td class="px-2 py-3 text-right text-base font-bold text-primary-700 whitespace-nowrap tabular-nums" x-text="formatRupiah(grandTotal)"></td>
-                                        <td colspan="2"></td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
-
-                        {{-- Add Item Button --}}
-                        <div class="mt-4">
-                            <button type="button" @click="addAnggaran()" 
-                                class="inline-flex items-center text-primary-600 hover:text-primary-800 text-sm font-medium">
-                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                                Tambah Item Biaya
-                            </button>
+                        
+                        {{-- Total Biaya Summary --}}
+                        <div class="mt-4 border-t pt-4 flex justify-end">
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600 mb-1">Total Anggaran:</p>
+                                <p class="text-2xl font-bold text-primary-600" x-text="formatRupiah(grandTotal)"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -619,7 +599,7 @@
                                         <template x-for="(item, index) in fasilitasItems.filter(f => f.nama)" :key="index">
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
                                                 <span x-text="item.jumlah" class="font-bold mr-1"></span>
-                                                <span x-text="item.satuan" class="mr-1"></span>
+                                                <span x-text="item.satuan === 'Lainnya' ? item.satuanCustom : item.satuan" class="mr-1"></span>
                                                 <span x-text="item.nama"></span>
                                             </span>
                                         </template>

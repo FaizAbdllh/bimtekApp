@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- Breadcrumb --}}
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -99,129 +99,63 @@
                     </div>
                     @endif
 
-                    {{-- Rincian Anggaran Biaya (RAB) - WAJIB untuk PPK --}}
                     <div class="border-t border-gray-200 pt-6">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Rincian Anggaran Biaya (RAB)
-                        </h4>
-                        @if($pengajuan->kebutuhanAnggarans->count() > 0)
-                            {{-- SBM Compliance Alert --}}
-                            @php
-                                $needsApproval = $pengajuan->kebutuhanAnggarans->filter(fn($item) => $item->needsApproval());
-                            @endphp
-                            @if($needsApproval->count() > 0)
-                                <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                    <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <div>
-                                            <p class="text-sm font-medium text-yellow-800">Perhatian: Deviasi SBM Terdeteksi</p>
-                                            <p class="text-xs text-yellow-700 mt-1">Terdapat {{ $needsApproval->count() }} item dengan deviasi harga ≥10% dari SBM. Harap review dengan teliti.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg text-xs">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-600 uppercase w-10">No</th>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-600 uppercase">Uraian</th>
-                                            <th class="px-3 py-2 text-center font-semibold text-gray-600 uppercase w-28">Volume</th>
-                                            <th class="px-3 py-2 text-right font-semibold text-gray-600 uppercase w-32">Harga Sat.</th>
-                                            <th class="px-3 py-2 text-right font-semibold text-gray-600 uppercase w-32">Total</th>
-                                            <th class="px-3 py-2 text-center font-semibold text-gray-600 uppercase w-36">Status SBM</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($pengajuan->kebutuhanAnggarans as $index => $anggaran)
-                                            <tr class="hover:bg-gray-50 {{ $anggaran->needsApproval() ? 'bg-yellow-50' : '' }}">
-                                                <td class="px-3 py-2 text-gray-600 text-center">{{ $index + 1 }}</td>
-                                                <td class="px-3 py-2">
-                                                    <div class="font-medium text-gray-900">{{ $anggaran->nama_item }}</div>
-                                                    @php
-                                                        $kategoriColors = [
-                                                            'honor' => 'bg-purple-100 text-purple-800',
-                                                            'transportasi' => 'bg-blue-100 text-blue-800',
-                                                            'akomodasi' => 'bg-indigo-100 text-indigo-800',
-                                                            'konsumsi' => 'bg-yellow-100 text-yellow-800',
-                                                            'atk' => 'bg-green-100 text-green-800',
-                                                            'sewa' => 'bg-pink-100 text-pink-800',
-                                                        ];
-                                                        $colorClass = $kategoriColors[$anggaran->kategori] ?? 'bg-gray-100 text-gray-800';
-                                                    @endphp
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $colorClass }} mt-1">
-                                                        {{ ucfirst($anggaran->kategori) }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-3 py-2 text-center">
-                                                    <div class="text-sm text-gray-900">
-                                                        {{ $anggaran->volume_1 }} {{ $anggaran->satuan_primary }}
-                                                        @if($anggaran->volume_2 > 1 || $anggaran->satuan_secondary)
-                                                            <br>× {{ $anggaran->volume_2 }} {{ $anggaran->satuan_secondary }}
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td class="px-3 py-2 text-right">
-                                                    <div class="text-sm text-gray-900">Rp {{ number_format($anggaran->harga_satuan, 0, ',', '.') }}</div>
-                                                    @if($anggaran->harga_satuan_sbm && $anggaran->harga_satuan != $anggaran->harga_satuan_sbm)
-                                                        <div class="text-xs text-gray-500 mt-1">
-                                                            SBM: Rp {{ number_format($anggaran->harga_satuan_sbm, 0, ',', '.') }}
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                                <td class="px-3 py-2 text-gray-900 font-medium text-right">
-                                                    Rp {{ number_format($anggaran->total_biaya, 0, ',', '.') }}
-                                                </td>
-                                                <td class="px-3 py-2 text-center">
-                                                    @if($anggaran->status_validasi)
-                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                                            @switch($anggaran->status_validasi)
-                                                                @case('sesuai_sbm') bg-green-100 text-green-800 @break
-                                                                @case('deviasi_minor') bg-blue-100 text-blue-800 @break
-                                                                @case('deviasi_major') bg-yellow-100 text-yellow-800 @break
-                                                                @case('deviasi_signifikan') bg-orange-100 text-orange-800 @break
-                                                                @case('non_sbm') bg-gray-100 text-gray-800 @break
-                                                            @endswitch
-                                                        ">
-                                                            @switch($anggaran->status_validasi)
-                                                                @case('sesuai_sbm') ✓ Sesuai @break
-                                                                @case('deviasi_minor') Minor @break
-                                                                @case('deviasi_major') ⚠ Major @break
-                                                                @case('deviasi_signifikan') ⚠ Signifikan @break
-                                                                @case('non_sbm') Non-SBM @break
-                                                            @endswitch
-                                                            @if($anggaran->persentase_deviasi)
-                                                                ({{ number_format($anggaran->persentase_deviasi, 1) }}%)
-                                                            @endif
-                                                        </span>
-                                                    @else
-                                                        <span class="text-gray-400">-</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <tfoot class="bg-green-50">
-                                        <tr>
-                                            <td colspan="4" class="px-3 py-3 font-bold text-gray-800 text-right">Total Anggaran</td>
-                                            <td class="px-3 py-3 font-bold text-green-700 text-right">Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya'), 0, ',', '.') }}</td>
-                                            <td></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        @else
-                            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p class="text-yellow-700 text-sm">Tidak ada rincian anggaran yang diajukan.</p>
-                            </div>
-                        @endif
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p class="text-sm font-medium text-gray-800">Pengajuan dilengkapi RAB</p>
+                            <p class="text-sm text-gray-600 mt-1">Telaah PPK difokuskan pada kesiapan pelaksanaan dan kesesuaian rincian RAB terhadap kebutuhan kegiatan.</p>
+                        </div>
                     </div>
+
+                    {{-- RAB Details for Review --}}
+                    @if($pengajuan->kebutuhanAnggarans->count() > 0)
+                    <div class="border-t border-gray-200 pt-6">
+                        <h4 class="text-sm font-medium text-gray-500 mb-3">Rincian RAB</h4>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">No</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Nama Item</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Vol 1</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Sat 1</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Vol 2</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Sat 2</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-600">Harga Satuan</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total Biaya</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($pengajuan->kebutuhanAnggarans as $i => $anggaran)
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-600">{{ $i + 1 }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $anggaran->nama_item }}</td>
+                                        <td class="px-4 py-2 text-sm text-center">
+                                            {{ $anggaran->volume_1 ?? '-' }}
+                                            @if($anggaran->satuan_primary)
+                                                <span class="text-xs text-gray-500">{{ $anggaran->satuan_primary }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center">{{ $anggaran->satuan_primary ?? '-' }}</td>
+                                        <td class="px-4 py-2 text-sm text-center">
+                                            {{ $anggaran->volume_2 ?? '-' }}
+                                            @if($anggaran->satuan_secondary)
+                                                <span class="text-xs text-gray-500">{{ $anggaran->satuan_secondary }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center">{{ $anggaran->satuan_secondary ?? '-' }}</td>
+                                        <td class="px-4 py-2 text-sm text-right"><span class="whitespace-nowrap">Rp {{ number_format($anggaran->harga_satuan ?? 0, 0, ',', '.') }}</span></td>
+                                        <td class="px-4 py-2 text-sm text-right"><span class="whitespace-nowrap">Rp {{ number_format($anggaran->total_biaya ?? 0, 0, ',', '.') }}</span></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div class="mt-4 text-right">
+                                <p class="text-sm text-gray-600">Total Anggaran:</p>
+                                <p class="text-lg font-bold text-primary-600">Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya'), 0, ',', '.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     {{-- Ringkasan Fasilitas & Logistik (detail akan ditangani RT) --}}
                     @if($pengajuan->fasilitasLogistiks->count() > 0)

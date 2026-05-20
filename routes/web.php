@@ -107,12 +107,19 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     // Update Status
     Route::patch('/{bimtek}/status', [BimtekController::class, 'updateStatus'])->name('update-status');
     
-    // Upload Undangan
-    Route::post('/{bimtek}/upload-undangan', [BimtekController::class, 'uploadUndangan'])->name('upload-undangan');
+    // Upload Surat Undangan Draft
+    Route::post('/{bimtek}/upload-draft', [BimtekController::class, 'uploadDraft'])->name('upload-draft');
     
-    // Preview & Download Undangan
-    Route::get('/{bimtek}/preview-undangan', [BimtekController::class, 'previewUndangan'])->name('preview-undangan');
-    Route::get('/{bimtek}/download-undangan', [BimtekController::class, 'downloadUndangan'])->name('download-undangan');
+    // Preview & Download Surat Draft
+    Route::get('/{bimtek}/preview-draft', [BimtekController::class, 'previewDraft'])->name('preview-draft');
+    Route::get('/{bimtek}/download-draft', [BimtekController::class, 'downloadDraft'])->name('download-draft');
+
+    // Upload Surat Undangan Final (by Persuratan)
+    Route::post('/{bimtek}/upload-final', [BimtekController::class, 'uploadFinal'])->name('upload-final');
+    
+    // Preview & Download Surat Final
+    Route::get('/{bimtek}/preview-final', [BimtekController::class, 'previewFinal'])->name('preview-final');
+    Route::get('/{bimtek}/download-final', [BimtekController::class, 'downloadFinal'])->name('download-final');
     
     // Verifikasi Dokumen routes
     Route::get('/{bimtek}/verifikasi-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'index'])->name('verifikasi-dokumen.index');

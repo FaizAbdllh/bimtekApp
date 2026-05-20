@@ -181,7 +181,7 @@
 
             <p>Berikut adalah kredensial untuk login ke sistem:</p>
 
-            @if($bimtek && $bimtek->file_surat_undangan_path)
+            @if($bimtek && ($bimtek->file_surat_final_path || $bimtek->file_surat_draft_path))
                 <div class="warning" style="background-color: #dcfce7; border-left-color: #16a34a;">
                     <p style="color: #14532d;">📎 <strong>Surat undangan resmi bimtek terlampir</strong> pada email ini dalam format PDF.</p>
                 </div>

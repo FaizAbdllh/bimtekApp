@@ -18,6 +18,7 @@ class TugasController extends Controller
      */
     public function index(Bimtek $bimtek): View
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
 
         $bimtek->load(['tugas' => function ($q) {
@@ -58,6 +59,7 @@ class TugasController extends Controller
      */
     public function create(Bimtek $bimtek): View
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
 
         return view('tugas.create', compact('bimtek'));
@@ -68,6 +70,7 @@ class TugasController extends Controller
      */
     public function store(Request $request, Bimtek $bimtek): RedirectResponse
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
 
         $validated = $request->validate([
@@ -107,6 +110,7 @@ class TugasController extends Controller
      */
     public function show(Bimtek $bimtek, Tugas $tugas): View
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -134,6 +138,7 @@ class TugasController extends Controller
      */
     public function edit(Bimtek $bimtek, Tugas $tugas): View
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -145,6 +150,7 @@ class TugasController extends Controller
      */
     public function update(Request $request, Bimtek $bimtek, Tugas $tugas): RedirectResponse
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -182,6 +188,7 @@ class TugasController extends Controller
      */
     public function destroy(Bimtek $bimtek, Tugas $tugas): RedirectResponse
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -209,6 +216,7 @@ class TugasController extends Controller
      */
     public function downloadInstruksi(Bimtek $bimtek, Tugas $tugas)
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -225,6 +233,7 @@ class TugasController extends Controller
      */
     public function previewInstruksi(Bimtek $bimtek, Tugas $tugas)
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -259,6 +268,7 @@ class TugasController extends Controller
      */
     public function submit(Request $request, Bimtek $bimtek, Tugas $tugas): RedirectResponse
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
 
@@ -314,6 +324,7 @@ class TugasController extends Controller
      */
     public function downloadJawaban(Bimtek $bimtek, Tugas $tugas, PengumpulanTugas $pengumpulan)
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
         $this->ensurePengumpulanOwnership($tugas, $pengumpulan);
@@ -340,6 +351,7 @@ class TugasController extends Controller
      */
     public function previewJawaban(Bimtek $bimtek, Tugas $tugas, PengumpulanTugas $pengumpulan)
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
         $this->ensurePengumpulanOwnership($tugas, $pengumpulan);
@@ -383,6 +395,7 @@ class TugasController extends Controller
      */
     public function grade(Request $request, Bimtek $bimtek, Tugas $tugas, PengumpulanTugas $pengumpulan): RedirectResponse
     {
+        $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
         $this->ensurePengumpulanOwnership($tugas, $pengumpulan);
@@ -491,6 +504,16 @@ class TugasController extends Controller
     {
         if ($pengumpulan->tugas_id !== $tugas->id) {
             abort(404, 'Pengumpulan tidak ditemukan.');
+        }
+    }
+
+    /**
+     * Abort if bimtek has tugas disabled.
+     */
+    protected function ensureHasTugas(Bimtek $bimtek): void
+    {
+        if (!$bimtek->has_tugas) {
+            abort(404, 'Fitur Tugas dinonaktifkan untuk bimtek ini.');
         }
     }
 }

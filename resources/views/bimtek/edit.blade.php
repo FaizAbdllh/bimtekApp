@@ -158,6 +158,29 @@
                             <div class="md:col-span-2 pt-4 border-t">
                                 <h3 class="text-sm font-semibold text-gray-900 mb-3">Syarat Kelulusan</h3>
                             </div>
+
+                            {{-- Feature Toggles: Has Tugas / Has Sertifikat --}}
+                            <div class="md:col-span-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="has_tugas" value="1"
+                                        {{ old('has_tugas', $bimtek->has_tugas ?? true) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-primary-600 shadow-sm"
+                                        {{ !$isPersiapan ? 'disabled' : '' }}>
+                                    <span class="ml-2 text-sm text-gray-700">Aktifkan fitur Tugas</span>
+                                </label>
+                                <p class="text-xs text-gray-500 mt-1 ml-6">Jika dimatikan, tab Tugas dan alur pengumpulan tugas akan disembunyikan.</p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="has_sertifikat" value="1"
+                                        {{ old('has_sertifikat', $bimtek->has_sertifikat ?? true) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-primary-600 shadow-sm"
+                                        {{ !$isPersiapan ? 'disabled' : '' }}>
+                                    <span class="ml-2 text-sm text-gray-700">Aktifkan fitur Sertifikat</span>
+                                </label>
+                                <p class="text-xs text-gray-500 mt-1 ml-6">Jika dimatikan, tab Sertifikat dan tombol generate akan disembunyikan.</p>
+                            </div>
                             
                             <div>
                                 <label for="syarat_kehadiran_persen" class="block text-sm font-medium text-gray-700 mb-1">Syarat Kehadiran (%)</label>

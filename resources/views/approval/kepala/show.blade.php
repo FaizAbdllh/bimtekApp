@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- Breadcrumb --}}
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -91,64 +91,63 @@
                         </div>
                     </div>
 
-                    {{-- Rincian Anggaran Biaya (RAB) --}}
                     <div class="border-t border-gray-200 pt-6">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Rincian Anggaran Biaya (RAB)
-                        </h4>
-                        @if($pengajuan->kebutuhanAnggarans->count() > 0)
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">No</th>
-                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Uraian Kebutuhan</th>
-                                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-32">Kategori</th>
-                                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-40">Total Biaya</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($pengajuan->kebutuhanAnggarans as $index => $anggaran)
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-4 py-3 text-sm text-gray-600 text-center">{{ $index + 1 }}</td>
-                                                <td class="px-4 py-3 text-sm text-gray-900">{{ $anggaran->nama_item }}</td>
-                                                <td class="px-4 py-3 text-sm text-center">
-                                                    @php
-                                                        $kategoriColors = [
-                                                            'Akomodasi' => 'bg-purple-100 text-purple-800',
-                                                            'Konsumsi' => 'bg-green-100 text-green-800',
-                                                            'Transportasi' => 'bg-blue-100 text-blue-800',
-                                                            'Honorarium' => 'bg-yellow-100 text-yellow-800',
-                                                            'ATK' => 'bg-pink-100 text-pink-800',
-                                                            'Lainnya' => 'bg-gray-100 text-gray-800',
-                                                        ];
-                                                        $colorClass = $kategoriColors[$anggaran->kategori] ?? 'bg-gray-100 text-gray-800';
-                                                    @endphp
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $colorClass }}">
-                                                        {{ $anggaran->kategori }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 py-3 text-sm text-gray-900 font-medium text-right">Rp {{ number_format($anggaran->total_biaya, 0, ',', '.') }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <tfoot class="bg-green-50">
-                                        <tr>
-                                            <td colspan="3" class="px-4 py-3 text-sm font-bold text-gray-800 text-right">Total Anggaran</td>
-                                            <td class="px-4 py-3 text-base font-bold text-green-700 text-right">Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya'), 0, ',', '.') }}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        @else
-                            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p class="text-yellow-700 text-sm">Tidak ada rincian anggaran yang diajukan.</p>
-                            </div>
-                        @endif
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p class="text-sm font-medium text-gray-800">Pengajuan dilengkapi RAB</p>
+                            <p class="text-sm text-gray-600 mt-1">Telaah Kepala difokuskan pada kelayakan rencana, fasilitas, serta kesesuaian rincian RAB yang diajukan.</p>
+                        </div>
                     </div>
+
+                    {{-- RAB Details for Kepala --}}
+                    @if($pengajuan->kebutuhanAnggarans->count() > 0)
+                    <div class="border-t border-gray-200 pt-6">
+                        <h4 class="text-sm font-medium text-gray-500 mb-3">Rincian RAB</h4>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">No</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Nama Item</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Vol 1</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Sat 1</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Vol 2</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600">Sat 2</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-600">Harga Satuan</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-600">Total Biaya</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($pengajuan->kebutuhanAnggarans as $i => $anggaran)
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-600">{{ $i + 1 }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $anggaran->nama_item }}</td>
+                                        <td class="px-4 py-2 text-sm text-center">
+                                            {{ $anggaran->volume_1 ?? '-' }}
+                                            @if($anggaran->satuan_primary)
+                                                <span class="text-xs text-gray-500">{{ $anggaran->satuan_primary }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center">{{ $anggaran->satuan_primary ?? '-' }}</td>
+                                        <td class="px-4 py-2 text-sm text-center">
+                                            {{ $anggaran->volume_2 ?? '-' }}
+                                            @if($anggaran->satuan_secondary)
+                                                <span class="text-xs text-gray-500">{{ $anggaran->satuan_secondary }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center">{{ $anggaran->satuan_secondary ?? '-' }}</td>
+                                        <td class="px-4 py-2 text-sm text-right"><span class="whitespace-nowrap">Rp {{ number_format($anggaran->harga_satuan ?? 0, 0, ',', '.') }}</span></td>
+                                        <td class="px-4 py-2 text-sm text-right"><span class="whitespace-nowrap">Rp {{ number_format($anggaran->total_biaya ?? 0, 0, ',', '.') }}</span></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div class="mt-4 text-right">
+                                <p class="text-sm text-gray-600">Total Anggaran:</p>
+                                <p class="text-lg font-bold text-primary-600">Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya'), 0, ',', '.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     {{-- Fasilitas & Logistik --}}
                     <div class="border-t border-gray-200 pt-6">

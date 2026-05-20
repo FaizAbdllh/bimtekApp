@@ -77,62 +77,161 @@
                                 </div>
                             @endif
 
-                            {{-- Surat Undangan --}}
-                            @if($bimtek->file_surat_undangan_path)
-                                <div class="mt-4 pt-4 border-t">
-                                    <span class="text-gray-500 text-sm block mb-2">Surat Undangan:</span>
-                                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                        <div class="p-2 bg-white rounded-lg border">
-                                            <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                            {{-- Surat Undangan Draft (by PIC/Panitia) --}}
+                            <div class="mt-4 pt-4 border-t">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-gray-700 text-sm font-semibold">Surat Undangan Draft</span>
+                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Dibuat oleh PIC/Panitia</span>
+                                </div>
+                                
+                                @if($bimtek->file_surat_draft_path)
+                                    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg mb-2">
+                                        <div class="p-2 bg-white rounded-lg border border-blue-200">
+                                            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
                                             </svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 truncate">{{ basename($bimtek->file_surat_undangan_path) }}</p>
-                                            <p class="text-xs text-gray-500">Surat Undangan Bimtek</p>
+                                            <p class="text-sm font-medium text-gray-900 truncate">{{ basename($bimtek->file_surat_draft_path) }}</p>
+                                            <p class="text-xs text-gray-500">Surat Draft</p>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <a href="{{ route('bimtek.preview-undangan', $bimtek) }}" target="_blank" class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition" title="Lihat">
+                                            <a href="{{ route('bimtek.preview-draft', $bimtek) }}" target="_blank" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition" title="Lihat">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
                                             </a>
-                                            <a href="{{ route('bimtek.download-undangan', $bimtek) }}" class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition" title="Download">
+                                            <a href="{{ route('bimtek.download-draft', $bimtek) }}" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition" title="Download">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                                 </svg>
                                             </a>
                                             @if($bimtek->status_pelaksanaan == 'persiapan')
-                                                <button type="button" 
-                                                    x-data 
-                                                    @click="$dispatch('open-modal', 'upload-undangan')"
-                                                    class="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition" title="Ganti">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                                    </svg>
-                                                </button>
+                                                @php $currentUser = auth()->user(); @endphp
+                                                @if($currentUser && ($currentUser->isPicDiBimtek($bimtek) || $currentUser->isPanitiaDiBimtek($bimtek)))
+                                                    <button type="button" 
+                                                        x-data 
+                                                        @click="$dispatch('open-modal', 'upload-draft')"
+                                                        class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition" title="Ganti">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                        </svg>
+                                                    </button>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>
-                                </div>
-                            @else
-                                <div class="mt-4 pt-4 border-t">
-                                    <span class="text-gray-500 text-sm block mb-2">Surat Undangan:</span>
-                                    <p class="text-sm text-gray-600 mb-3">Belum ada surat undangan. Silahkan upload terlebih dahulu.</p>
-                                    @if($bimtek->status_pelaksanaan == 'persiapan')
-                                        <button type="button" 
-                                            x-data 
-                                            @click="$dispatch('open-modal', 'upload-undangan')"
-                                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                            </svg>
-                                            Upload Surat Undangan
-                                        </button>
+                                    @php
+                                        $draftUploader = $bimtek->draftUploader;
+                                        $draftUploadedAt = $bimtek->file_surat_draft_uploaded_at ?? null;
+                                    @endphp
+                                    @if($draftUploader || $draftUploadedAt)
+                                        <div class="text-xs text-gray-500 ml-0 mb-3">
+                                            @if($draftUploader)
+                                                Diunggah oleh: <span class="font-medium text-gray-700">{{ $draftUploader->name }}</span>
+                                            @endif
+                                            @if($draftUploadedAt)
+                                                pada <span class="font-medium text-gray-700">{{ \Illuminate\Support\Carbon::parse($draftUploadedAt)->translatedFormat('d F Y H:i') }}</span>
+                                            @endif
+                                        </div>
                                     @endif
+                                @else
+                                    <p class="text-sm text-gray-600 mb-3">Belum ada draft surat.</p>
+                                    @if($bimtek->status_pelaksanaan == 'persiapan')
+                                        @php $currentUser = auth()->user(); @endphp
+                                        @if($currentUser && ($currentUser->isPicDiBimtek($bimtek) || $currentUser->isPanitiaDiBimtek($bimtek)))
+                                            <button type="button" 
+                                                x-data 
+                                                @click="$dispatch('open-modal', 'upload-draft')"
+                                                class="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                </svg>
+                                                Upload Draft
+                                            </button>
+                                        @endif
+                                    @endif
+                                @endif
+                            </div>
+
+                            {{-- Surat Undangan Final (by Persuratan) --}}
+                            <div class="mt-3 pt-3 border-t">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-gray-700 text-sm font-semibold">Surat Undangan Final</span>
+                                    <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Dibuat oleh Persuratan</span>
                                 </div>
-                            @endif
+                                
+                                @if($bimtek->file_surat_final_path)
+                                    <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg mb-2">
+                                        <div class="p-2 bg-white rounded-lg border border-green-200">
+                                            <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 truncate">{{ basename($bimtek->file_surat_final_path) }}</p>
+                                            <p class="text-xs text-gray-500">Surat Final (Resmi)</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('bimtek.preview-final', $bimtek) }}" target="_blank" class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-100 rounded-lg transition" title="Lihat">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                            </a>
+                                            <a href="{{ route('bimtek.download-final', $bimtek) }}" class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-100 rounded-lg transition" title="Download">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                            </a>
+                                            @if($bimtek->status_pelaksanaan == 'persiapan')
+                                                @php $currentUser = auth()->user(); @endphp
+                                                @if($currentUser && $currentUser->isPersuratan())
+                                                    <button type="button" 
+                                                        x-data 
+                                                        @click="$dispatch('open-modal', 'upload-final')"
+                                                        class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-100 rounded-lg transition" title="Ganti">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                        </svg>
+                                                    </button>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @php
+                                        $finalUploader = $bimtek->finalUploader;
+                                        $finalUploadedAt = $bimtek->file_surat_final_uploaded_at ?? null;
+                                    @endphp
+                                    @if($finalUploader || $finalUploadedAt)
+                                        <div class="text-xs text-gray-500 ml-0">
+                                            @if($finalUploader)
+                                                Diunggah oleh: <span class="font-medium text-gray-700">{{ $finalUploader->name }}</span>
+                                            @endif
+                                            @if($finalUploadedAt)
+                                                pada <span class="font-medium text-gray-700">{{ \Illuminate\Support\Carbon::parse($finalUploadedAt)->translatedFormat('d F Y H:i') }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @else
+                                    <p class="text-sm text-gray-600 mb-3">Belum ada surat final. Menunggu Bagian Persuratan.</p>
+                                    @if($bimtek->status_pelaksanaan == 'persiapan')
+                                        @php $currentUser = auth()->user(); @endphp
+                                        @if($currentUser && $currentUser->isPersuratan())
+                                            <button type="button" 
+                                                x-data 
+                                                @click="$dispatch('open-modal', 'upload-final')"
+                                                class="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                </svg>
+                                                Upload Surat Final
+                                            </button>
+                                        @endif
+                                    @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
 
@@ -277,18 +376,22 @@
                                 <button @click="tab = 'materi'" :class="tab === 'materi' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
                                     Materi
                                 </button>
-                                <button @click="tab = 'tugas'" :class="tab === 'tugas' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
-                                    Tugas
-                                </button>
+                                @if($bimtek->has_tugas)
+                                    <button @click="tab = 'tugas'" :class="tab === 'tugas' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
+                                        Tugas
+                                    </button>
+                                @endif
                                 <button @click="tab = 'absensi'" :class="tab === 'absensi' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
                                     Absensi
                                 </button>
                                 <button @click="tab = 'peserta'" :class="tab === 'peserta' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
                                     Peserta
                                 </button>
-                                <button @click="tab = 'sertifikat'" :class="tab === 'sertifikat' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
-                                    Sertifikat
-                                </button>
+                                @if($bimtek->has_sertifikat)
+                                    <button @click="tab = 'sertifikat'" :class="tab === 'sertifikat' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="py-4 px-6 border-b-2 font-medium text-sm whitespace-nowrap">
+                                        Sertifikat
+                                    </button>
+                                @endif
                             </nav>
                         </div>
 
@@ -354,7 +457,8 @@
                             </div>
 
                             {{-- Tugas Tab --}}
-                            <div x-show="tab === 'tugas'" x-cloak>
+                            @if($bimtek->has_tugas)
+                                <div x-show="tab === 'tugas'" x-cloak>
                                 {{-- Verification Gate for Peserta --}}
                                 @if($isPeserta && $bimtek->butuh_verifikasi_dokumen && $statusVerifikasi !== 'verified')
                                     <div class="text-center py-12">
@@ -418,7 +522,8 @@
                                         </div>
                                     @endif
                                 @endif
-                            </div>
+                                </div>
+                            @endif
 
                             {{-- Absensi Tab --}}
                             <div x-show="tab === 'absensi'" x-cloak>
@@ -558,7 +663,8 @@
                             </div>
 
                             {{-- Sertifikat Tab --}}
-                            <div x-show="tab === 'sertifikat'" x-cloak>
+                            @if($bimtek->has_sertifikat)
+                                <div x-show="tab === 'sertifikat'" x-cloak>
                                 {{-- Verification Gate for Peserta --}}
                                 @if($isPeserta && $bimtek->butuh_verifikasi_dokumen && $statusVerifikasi !== 'verified')
                                     <div class="text-center py-12">
@@ -610,7 +716,8 @@
                                         </div>
                                     @endif
                                 @endif
-                            </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -855,23 +962,47 @@
         </form>
     </x-modal>
 
-    {{-- Modal Upload Undangan --}}
-    <x-modal name="upload-undangan" :show="false" maxWidth="md">
-        <form action="{{ route('bimtek.upload-undangan', $bimtek) }}" method="POST" enctype="multipart/form-data" class="p-6">
+    {{-- Modal Upload Surat Draft --}}
+    <x-modal name="upload-draft" :show="false" maxWidth="md">
+        <form action="{{ route('bimtek.upload-draft', $bimtek) }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Surat Undangan</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Surat Undangan Draft</h3>
+            <p class="text-sm text-gray-600 mb-4">Surat draft akan diberikan kepada Bagian Persuratan untuk dilengkapi nomor, tanggal, dan tanda tangan.</p>
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">File Undangan (PDF)</label>
-                <input type="file" name="surat_undangan" accept=".pdf" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
+                <label class="block text-sm font-medium text-gray-700 mb-1">File Draft (PDF)</label>
+                <input type="file" name="surat_draft" accept=".pdf" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
             </div>
 
             <div class="flex justify-end gap-2">
                 <button type="button" x-on:click="$dispatch('close')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
                     Batal
                 </button>
-                <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
-                    Upload
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Upload Draft
+                </button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Modal Upload Surat Final --}}
+    <x-modal name="upload-final" :show="false" maxWidth="md">
+        <form action="{{ route('bimtek.upload-final', $bimtek) }}" method="POST" enctype="multipart/form-data" class="p-6">
+            @csrf
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Surat Undangan Final</h3>
+            <p class="text-sm text-gray-600 mb-4">Surat final sudah dilengkapi nomor, tanggal, dan tanda tangan dari Kepala BBPMP.</p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">File Final (PDF)</label>
+                <input type="file" name="surat_final" accept=".pdf" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" x-on:click="$dispatch('close')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    Upload Final
                 </button>
             </div>
         </form>

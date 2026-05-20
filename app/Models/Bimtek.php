@@ -25,7 +25,14 @@ class Bimtek extends Model
         'anggaran_disetujui',
         'deskripsi_jadwal',
         'daftar_pemateri',
-        'file_surat_undangan_path',
+        'has_tugas',
+        'has_sertifikat',
+        'file_surat_draft_path',
+        'file_surat_draft_uploaded_by',
+        'file_surat_draft_uploaded_at',
+        'file_surat_final_path',
+        'file_surat_final_uploaded_by',
+        'file_surat_final_uploaded_at',
         'status_pelaksanaan',
         'syarat_kehadiran_persen',
         'syarat_tugas_persen',
@@ -42,6 +49,8 @@ class Bimtek extends Model
         'daftar_pemateri' => 'array',
         'butuh_verifikasi_dokumen' => 'boolean',
         'jenis_dokumen_wajib' => 'array',
+        'has_tugas' => 'boolean',
+        'has_sertifikat' => 'boolean',
     ];
 
     /**
@@ -69,6 +78,22 @@ class Bimtek extends Model
     public function pic(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pic_user_id');
+    }
+
+    /**
+     * Get the user who uploaded the surat draft (PIC/Panitia).
+     */
+    public function draftUploader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'file_surat_draft_uploaded_by');
+    }
+
+    /**
+     * Get the user who uploaded the surat final (Persuratan).
+     */
+    public function finalUploader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'file_surat_final_uploaded_by');
     }
 
     /**

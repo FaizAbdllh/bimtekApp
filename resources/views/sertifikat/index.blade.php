@@ -177,7 +177,7 @@
             @endif
 
             {{-- Generate Sertifikat Form (For PIC/Panitia) --}}
-            @if($canManage)
+            @if($canManage && $bimtek->has_sertifikat)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
                     <div class="p-6 border-b border-gray-100">
                         <h3 class="text-lg font-semibold text-gray-900">Generate Sertifikat</h3>

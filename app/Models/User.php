@@ -198,6 +198,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is Persuratan.
+     */
+    public function isPersuratan(): bool
+    {
+        return $this->hasRole('Persuratan');
+    }
+
+    /**
      * Check if user is Pegawai Internal.
      */
     public function isPegawaiInternal(): bool

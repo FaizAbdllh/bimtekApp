@@ -244,7 +244,6 @@ class LaporanController extends Controller
         ]);
 
         $bimtek = Bimtek::with([
-            'pengajuan.kebutuhanAnggarans',
             'pengajuan.fasilitasLogistiks',
             'users',
             'materis',

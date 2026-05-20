@@ -32,6 +32,11 @@ class KebutuhanAnggaran extends Model
         'approved_at',
     ];
 
+    protected $appends = [
+        'satuan_primary',
+        'satuan_secondary',
+    ];
+
     protected $casts = [
         'harga_satuan' => 'decimal:2',
         'harga_satuan_sbm' => 'decimal:2',
@@ -46,6 +51,38 @@ class KebutuhanAnggaran extends Model
     public function pengajuan(): BelongsTo
     {
         return $this->belongsTo(Pengajuan::class);
+    }
+
+    /**
+     * Accessor untuk satuan_primary (alias dari satuan_1)
+     */
+    public function getSatuanPrimaryAttribute()
+    {
+        return $this->satuan_1;
+    }
+
+    /**
+     * Mutator untuk satuan_primary
+     */
+    public function setSatuanPrimaryAttribute($value)
+    {
+        $this->satuan_1 = $value;
+    }
+
+    /**
+     * Accessor untuk satuan_secondary (alias dari satuan_2)
+     */
+    public function getSatuanSecondaryAttribute()
+    {
+        return $this->satuan_2;
+    }
+
+    /**
+     * Mutator untuk satuan_secondary
+     */
+    public function setSatuanSecondaryAttribute($value)
+    {
+        $this->satuan_2 = $value;
     }
 
     /**

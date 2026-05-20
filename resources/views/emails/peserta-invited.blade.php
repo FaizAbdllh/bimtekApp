@@ -143,7 +143,7 @@
             Bimtek ini memerlukan verifikasi dokumen sebelum Anda dapat mengikuti kegiatan. Silakan upload dokumen yang diperlukan melalui link di bawah ini.
         </div>
 
-        @if($bimtek->file_surat_undangan_path)
+        @if($bimtek->file_surat_final_path || $bimtek->file_surat_draft_path)
         <div class="alert" style="background: #dcfce7; border-left-color: #16a34a; color: #14532d;">
             <strong>📎 Surat Undangan Terlampir</strong><br>
             Surat undangan resmi bimtek terlampir pada email ini dalam format PDF (satu file per bimtek).

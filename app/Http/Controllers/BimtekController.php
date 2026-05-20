@@ -107,7 +107,6 @@ class BimtekController extends Controller
         // Full view for PIC, Panitia, Admin, etc.
         $bimtek->load([
             'pengajuan.user',
-            'pengajuan.kebutuhanAnggarans',
             'pengajuan.fasilitasLogistiks',
             'pic',
             'panitia',
@@ -180,6 +179,8 @@ class BimtekController extends Controller
             'anggaran_disetujui' => 'nullable|numeric|min:0',
             'syarat_kehadiran_persen' => 'nullable|integer|min:0|max:100',
             'syarat_tugas_persen' => 'nullable|integer|min:0|max:100',
+            'has_tugas' => 'boolean',
+            'has_sertifikat' => 'boolean',
             'syarat_tugas_wajib' => 'boolean',
             'daftar_pemateri' => 'nullable|array',
             'daftar_pemateri.*.nama' => 'nullable|string|max:255',
@@ -187,6 +188,8 @@ class BimtekController extends Controller
         ]);
 
         $validated['syarat_tugas_wajib'] = $request->boolean('syarat_tugas_wajib');
+        $validated['has_tugas'] = $request->boolean('has_tugas');
+        $validated['has_sertifikat'] = $request->boolean('has_sertifikat');
 
         // Status pelaksanaan wajib melalui endpoint workflow agar transisi tervalidasi.
         if (($validated['status_pelaksanaan'] ?? $bimtek->status_pelaksanaan) !== $bimtek->status_pelaksanaan) {
@@ -343,6 +346,18 @@ class BimtekController extends Controller
             return back()->with('error', 'User sudah menjadi Panitia di bimtek ini.');
         }
 
+        // Enforce panitia cap: max 10% dari jumlah peserta yang diajukan (minimal 1)
+        $jumlahPeserta = $bimtek->pengajuan?->jumlah_peserta ?? null;
+        if (empty($jumlahPeserta)) {
+            return back()->with('error', 'Mohon isi Estimasi Jumlah Peserta di Pengajuan terlebih dahulu sebelum menambahkan Panitia.');
+        }
+
+        $maxPanitia = max(1, (int) ceil($jumlahPeserta * 0.10));
+        $currentPanitia = $bimtek->panitia()->count();
+        if ($currentPanitia >= $maxPanitia) {
+            return back()->with('error', "Jumlah Panitia sudah mencapai batas maksimum ({$maxPanitia}) berdasarkan estimasi peserta.");
+        }
+
         // Remove from other roles if exists, then add as Panitia
         $bimtek->users()->detach($validated['user_id']);
         $bimtek->users()->attach($validated['user_id'], [
@@ -429,9 +444,9 @@ class BimtekController extends Controller
     }
 
     /**
-     * Upload surat undangan.
+     * Upload surat draft (oleh PIC/Panitia).
      */
-    public function uploadUndangan(Request $request, Bimtek $bimtek): RedirectResponse
+    public function uploadDraft(Request $request, Bimtek $bimtek): RedirectResponse
     {
         $this->authorizePicPanitia($bimtek);
 
@@ -440,52 +455,121 @@ class BimtekController extends Controller
             return $statusLockResponse;
         }
 
+        $user = Auth::user();
         $validated = $request->validate([
-            'surat_undangan' => 'required|file|mimes:pdf|max:5120',
+            'surat_draft' => 'required|file|mimes:pdf|max:5120',
         ]);
 
-        // Delete old file if exists
-        if ($bimtek->file_surat_undangan_path) {
-            Storage::disk('public')->delete($bimtek->file_surat_undangan_path);
+        // Delete old draft if exists
+        if ($bimtek->file_surat_draft_path) {
+            Storage::disk('public')->delete($bimtek->file_surat_draft_path);
         }
 
-        $path = $request->file('surat_undangan')->store('surat-undangan', 'public');
-        $bimtek->update(['file_surat_undangan_path' => $path]);
+        $path = $request->file('surat_draft')->store('surat-draft', 'public');
+        $bimtek->update([
+            'file_surat_draft_path' => $path,
+            'file_surat_draft_uploaded_by' => $user ? $user->id : null,
+            'file_surat_draft_uploaded_at' => now(),
+        ]);
 
-        return back()->with('success', 'Surat undangan berhasil diupload.');
+        return back()->with('success', 'Draft surat undangan berhasil diupload.');
     }
 
     /**
-     * Preview surat undangan (inline PDF view).
+     * Upload surat final (oleh Persuratan).
      */
-    public function previewUndangan(Bimtek $bimtek)
+    public function uploadFinal(Request $request, Bimtek $bimtek): RedirectResponse
+    {
+        // Only Persuratan can upload final
+        if (!Auth::user()->isPersuratan()) {
+            abort(403, 'Hanya Bagian Persuratan yang dapat mengunggah surat final.');
+        }
+
+        $user = Auth::user();
+        $validated = $request->validate([
+            'surat_final' => 'required|file|mimes:pdf|max:5120',
+        ]);
+
+        // Delete old final if exists
+        if ($bimtek->file_surat_final_path) {
+            Storage::disk('public')->delete($bimtek->file_surat_final_path);
+        }
+
+        $path = $request->file('surat_final')->store('surat-final', 'public');
+        $bimtek->update([
+            'file_surat_final_path' => $path,
+            'file_surat_final_uploaded_by' => $user ? $user->id : null,
+            'file_surat_final_uploaded_at' => now(),
+        ]);
+
+        return back()->with('success', 'Surat undangan final berhasil diupload oleh Bagian Persuratan.');
+    }
+
+    /**
+     * Preview surat draft (inline PDF view).
+     */
+    public function previewDraft(Bimtek $bimtek)
     {
         $this->authorizeAccess($bimtek);
 
-        if (!$bimtek->file_surat_undangan_path || !Storage::disk('public')->exists($bimtek->file_surat_undangan_path)) {
-            return back()->with('error', 'File surat undangan tidak ditemukan.');
+        if (!$bimtek->file_surat_draft_path || !Storage::disk('public')->exists($bimtek->file_surat_draft_path)) {
+            return back()->with('error', 'File surat draft tidak ditemukan.');
         }
 
-        return response()->file(Storage::disk('public')->path($bimtek->file_surat_undangan_path), [
+        return response()->file(Storage::disk('public')->path($bimtek->file_surat_draft_path), [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="Surat Undangan - ' . $bimtek->judul_final . '.pdf"'
+            'Content-Disposition' => 'inline; filename="Surat Undangan Draft - ' . $bimtek->judul_final . '.pdf"'
         ]);
     }
 
     /**
-     * Download surat undangan.
+     * Download surat draft.
      */
-    public function downloadUndangan(Bimtek $bimtek)
+    public function downloadDraft(Bimtek $bimtek)
     {
         $this->authorizeAccess($bimtek);
 
-        if (!$bimtek->file_surat_undangan_path || !Storage::disk('public')->exists($bimtek->file_surat_undangan_path)) {
-            return back()->with('error', 'File surat undangan tidak ditemukan.');
+        if (!$bimtek->file_surat_draft_path || !Storage::disk('public')->exists($bimtek->file_surat_draft_path)) {
+            return back()->with('error', 'File surat draft tidak ditemukan.');
         }
 
         return Storage::disk('public')->download(
-            $bimtek->file_surat_undangan_path, 
-            'Surat Undangan - ' . $bimtek->judul_final . '.pdf'
+            $bimtek->file_surat_draft_path, 
+            'Surat Undangan Draft - ' . $bimtek->judul_final . '.pdf'
+        );
+    }
+
+    /**
+     * Preview surat final (inline PDF view).
+     */
+    public function previewFinal(Bimtek $bimtek)
+    {
+        $this->authorizeAccess($bimtek);
+
+        if (!$bimtek->file_surat_final_path || !Storage::disk('public')->exists($bimtek->file_surat_final_path)) {
+            return back()->with('error', 'File surat final belum tersedia.');
+        }
+
+        return response()->file(Storage::disk('public')->path($bimtek->file_surat_final_path), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Surat Undangan Final - ' . $bimtek->judul_final . '.pdf"'
+        ]);
+    }
+
+    /**
+     * Download surat final.
+     */
+    public function downloadFinal(Bimtek $bimtek)
+    {
+        $this->authorizeAccess($bimtek);
+
+        if (!$bimtek->file_surat_final_path || !Storage::disk('public')->exists($bimtek->file_surat_final_path)) {
+            return back()->with('error', 'File surat final belum tersedia.');
+        }
+
+        return Storage::disk('public')->download(
+            $bimtek->file_surat_final_path, 
+            'Surat Undangan Final - ' . $bimtek->judul_final . '.pdf'
         );
     }
 
@@ -522,6 +606,19 @@ class BimtekController extends Controller
         // Check if user already in bimtek
         if ($bimtek->users()->where('user_id', $validated['user_id'])->exists()) {
             return back()->with('error', 'User sudah terdaftar di bimtek ini.');
+        }
+
+        // If adding as Panitia, enforce cap based on jumlah_peserta
+        if (($validated['peran_kontekstual'] ?? '') === 'panitia') {
+            $jumlahPeserta = $bimtek->pengajuan?->jumlah_peserta ?? null;
+            if (empty($jumlahPeserta)) {
+                return back()->with('error', 'Mohon isi Estimasi Jumlah Peserta di Pengajuan terlebih dahulu sebelum menambahkan Panitia.');
+            }
+            $maxPanitia = max(1, (int) ceil($jumlahPeserta * 0.10));
+            $currentPanitia = $bimtek->panitia()->count();
+            if ($currentPanitia >= $maxPanitia) {
+                return back()->with('error', "Jumlah Panitia sudah mencapai batas maksimum ({$maxPanitia}) berdasarkan estimasi peserta.");
+            }
         }
 
         $bimtek->users()->attach($validated['user_id'], [
@@ -577,8 +674,8 @@ class BimtekController extends Controller
     {
         $user = Auth::user();
 
-        // Admin IT, Kepala, PPK can see all
-        if ($user->isAdminIt() || $user->isKepala() || $user->isPpk()) {
+        // Admin IT, Kepala, PPK, dan Persuratan dapat melihat semua bimtek
+        if ($user->isAdminIt() || $user->isKepala() || $user->isPpk() || $user->isPersuratan()) {
             return;
         }
 

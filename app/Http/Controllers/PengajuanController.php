@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePengajuanRequest;
 use App\Http\Requests\UpdatePengajuanRequest;
 use App\Models\FasilitasLogistik;
-use App\Models\KebutuhanAnggaran;
 use App\Models\Pengajuan;
 use App\Models\SbmMaster;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +21,7 @@ class PengajuanController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $query = Pengajuan::with(['user', 'kebutuhanAnggarans']);
+        $query = Pengajuan::with(['user']);
 
         // Jika Pegawai Internal, hanya tampilkan pengajuan miliknya
         if ($user->isPegawaiInternal()) {
@@ -73,7 +72,7 @@ class PengajuanController extends Controller
     public function create(): View
     {
         $sbmMasters = SbmMaster::active()
-            ->tahunBerlaku(2025)
+            ->tahunBerlaku(2026)
             ->orderBy('kategori')
             ->orderBy('nama_item')
             ->get()
@@ -100,24 +99,25 @@ class PengajuanController extends Controller
 
             $pengajuan = Pengajuan::create($validated);
 
-            // Simpan kebutuhan anggaran
+            // Simpan rancangan anggaran biaya (RAB)
             if ($request->has('anggaran') && is_array($request->anggaran)) {
                 foreach ($request->anggaran as $item) {
-                    // Skip jika nama_item kosong
-                    if (empty($item['nama_item'])) {
+                    // Skip jika nama dan harga kosong
+                    if (empty($item['nama_item']) && !$item['total_biaya']) {
                         continue;
                     }
 
                     $pengajuan->kebutuhanAnggarans()->create([
                         'sbm_master_id' => $item['sbm_master_id'] ?? null,
-                        'nama_item' => $item['nama_item'],
-                        'volume_1' => $item['volume_1'] ?? 1,
-                        'satuan_primary' => $item['satuan_primary'] ?? '',
-                        'volume_2' => $item['volume_2'] ?? 1,
-                        'satuan_secondary' => $item['satuan_secondary'] ?? '',
-                        'harga_satuan' => $item['harga_satuan'] ?? 0,
-                        'harga_satuan_sbm' => $item['harga_satuan_sbm'] ?? null,
+                        'nama_item' => $item['nama_item'] ?? '',
                         'kategori' => $item['kategori'] ?? 'lainnya',
+                        'volume_1' => $item['volume_1'] ?? 0,
+                        'satuan_1' => $item['satuan_primary'] ?? '',
+                        'volume_2' => $item['volume_2'] ?? 0,
+                        'satuan_2' => $item['satuan_secondary'] ?? '',
+                        'harga_satuan' => $item['harga_satuan'] ?? 0,
+                        'harga_satuan_sbm' => $item['harga_satuan_sbm'] ?? 0,
+                        'total_biaya' => $item['total_biaya'] ?? 0,
                     ]);
                 }
             }
@@ -180,7 +180,7 @@ class PengajuanController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk melihat pengajuan ini.');
         }
 
-        $pengajuan->load(['user', 'kebutuhanAnggarans', 'fasilitasLogistiks', 'bimtek']);
+            $pengajuan->load(['user', 'fasilitasLogistiks', 'bimtek']);
 
         return view('pengajuan.show', compact('pengajuan'));
     }
@@ -204,7 +204,7 @@ class PengajuanController extends Controller
         }
 
         $sbmMasters = SbmMaster::active()
-            ->tahunBerlaku(2025)
+            ->tahunBerlaku(2026)
             ->orderBy('kategori')
             ->orderBy('nama_item')
             ->get()
@@ -257,26 +257,27 @@ class PengajuanController extends Controller
 
             $pengajuan->update($validated);
 
-            // Update kebutuhan anggaran - hapus yang lama dan simpan yang baru
+            // Update rancangan anggaran biaya (RAB) - hapus yang lama dan simpan yang baru
             if ($request->has('anggaran')) {
                 $pengajuan->kebutuhanAnggarans()->delete();
 
                 foreach ($request->anggaran as $item) {
-                    // Skip jika nama_item kosong
-                    if (empty($item['nama_item'])) {
+                    // Skip jika nama dan harga kosong
+                    if (empty($item['nama_item']) && !$item['total_biaya']) {
                         continue;
                     }
 
                     $pengajuan->kebutuhanAnggarans()->create([
                         'sbm_master_id' => $item['sbm_master_id'] ?? null,
-                        'nama_item' => $item['nama_item'],
-                        'volume_1' => $item['volume_1'] ?? 1,
-                        'satuan_primary' => $item['satuan_primary'] ?? '',
-                        'volume_2' => $item['volume_2'] ?? 1,
-                        'satuan_secondary' => $item['satuan_secondary'] ?? '',
-                        'harga_satuan' => $item['harga_satuan'] ?? 0,
-                        'harga_satuan_sbm' => $item['harga_satuan_sbm'] ?? null,
+                        'nama_item' => $item['nama_item'] ?? '',
                         'kategori' => $item['kategori'] ?? 'lainnya',
+                        'volume_1' => $item['volume_1'] ?? 0,
+                        'satuan_1' => $item['satuan_primary'] ?? '',
+                        'volume_2' => $item['volume_2'] ?? 0,
+                        'satuan_2' => $item['satuan_secondary'] ?? '',
+                        'harga_satuan' => $item['harga_satuan'] ?? 0,
+                        'harga_satuan_sbm' => $item['harga_satuan_sbm'] ?? 0,
+                        'total_biaya' => $item['total_biaya'] ?? 0,
                     ]);
                 }
             }

@@ -42,6 +42,8 @@ class DashboardController extends Controller
             $data = array_merge($data, $this->getPpkData());
         } elseif ($user->isRt()) {
             $data = array_merge($data, $this->getRtData());
+        } elseif ($user->isPersuratan()) {
+            $data = array_merge($data, $this->getPersuratanData());
         } elseif ($user->isPegawaiInternal()) {
             $data = array_merge($data, $this->getPegawaiInternalData($user));
         } elseif ($user->isPesertaEksternal()) {
@@ -162,6 +164,31 @@ class DashboardController extends Controller
             'bimtekAktif' => $bimtekData
                 ->where('status_pelaksanaan', 'berlangsung')
                 ->take(5),
+        ];
+    }
+
+    /**
+     * Dashboard data untuk Peserta Eksternal
+     */
+    protected function getPersuratanData(): array
+    {
+        return [
+            'bimtekMenungguFinal' => Bimtek::whereNotNull('file_surat_draft_path')
+                ->whereNull('file_surat_final_path')
+                ->count(),
+            'bimtekSuratSelesai' => Bimtek::whereNotNull('file_surat_final_path')
+                ->count(),
+            'recentBimtekMenunggu' => Bimtek::whereNotNull('file_surat_draft_path')
+                ->whereNull('file_surat_final_path')
+                ->with(['draftUploader', 'pic'])
+                ->latest('file_surat_draft_uploaded_at')
+                ->take(5)
+                ->get(),
+            'recentBimtekSelesai' => Bimtek::whereNotNull('file_surat_final_path')
+                ->with(['finalUploader', 'pic'])
+                ->latest('file_surat_final_uploaded_at')
+                ->take(5)
+                ->get(),
         ];
     }
 

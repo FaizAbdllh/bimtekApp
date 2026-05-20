@@ -24,6 +24,7 @@ class SertifikatController extends Controller
      */
     public function index(Bimtek $bimtek): View
     {
+        $this->ensureHasSertifikat($bimtek);
         $this->authorizeAccess($bimtek);
 
         $bimtek->load([
@@ -74,6 +75,7 @@ class SertifikatController extends Controller
      */
     public function generate(Request $request, Bimtek $bimtek): RedirectResponse
     {
+        $this->ensureHasSertifikat($bimtek);
         $this->authorizeManage($bimtek);
 
         $validated = $request->validate([
@@ -162,6 +164,7 @@ class SertifikatController extends Controller
      */
     public function download(Bimtek $bimtek, Sertifikat $sertifikat): BinaryFileResponse
     {
+        $this->ensureHasSertifikat($bimtek);
         $this->authorizeAccess($bimtek);
 
         // Check ownership
@@ -199,6 +202,7 @@ class SertifikatController extends Controller
      */
     public function preview(Bimtek $bimtek, Sertifikat $sertifikat)
     {
+        $this->ensureHasSertifikat($bimtek);
         $this->authorizeAccess($bimtek);
 
         // Check ownership
@@ -229,6 +233,7 @@ class SertifikatController extends Controller
      */
     public function destroy(Bimtek $bimtek, Sertifikat $sertifikat): RedirectResponse
     {
+        $this->ensureHasSertifikat($bimtek);
         $this->authorizeManage($bimtek);
 
         if ($sertifikat->bimtek_id !== $bimtek->id) {
@@ -376,6 +381,16 @@ class SertifikatController extends Controller
     {
         return $e->getCode() === '23000'
             && str_contains($e->getMessage(), 'sertifikats_nomor_sertifikat_unique');
+    }
+
+    /**
+     * Abort if bimtek has sertifikat disabled.
+     */
+    private function ensureHasSertifikat(Bimtek $bimtek): void
+    {
+        if (!$bimtek->has_sertifikat) {
+            abort(404, 'Fitur Sertifikat dinonaktifkan untuk bimtek ini.');
+        }
     }
 
     /**

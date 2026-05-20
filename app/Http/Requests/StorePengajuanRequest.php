@@ -44,6 +44,7 @@ class StorePengajuanRequest extends FormRequest
             'tanggal_mulai_rencana' => [$isDraft ? 'nullable' : 'required', 'date', $isDraft ? null : 'after_or_equal:today'],
             'tanggal_selesai_rencana' => [$isDraft ? 'nullable' : 'required', 'date', 'after_or_equal:tanggal_mulai_rencana'],
             'deskripsi_rencana' => [$isDraft ? 'nullable' : 'required', 'string', 'max:5000'],
+            'jumlah_peserta' => ['nullable', 'integer', 'min:1'],
             'jenis_kegiatan' => [$isDraft ? 'nullable' : 'required', 'in:internal,eksternal'],
             'catatan_logistik' => ['nullable', 'string', 'max:5000'],
         ];
@@ -71,6 +72,7 @@ class StorePengajuanRequest extends FormRequest
     {
         return [
             'judul_rencana' => 'judul kegiatan',
+            'jumlah_peserta' => 'jumlah peserta',
             'tempat_kegiatan' => 'tempat kegiatan',
             'sumber_pembiayaan' => 'sumber pembiayaan',
             'tanggal_mulai_rencana' => 'tanggal mulai',
@@ -90,6 +92,8 @@ class StorePengajuanRequest extends FormRequest
     {
         return [
             'judul_rencana.required' => 'Judul kegiatan wajib diisi.',
+            'jumlah_peserta.integer' => 'Jumlah peserta harus berupa angka.',
+            'jumlah_peserta.min' => 'Jumlah peserta minimal :min orang.',
             'tempat_kegiatan.required' => 'Tempat kegiatan wajib diisi.',
             'sumber_pembiayaan.required' => 'Sumber pembiayaan wajib diisi.',
             'tanggal_mulai_rencana.required' => 'Tanggal mulai wajib diisi.',

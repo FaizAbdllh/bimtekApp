@@ -32,6 +32,8 @@
         @include('dashboard.partials.ppk')
     @elseif($user->isRt())
         @include('dashboard.partials.koordinator-rt')
+    @elseif($user->isPersuratan())
+        @include('dashboard.partials.persuratan')
     @elseif($user->isPegawaiInternal())
         @include('dashboard.partials.pegawai-internal')
     @elseif($user->isPesertaEksternal())

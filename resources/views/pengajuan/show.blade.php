@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- Breadcrumb --}}
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -148,133 +148,67 @@
                             </span>
                         </div>
                         <div class="p-4 bg-white rounded-xl border border-gray-200">
+                            @if($pengajuan->kebutuhanAnggarans->count() > 0)
                             <p class="text-sm text-gray-700">
-                                @if($pengajuan->butuh_verifikasi_dokumen)
-                                    Peserta wajib mengunggah dan memverifikasi dokumen persyaratan sebelum dapat mengikuti absensi, tugas, dan sertifikat.
-                                @else
-                                    Verifikasi dokumen tidak diperlukan untuk pengajuan ini.
-                                @endif
-                            </p>
-                            @if($pengajuan->butuh_verifikasi_dokumen && $pengajuan->jenis_dokumen_wajib)
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    @foreach($pengajuan->jenis_dokumen_wajib as $jenisDokumen)
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 border border-gray-200 text-gray-700">
-                                            {{ $jenisDokumen }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                    </div>
+                                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h4 class="text-sm font-semibold text-gray-700">Rincian RAB pada Pengajuan</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Pengajuan ini memuat rincian RAB dan fasilitas untuk ditelaah pada tahap persetujuan.</p>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-xl border border-dashed border-gray-300 bg-white p-5 text-sm text-gray-600">
+                                        RAB detail telah diinput pada pengajuan dan dapat digunakan sebagai dasar telaah serta persetujuan.
+                                    </div>
 
-                    {{-- Rincian Kebutuhan Anggaran --}}
-                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h4 class="text-sm font-semibold text-gray-700">Rincian Kebutuhan Anggaran (RAB)</h4>
-                                <p class="text-xs text-gray-500 mt-1">Daftar kebutuhan, validasi SBM, dan total anggaran.</p>
-                            </div>
-                            <span class="text-xs font-medium text-primary-700 bg-primary-100 px-3 py-1 rounded-full">Total Rp {{ number_format($pengajuan->total_anggaran, 0, ',', '.') }}</span>
-                        </div>
-                        @if($pengajuan->kebutuhanAnggarans->count() > 0)
-                            <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-                                <table class="min-w-full divide-y divide-gray-200 text-xs">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left font-medium text-gray-600 uppercase">No</th>
-                                            <th class="px-3 py-2 text-left font-medium text-gray-600 uppercase">Uraian Kebutuhan</th>
-                                            <th class="px-3 py-2 text-center font-medium text-gray-600 uppercase">Volume</th>
-                                            <th class="px-3 py-2 text-right font-medium text-gray-600 uppercase">Harga Satuan</th>
-                                            <th class="px-3 py-2 text-right font-medium text-gray-600 uppercase">Total</th>
-                                            <th class="px-3 py-2 text-center font-medium text-gray-600 uppercase">Status SBM</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($pengajuan->kebutuhanAnggarans as $index => $item)
-                                        <tr>
-                                            <td class="px-3 py-2 text-gray-900">{{ $index + 1 }}</td>
-                                            <td class="px-3 py-2 text-gray-900">
-                                                <div class="font-medium">{{ $item->nama_item }}</div>
-                                                <div class="text-gray-500 mt-1">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
-                                                        @switch($item->kategori)
-                                                            @case('honor') bg-purple-100 text-purple-800 @break
-                                                            @case('transportasi') bg-blue-100 text-blue-800 @break
-                                                            @case('akomodasi') bg-indigo-100 text-indigo-800 @break
-                                                            @case('konsumsi') bg-yellow-100 text-yellow-800 @break
-                                                            @case('atk') bg-green-100 text-green-800 @break
-                                                            @case('sewa') bg-pink-100 text-pink-800 @break
-                                                            @default bg-gray-100 text-gray-800
-                                                        @endswitch
-                                                    ">
-                                                        {{ ucfirst($item->kategori) }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="px-3 py-2 text-gray-900 text-center">
-                                                <div class="text-sm">
-                                                    {{ $item->volume_1 }} {{ $item->satuan_primary }}
-                                                    @if($item->volume_2 > 1 || $item->satuan_secondary)
-                                                        × {{ $item->volume_2 }} {{ $item->satuan_secondary }}
-                                                    @endif
-                                                </div>
-                                            </td>
-                                            <td class="px-3 py-2 text-gray-900 text-right">
-                                                Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
-                                                @if($item->harga_satuan_sbm && $item->harga_satuan != $item->harga_satuan_sbm)
-                                                    <div class="text-xs text-gray-500 mt-1">
-                                                        SBM: Rp {{ number_format($item->harga_satuan_sbm, 0, ',', '.') }}
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td class="px-3 py-2 font-medium text-gray-900 text-right">
-                                                Rp {{ number_format($item->total_biaya, 0, ',', '.') }}
-                                            </td>
-                                            <td class="px-3 py-2 text-center">
-                                                @if($item->status_validasi)
-                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                                        @switch($item->status_validasi)
-                                                            @case('sesuai_sbm') bg-green-100 text-green-800 @break
-                                                            @case('deviasi_minor') bg-blue-100 text-blue-800 @break
-                                                            @case('deviasi_major') bg-yellow-100 text-yellow-800 @break
-                                                            @case('deviasi_signifikan') bg-orange-100 text-orange-800 @break
-                                                            @case('non_sbm') bg-gray-100 text-gray-800 @break
-                                                            @default bg-gray-100 text-gray-800
-                                                        @endswitch
-                                                    ">
-                                                        @switch($item->status_validasi)
-                                                            @case('sesuai_sbm') ✓ Sesuai SBM @break
-                                                            @case('deviasi_minor') Deviasi Minor @break
-                                                            @case('deviasi_major') ⚠ Deviasi Major @break
-                                                            @case('deviasi_signifikan') ⚠ Deviasi Signifikan @break
-                                                            @case('non_sbm') Non-SBM @break
-                                                            @default - @break
-                                                        @endswitch
-                                                        @if($item->persentase_deviasi)
-                                                            <span class="ml-1">({{ number_format($item->persentase_deviasi, 1) }}%)</span>
-                                                        @endif
-                                                    </span>
-                                                    @if($item->justifikasi_deviasi)
-                                                        <div class="text-xs text-gray-600 mt-1 text-left">
-                                                            <strong>Justifikasi:</strong> {{ $item->justifikasi_deviasi }}
-                                                        </div>
-                                                    @endif
-                                                @else
-                                                    <span class="text-gray-400">-</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <tfoot class="bg-gray-100">
-                                        <tr>
-                                            <td colspan="4" class="px-3 py-3 font-bold text-gray-900 text-right">Total Anggaran</td>
-                                            <td class="px-3 py-3 font-bold text-primary-700 text-right">Rp {{ number_format($pengajuan->total_anggaran, 0, ',', '.') }}</td>
-                                            <td></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                    {{-- Detail RAB Table --}}
+                                    <div class="mt-6 overflow-hidden">
+                                        <table class="w-full text-sm">
+                                            <thead>
+                                                <tr class="border-b-2 border-gray-200 bg-gray-50">
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">#</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">Nama Item</th>
+                                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700">Vol 1</th>
+                                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700">Satuan 1</th>
+                                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700">Vol 2</th>
+                                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700">Satuan 2</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700">Harga Satuan</th>
+                                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700">Total Biaya</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200">
+                                                @foreach($pengajuan->kebutuhanAnggarans as $index => $item)
+                                                <tr class="hover:bg-gray-50 transition">
+                                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $index + 1 }}</td>
+                                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ $item->nama_item }}</td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-700">{{ $item->volume_1 }}</td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-700">{{ $item->satuan_primary }}</td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-700">{{ $item->volume_2 ?? '-' }}</td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-700">{{ $item->satuan_secondary ?? '-' }}</td>
+                                                    <td class="px-4 py-3 text-right text-sm text-gray-900">
+                                                        <span class="whitespace-nowrap">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                                                        <span class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</span>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {{-- Total RAB --}}
+                                    <div class="mt-4 border-t pt-4 flex justify-end">
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-600 mb-1">Total Anggaran:</p>
+                                            <p class="text-2xl font-bold text-primary-600">
+                                                Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya'), 0, ',', '.') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                </div>
 
                             {{-- Summary by Category --}}
                             <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -120,21 +120,25 @@
                                 class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition">
                             Materi
                         </button>
-                        <button @click="activeTab = 'tugas'" 
-                                :class="activeTab === 'tugas' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition">
-                            Tugas
-                        </button>
+                        @if($bimtek->has_tugas)
+                            <button @click="activeTab = 'tugas'" 
+                                    :class="activeTab === 'tugas' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition">
+                                Tugas
+                            </button>
+                        @endif
                         <button @click="activeTab = 'absensi'" 
                                 :class="activeTab === 'absensi' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition">
                             Absensi
                         </button>
-                        <button @click="activeTab = 'sertifikat'" 
-                                :class="activeTab === 'sertifikat' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition">
-                            Sertifikat
-                        </button>
+                        @if($bimtek->has_sertifikat)
+                            <button @click="activeTab = 'sertifikat'" 
+                                    :class="activeTab === 'sertifikat' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition">
+                                Sertifikat
+                            </button>
+                        @endif
                     </nav>
                 </div>
 
@@ -223,7 +227,8 @@
                 </div>
 
                 {{-- Tab Content - Tugas --}}
-                <div class="p-6" x-show="activeTab === 'tugas'">
+                @if($bimtek->has_tugas)
+                    <div class="p-6" x-show="activeTab === 'tugas'">
                     @if(!$isVerified && $bimtek->butuh_verifikasi_dokumen)
                         <div class="text-center py-12">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
@@ -300,7 +305,8 @@
                             </div>
                         @endif
                     @endif
-                </div>
+                    </div>
+                @endif
 
                 {{-- Tab Content - Absensi --}}
                 <div class="p-6" x-show="activeTab === 'absensi'">
@@ -374,7 +380,8 @@
                 </div>
 
                 {{-- Tab Content - Sertifikat --}}
-                <div class="p-6" x-show="activeTab === 'sertifikat'">
+                @if($bimtek->has_sertifikat)
+                    <div class="p-6" x-show="activeTab === 'sertifikat'">
                     @if(!$isVerified && $bimtek->butuh_verifikasi_dokumen)
                         <div class="text-center py-12">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
@@ -441,7 +448,8 @@
                             </div>
                         @endif
                     @endif
-                </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
