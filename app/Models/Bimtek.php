@@ -19,9 +19,11 @@ class Bimtek extends Model
         'pengajuan_id',
         'pic_user_id',
         'judul_final',
+        'mode_pelaksanaan',
         'tanggal_mulai_aktual',
         'tanggal_selesai_aktual',
         'lokasi_aktual',
+        'virtual_meeting_url',
         'anggaran_disetujui',
         'deskripsi_jadwal',
         'daftar_pemateri',
@@ -42,6 +44,7 @@ class Bimtek extends Model
     ];
 
     protected $casts = [
+        'mode_pelaksanaan' => 'string',
         'tanggal_mulai_aktual' => 'date',
         'tanggal_selesai_aktual' => 'date',
         'anggaran_disetujui' => 'decimal:2',
@@ -254,6 +257,42 @@ class Bimtek extends Model
     public function getLokasiFinalAttribute(): ?string
     {
         return $this->lokasi_aktual ?? $this->pengajuan?->lokasi;
+    }
+
+    /**
+     * Get mode pelaksanaan label.
+     */
+    public function getModePelaksanaanLabelAttribute(): string
+    {
+        return match ($this->pengajuan?->mode_pelaksanaan ?? $this->mode_pelaksanaan ?? 'offline') {
+            'online' => 'Online',
+            'hybrid' => 'Hybrid',
+            default => 'Offline',
+        };
+    }
+
+    /**
+     * Get mode pelaksanaan code.
+     */
+    public function getModePelaksanaanCodeAttribute(): string
+    {
+        return $this->pengajuan?->mode_pelaksanaan ?? $this->mode_pelaksanaan ?? 'offline';
+    }
+
+    /**
+     * Check if mode is online-only.
+     */
+    public function isOnlineOnlyMode(): bool
+    {
+        return $this->mode_pelaksanaan_code === 'online';
+    }
+
+    /**
+     * Check if mode includes online.
+     */
+    public function supportsOnlineAttendance(): bool
+    {
+        return in_array($this->mode_pelaksanaan_code, ['online', 'hybrid'], true);
     }
 
     /**

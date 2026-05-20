@@ -217,6 +217,7 @@ class ApprovalController extends Controller
             'pengajuan_id' => $pengajuan->id,
             'pic_user_id' => $pengajuan->user_id, // Pengaju otomatis jadi PIC
             'judul_final' => $pengajuan->judul_rencana,
+            'mode_pelaksanaan' => $pengajuan->mode_pelaksanaan ?? 'offline',
             'lokasi_aktual' => $pengajuan->tempat_kegiatan,
             'tanggal_mulai_aktual' => $pengajuan->tanggal_mulai_rencana,
             'tanggal_selesai_aktual' => $pengajuan->tanggal_selesai_rencana,

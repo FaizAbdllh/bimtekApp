@@ -72,6 +72,16 @@
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Mode Pelaksanaan</p>
+                    <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
+                        {{ $pengajuan->mode_pelaksanaan_label }}
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">
+                        {{ $pengajuan->mode_pelaksanaan === 'online' ? 'Pelaksanaan virtual dengan tautan rapat.' : ($pengajuan->mode_pelaksanaan === 'hybrid' ? 'Gabungan sesi luring dan daring.' : 'Pelaksanaan tatap muka di lokasi kegiatan.') }}
+                    </p>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 p-4">
                     <p class="text-xs uppercase tracking-wide text-gray-500">Verifikasi Peserta</p>
                     <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $verificationClass }}">
                         {{ $verificationLabel }}

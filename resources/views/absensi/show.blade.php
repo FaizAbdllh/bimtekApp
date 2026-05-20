@@ -20,6 +20,9 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            @php
+                $modePelaksanaan = $bimtek->mode_pelaksanaan_code;
+            @endphp
             {{-- Page Header with Actions --}}
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -234,7 +237,7 @@
                     </div>
 
                     {{-- QR Code Display (Only for PIC/Panitia) --}}
-                    @if($canManage)
+                    @if($canManage && $modePelaksanaan !== 'online')
                         <div class="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-sm border border-primary-200 p-6">
                             <div class="flex items-start gap-3 mb-4">
                                 <div class="flex-shrink-0">
@@ -275,6 +278,16 @@
                                 <p class="text-xs text-gray-500 mt-3 text-center">
                                     Klik tombol "Buka Sesi" di atas untuk mengaktifkan QR Code
                                 </p>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if($canManage && $modePelaksanaan === 'online')
+                        <div class="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Presensi Online</h3>
+                            <p class="text-sm text-gray-600">Mode online tidak menggunakan QR. Peserta melakukan presensi melalui tombol <span class="font-medium">Hadir Online</span>.</p>
+                            @if($bimtek->virtual_meeting_url)
+                                <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="mt-3 inline-flex items-center text-primary-600 hover:text-primary-700 font-medium text-sm">Buka Ruang Virtual</a>
                             @endif
                         </div>
                     @endif
@@ -334,17 +347,40 @@
                                             </div>
                                             <div class="flex-1">
                                                 <p class="font-semibold text-yellow-900 mb-1">Belum Hadir</p>
-                                                <p class="text-sm text-yellow-700">Scan QR Code untuk mencatat kehadiran Anda</p>
+                                                <p class="text-sm text-yellow-700">
+                                                    @if($modePelaksanaan === 'online')
+                                                        Klik tombol Hadir Online untuk mencatat kehadiran Anda
+                                                    @elseif($modePelaksanaan === 'hybrid')
+                                                        Anda dapat Scan QR Code di lokasi atau klik Hadir Online jika mengikuti secara virtual
+                                                    @else
+                                                        Scan QR Code untuk mencatat kehadiran Anda
+                                                    @endif
+                                                </p>
                                             </div>
                                         </div>
-                                        
-                                        {{-- Scan QR Button (Primary) --}}
-                                        <a href="{{ route('bimtek.absensi.scan-interface', [$bimtek, $sesi]) }}" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
-                                            </svg>
-                                            Scan QR Code
-                                        </a>
+
+                                        <div class="space-y-2">
+                                            @if(in_array($modePelaksanaan, ['offline', 'hybrid']))
+                                                <a href="{{ route('bimtek.absensi.scan-interface', [$bimtek, $sesi]) }}" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                                    </svg>
+                                                    Scan QR Code
+                                                </a>
+                                            @endif
+
+                                            @if(in_array($modePelaksanaan, ['online', 'hybrid']))
+                                                <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek, $sesi]) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14m-6 4h4a2 2 0 002-2V8a2 2 0 00-2-2H9a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                        </svg>
+                                                        Hadir Online
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     @else
                                         <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                                             <div class="flex-shrink-0">

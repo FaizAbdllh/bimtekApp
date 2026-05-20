@@ -175,6 +175,7 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/{bimtek}/absensi/{sesi}/qr', [AbsensiController::class, 'showQr'])->name('absensi.show-qr');
     Route::get('/{bimtek}/absensi/{sesi}/scan', [AbsensiController::class, 'scanInterface'])->name('absensi.scan-interface')->middleware('verified.peserta');
     Route::post('/{bimtek}/absensi/{sesi}/scan', [AbsensiController::class, 'scanQr'])->name('absensi.scan-qr')->middleware('verified.peserta');
+    Route::post('/{bimtek}/absensi/{sesi}/hadir-online', [AbsensiController::class, 'hadirOnline'])->name('absensi.hadir-online')->middleware('verified.peserta');
 
     // Sertifikat routes (protected by verification middleware)
     Route::get('/{bimtek}/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat.index');

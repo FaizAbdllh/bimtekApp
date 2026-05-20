@@ -41,6 +41,18 @@
 
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div>
+                                    <span class="text-gray-500">Mode Pelaksanaan:</span>
+                                    <span class="text-gray-900 font-medium block">{{ $bimtek->pengajuan?->mode_pelaksanaan_label ?? $bimtek->mode_pelaksanaan_label }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Tautan Virtual:</span>
+                                    @if($bimtek->virtual_meeting_url)
+                                        <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium block break-all">Buka Ruang Virtual</a>
+                                    @else
+                                        <span class="text-gray-900 font-medium block">-</span>
+                                    @endif
+                                </div>
+                                <div>
                                     <span class="text-gray-500">Lokasi:</span>
                                     <span class="text-gray-900 font-medium block">{{ $bimtek->lokasi_aktual ?? '-' }}</span>
                                 </div>

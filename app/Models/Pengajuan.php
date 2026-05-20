@@ -23,6 +23,7 @@ class Pengajuan extends Model
         'tanggal_mulai_rencana',
         'tanggal_selesai_rencana',
         'deskripsi_rencana',
+        'mode_pelaksanaan',
         'jumlah_peserta',
         'jenis_kegiatan',
         'status_pengajuan',
@@ -40,6 +41,7 @@ class Pengajuan extends Model
     protected $casts = [
         'tanggal_mulai_rencana' => 'date',
         'tanggal_selesai_rencana' => 'date',
+        'mode_pelaksanaan' => 'string',
         'jumlah_peserta' => 'integer',
         'is_draft' => 'boolean',
         'kepala_approved_at' => 'datetime',
@@ -101,5 +103,17 @@ class Pengajuan extends Model
     public function isEksternal(): bool
     {
         return $this->jenis_kegiatan === 'eksternal';
+    }
+
+    /**
+     * Get mode pelaksanaan label.
+     */
+    public function getModePelaksanaanLabelAttribute(): string
+    {
+        return match ($this->mode_pelaksanaan ?? 'offline') {
+            'online' => 'Online',
+            'hybrid' => 'Hybrid',
+            default => 'Offline',
+        };
     }
 }

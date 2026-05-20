@@ -44,6 +44,7 @@ class StorePengajuanRequest extends FormRequest
             'tanggal_mulai_rencana' => [$isDraft ? 'nullable' : 'required', 'date', $isDraft ? null : 'after_or_equal:today'],
             'tanggal_selesai_rencana' => [$isDraft ? 'nullable' : 'required', 'date', 'after_or_equal:tanggal_mulai_rencana'],
             'deskripsi_rencana' => [$isDraft ? 'nullable' : 'required', 'string', 'max:5000'],
+            'mode_pelaksanaan' => [$isDraft ? 'nullable' : 'required', 'in:offline,online,hybrid'],
             'jumlah_peserta' => ['nullable', 'integer', 'min:1'],
             'jenis_kegiatan' => [$isDraft ? 'nullable' : 'required', 'in:internal,eksternal'],
             'catatan_logistik' => ['nullable', 'string', 'max:5000'],
@@ -78,6 +79,7 @@ class StorePengajuanRequest extends FormRequest
             'tanggal_mulai_rencana' => 'tanggal mulai',
             'tanggal_selesai_rencana' => 'tanggal selesai',
             'deskripsi_rencana' => 'deskripsi kegiatan',
+            'mode_pelaksanaan' => 'mode pelaksanaan',
             'jenis_kegiatan' => 'jenis kegiatan',
             'catatan_logistik' => 'catatan logistik',
         ];
@@ -101,6 +103,8 @@ class StorePengajuanRequest extends FormRequest
             'tanggal_selesai_rencana.required' => 'Tanggal selesai wajib diisi.',
             'tanggal_selesai_rencana.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
             'deskripsi_rencana.required' => 'Deskripsi kegiatan wajib diisi.',
+            'mode_pelaksanaan.required' => 'Mode pelaksanaan wajib dipilih.',
+            'mode_pelaksanaan.in' => 'Mode pelaksanaan tidak valid.',
             'jenis_kegiatan.required' => 'Jenis kegiatan wajib dipilih.',
             'jenis_kegiatan.in' => 'Jenis kegiatan tidak valid.',
         ];

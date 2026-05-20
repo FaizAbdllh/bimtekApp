@@ -78,6 +78,18 @@
                                 @enderror
                             </div>
 
+                            <div class="md:col-span-2">
+                                <label for="virtual_meeting_url" class="block text-sm font-medium text-gray-700 mb-1">Tautan Pertemuan Virtual</label>
+                                <input type="url" name="virtual_meeting_url" id="virtual_meeting_url"
+                                    value="{{ old('virtual_meeting_url', $bimtek->virtual_meeting_url) }}"
+                                    placeholder="Contoh: https://meet.google.com/xxx-xxxx-xxx"
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('virtual_meeting_url') border-red-500 @enderror">
+                                @error('virtual_meeting_url')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                                <p class="text-xs text-gray-500 mt-1">Isi untuk bimtek online/hybrid agar peserta bisa mengakses ruang virtual dari halaman bimtek.</p>
+                            </div>
+
                             {{-- Anggaran Disetujui --}}
                             <div>
                                 <label for="anggaran_disetujui" class="block text-sm font-medium text-gray-700 mb-1">Anggaran Disetujui (Rp)</label>

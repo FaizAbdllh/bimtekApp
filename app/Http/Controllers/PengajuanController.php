@@ -96,6 +96,7 @@ class PengajuanController extends Controller
             $isDraft = $request->has('save_draft');
             $validated['is_draft'] = $isDraft;
             $validated['status_pengajuan'] = $isDraft ? 'draft' : 'diajukan';
+            $validated['mode_pelaksanaan'] = $validated['mode_pelaksanaan'] ?? 'offline';
 
             $pengajuan = Pengajuan::create($validated);
 
@@ -254,6 +255,8 @@ class PengajuanController extends Controller
             } elseif ($pengajuan->status_pengajuan === 'draft') {
                 $validated['status_pengajuan'] = 'diajukan';
             }
+
+            $validated['mode_pelaksanaan'] = $validated['mode_pelaksanaan'] ?? 'offline';
 
             $pengajuan->update($validated);
 

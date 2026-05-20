@@ -254,6 +254,22 @@
                             @enderror
                         </div>
 
+                        <div>
+                            <label for="mode_pelaksanaan" class="block text-sm font-medium text-gray-700">
+                                Mode Pelaksanaan <span class="text-red-500">*</span>
+                            </label>
+                            <select name="mode_pelaksanaan" id="mode_pelaksanaan" required
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('mode_pelaksanaan') border-red-500 @enderror">
+                                <option value="">Pilih Mode Pelaksanaan</option>
+                                <option value="offline" {{ old('mode_pelaksanaan') == 'offline' ? 'selected' : '' }}>Offline</option>
+                                <option value="online" {{ old('mode_pelaksanaan') == 'online' ? 'selected' : '' }}>Online</option>
+                                <option value="hybrid" {{ old('mode_pelaksanaan') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                            </select>
+                            @error('mode_pelaksanaan')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             {{-- Nama Kegiatan --}}
                             <div>

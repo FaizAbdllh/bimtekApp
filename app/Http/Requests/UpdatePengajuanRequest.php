@@ -46,6 +46,7 @@ class UpdatePengajuanRequest extends FormRequest
                 'tanggal_mulai_rencana' => ['nullable', 'date'],
                 'tanggal_selesai_rencana' => ['nullable', 'date', 'after_or_equal:tanggal_mulai_rencana'],
                 'deskripsi_rencana' => ['nullable', 'string', 'max:5000'],
+                'mode_pelaksanaan' => ['nullable', 'in:offline,online,hybrid'],
                 'jenis_kegiatan' => ['nullable', 'in:internal,eksternal'],
                 'catatan_logistik' => ['nullable', 'string', 'max:5000'],
                 'butuh_verifikasi_dokumen' => ['nullable', 'boolean'],
@@ -63,6 +64,7 @@ class UpdatePengajuanRequest extends FormRequest
             'tanggal_mulai_rencana' => ['required', 'date'],
             'tanggal_selesai_rencana' => ['required', 'date', 'after_or_equal:tanggal_mulai_rencana'],
             'deskripsi_rencana' => ['required', 'string', 'max:5000'],
+            'mode_pelaksanaan' => ['required', 'in:offline,online,hybrid'],
             'jenis_kegiatan' => ['required', 'in:internal,eksternal'],
             'catatan_logistik' => ['nullable', 'string', 'max:5000'],
             'butuh_verifikasi_dokumen' => ['nullable', 'boolean'],
@@ -92,6 +94,7 @@ class UpdatePengajuanRequest extends FormRequest
             'tanggal_mulai_rencana' => 'tanggal mulai',
             'tanggal_selesai_rencana' => 'tanggal selesai',
             'deskripsi_rencana' => 'deskripsi kegiatan',
+            'mode_pelaksanaan' => 'mode pelaksanaan',
             'jenis_kegiatan' => 'jenis kegiatan',
             'catatan_logistik' => 'catatan logistik',
         ];
@@ -114,6 +117,8 @@ class UpdatePengajuanRequest extends FormRequest
             'tanggal_selesai_rencana.required' => 'Tanggal selesai wajib diisi.',
             'tanggal_selesai_rencana.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
             'deskripsi_rencana.required' => 'Deskripsi kegiatan wajib diisi.',
+            'mode_pelaksanaan.required' => 'Mode pelaksanaan wajib dipilih.',
+            'mode_pelaksanaan.in' => 'Mode pelaksanaan tidak valid.',
             'jenis_kegiatan.required' => 'Jenis kegiatan wajib dipilih.',
             'jenis_kegiatan.in' => 'Jenis kegiatan tidak valid.',
         ];

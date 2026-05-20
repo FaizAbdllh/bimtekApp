@@ -172,6 +172,7 @@ class BimtekController extends Controller
         $validated = $request->validate([
             'judul_final' => 'required|string|max:255',
             'lokasi_aktual' => 'nullable|string|max:255',
+            'virtual_meeting_url' => 'nullable|url|max:500',
             'tanggal_mulai_aktual' => 'nullable|date',
             'tanggal_selesai_aktual' => 'nullable|date|after_or_equal:tanggal_mulai_aktual',
             'deskripsi_jadwal' => 'nullable|string',

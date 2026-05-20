@@ -20,6 +20,7 @@ return new class extends Migration
             $table->date('tanggal_mulai_rencana')->nullable();
             $table->date('tanggal_selesai_rencana')->nullable();
             $table->text('deskripsi_rencana')->nullable();
+            $table->enum('mode_pelaksanaan', ['offline', 'online', 'hybrid'])->default('offline');
             $table->enum('jenis_kegiatan', ['internal', 'eksternal'])->default('eksternal');
             $table->enum('status_pengajuan', [
                 'diajukan',

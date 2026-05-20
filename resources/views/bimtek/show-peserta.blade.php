@@ -36,6 +36,18 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
+                            <span class="text-gray-500">Mode Pelaksanaan:</span>
+                            <span class="text-gray-900 font-medium block">{{ $bimtek->pengajuan?->mode_pelaksanaan_label ?? $bimtek->mode_pelaksanaan_label }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Tautan Virtual:</span>
+                            @if($bimtek->virtual_meeting_url)
+                                <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium block break-all">Buka Ruang Virtual</a>
+                            @else
+                                <span class="text-gray-900 font-medium block">-</span>
+                            @endif
+                        </div>
+                        <div>
                             <span class="text-gray-500">Lokasi:</span>
                             <span class="text-gray-900 font-medium block">{{ $bimtek->lokasi_aktual ?? '-' }}</span>
                         </div>
@@ -310,6 +322,9 @@
 
                 {{-- Tab Content - Absensi --}}
                 <div class="p-6" x-show="activeTab === 'absensi'">
+                    @php
+                        $modePelaksanaan = $bimtek->mode_pelaksanaan_code;
+                    @endphp
                     @if(!$isVerified && $bimtek->butuh_verifikasi_dokumen)
                         <div class="text-center py-12">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
@@ -350,13 +365,25 @@
                                                 </svg>
                                             </a>
                                             @if($sesi->isOpen())
-                                                <a href="{{ route('bimtek.absensi.scan-interface', [$bimtek, $sesi]) }}"
-                                                   class="p-2 text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition"
-                                                   title="Scan">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3M14 7h3M7 17h3M14 17h3M5 3h4M15 3h4M5 21h4M15 21h4"/>
-                                                    </svg>
-                                                </a>
+                                                @if(in_array($modePelaksanaan, ['offline', 'hybrid']))
+                                                    <a href="{{ route('bimtek.absensi.scan-interface', [$bimtek, $sesi]) }}"
+                                                       class="p-2 text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition"
+                                                       title="Scan QR">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3M14 7h3M7 17h3M14 17h3M5 3h4M15 3h4M5 21h4M15 21h4"/>
+                                                        </svg>
+                                                    </a>
+                                                @endif
+                                                @if(in_array($modePelaksanaan, ['online', 'hybrid']))
+                                                    <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek, $sesi]) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="p-2 text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition" title="Hadir Online">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14m-6 4h4a2 2 0 002-2V8a2 2 0 00-2-2H9a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>

@@ -226,6 +226,10 @@ class AbsensiController extends Controller
             abort(404);
         }
 
+        if ($bimtek->isOnlineOnlyMode()) {
+            abort(404);
+        }
+
         // Generate QR only if it doesn't exist yet (first time opening session)
         // QR persists until session is closed
         if (!$sesi->qr_code) {
@@ -251,6 +255,12 @@ class AbsensiController extends Controller
             abort(404);
         }
 
+        if ($bimtek->isOnlineOnlyMode()) {
+            return redirect()
+                ->route('bimtek.absensi.show', [$bimtek, $sesi])
+                ->with('error', 'Bimtek mode online menggunakan presensi langsung. Silakan klik tombol Hadir Online.');
+        }
+
         // Check if already attended
         $hasAttended = AbsensiPeserta::where('sesi_absensi_id', $sesi->id)
             ->where('user_id', $user->id)
@@ -273,6 +283,12 @@ class AbsensiController extends Controller
 
         if ($sesi->bimtek_id !== $bimtek->id) {
             abort(404);
+        }
+
+        if ($bimtek->isOnlineOnlyMode()) {
+            return redirect()
+                ->route('bimtek.absensi.show', [$bimtek, $sesi])
+                ->with('error', 'Bimtek mode online tidak menggunakan scan QR. Gunakan tombol Hadir Online.');
         }
 
         $validated = $request->validate([
@@ -313,6 +329,59 @@ class AbsensiController extends Controller
         return redirect()
             ->route('bimtek.absensi.show', [$bimtek, $sesi])
             ->with('success', 'Kehadiran Anda berhasil dicatat melalui QR Code.');
+    }
+
+    /**
+     * Peserta attendance for online/hybrid sessions.
+     */
+    public function hadirOnline(Bimtek $bimtek, SesiAbsensi $sesi): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$this->isPeserta($bimtek)) {
+            abort(403, 'Anda bukan peserta bimtek ini.');
+        }
+
+        if ($sesi->bimtek_id !== $bimtek->id) {
+            abort(404);
+        }
+
+        if (!$bimtek->supportsOnlineAttendance()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Presensi online hanya tersedia untuk bimtek mode online atau hybrid.');
+        }
+
+        if ($bimtek->status_pelaksanaan !== 'berlangsung') {
+            return redirect()
+                ->back()
+                ->with('error', 'Absensi hanya dapat dilakukan saat bimtek sedang berlangsung.');
+        }
+
+        if (!$sesi->isOpen()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Sesi absensi masih ditutup. Silakan tunggu panitia membuka sesi.');
+        }
+
+        $exists = AbsensiPeserta::where('sesi_absensi_id', $sesi->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($exists) {
+            return redirect()
+                ->back()
+                ->with('info', 'Anda sudah tercatat hadir pada sesi ini.');
+        }
+
+        AbsensiPeserta::create([
+            'sesi_absensi_id' => $sesi->id,
+            'user_id' => $user->id,
+        ]);
+
+        return redirect()
+            ->route('bimtek.absensi.show', [$bimtek, $sesi])
+            ->with('success', 'Kehadiran Anda berhasil dicatat melalui presensi online.');
     }
 
 
