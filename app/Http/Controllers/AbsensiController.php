@@ -334,7 +334,7 @@ class AbsensiController extends Controller
     /**
      * Peserta attendance for online/hybrid sessions.
      */
-    public function hadirOnline(Bimtek $bimtek, SesiAbsensi $sesi): RedirectResponse
+    public function hadirOnline(Request $request, Bimtek $bimtek, SesiAbsensi $sesi): RedirectResponse
     {
         $user = Auth::user();
 
@@ -364,6 +364,15 @@ class AbsensiController extends Controller
                 ->with('error', 'Sesi absensi masih ditutup. Silakan tunggu panitia membuka sesi.');
         }
 
+        $validated = $request->validate([
+            'bukti_hadir_online' => 'required|image|mimes:jpg,jpeg,png|max:4096',
+        ], [
+            'bukti_hadir_online.required' => 'Screenshot kehadiran wajib diunggah untuk absensi online.',
+            'bukti_hadir_online.image' => 'File bukti harus berupa gambar.',
+            'bukti_hadir_online.mimes' => 'Format gambar bukti harus JPG, JPEG, atau PNG.',
+            'bukti_hadir_online.max' => 'Ukuran gambar bukti maksimal 4MB.',
+        ]);
+
         $exists = AbsensiPeserta::where('sesi_absensi_id', $sesi->id)
             ->where('user_id', $user->id)
             ->exists();
@@ -374,9 +383,12 @@ class AbsensiController extends Controller
                 ->with('info', 'Anda sudah tercatat hadir pada sesi ini.');
         }
 
+        $buktiPath = $validated['bukti_hadir_online']->store('absensi-bukti-online', 'public');
+
         AbsensiPeserta::create([
             'sesi_absensi_id' => $sesi->id,
             'user_id' => $user->id,
+            'bukti_hadir_online_path' => $buktiPath,
         ]);
 
         return redirect()

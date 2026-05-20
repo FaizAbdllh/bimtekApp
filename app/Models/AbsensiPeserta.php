@@ -16,6 +16,7 @@ class AbsensiPeserta extends Model
     protected $fillable = [
         'sesi_absensi_id',
         'user_id',
+        'bukti_hadir_online_path',
     ];
 
     /**

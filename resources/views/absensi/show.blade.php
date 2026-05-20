@@ -88,6 +88,7 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Peserta</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bukti Daring</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu Hadir</th>
                                             @if($canManage)
                                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -108,6 +109,15 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {{ $absensi->peserta->email ?? '-' }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    @if($absensi->bukti_hadir_online_path)
+                                                        <a href="{{ Storage::url($absensi->bukti_hadir_online_path) }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium">
+                                                            Lihat Bukti
+                                                        </a>
+                                                    @else
+                                                        -
+                                                    @endif
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {{ $absensi->created_at->format('d/m/Y H:i:s') }}
@@ -370,15 +380,18 @@
                                             @endif
 
                                             @if(in_array($modePelaksanaan, ['online', 'hybrid']))
-                                                <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek, $sesi]) }}" method="POST">
+                                                <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek, $sesi]) }}" method="POST" enctype="multipart/form-data" class="space-y-2">
                                                     @csrf
+                                                    <input type="file" name="bukti_hadir_online" accept="image/png,image/jpeg,image/jpg" required
+                                                           class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg file:mr-3 file:py-2 file:px-3 file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
                                                     <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14m-6 4h4a2 2 0 002-2V8a2 2 0 00-2-2H9a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                                         </svg>
-                                                        Hadir Online
+                                                        Hadir Online + Upload Bukti
                                                     </button>
                                                 </form>
+                                                <p class="text-xs text-gray-500">Upload screenshot kehadiran Anda di ruang virtual (format JPG/PNG, maks 4MB).</p>
                                             @endif
                                         </div>
                                     @else

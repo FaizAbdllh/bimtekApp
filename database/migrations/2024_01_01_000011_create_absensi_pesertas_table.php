@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('sesi_absensi_id')->constrained('sesi_absensis')->onDelete('cascade');
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('bukti_hadir_online_path')->nullable();
             $table->timestamps();
 
             // Satu user hanya bisa absen sekali per sesi
