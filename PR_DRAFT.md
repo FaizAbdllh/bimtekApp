@@ -57,3 +57,23 @@ Recommended Next Steps
 - Configure and run queue workers in production (Supervisor/Horizon) and ensure `QUEUE_CONNECTION` is set.
 
 If you want, I can open a GitHub Pull Request draft with this description and the branch `feature/revisi-bimtek`.
+
+QA & Staging Checklist
+----------------------
+
+Before merging to `main`, verify the following in a staging environment:
+
+- [ ] Set up staging `.env` (DB, MAIL, QUEUE_CONNECTION, APP_KEY).
+- [ ] Run `php artisan migrate --force` on staging.
+- [ ] Ensure queue worker is running (Supervisor/Horizon) and processes `ActivationTokenMail` jobs.
+- [ ] Generate per-participant token (panitia) and verify raw token delivered via AJAX and email.
+- [ ] Generate batch tokens (admin) and verify CSV contains raw tokens for secure distribution.
+- [ ] Test activation flow: visit `/activate/{token}`, complete registration, ensure `used_at` is set and subsequent use fails.
+- [ ] Test expired token behavior by setting `expires_at` in the past and verifying activation blocked.
+- [ ] Test revoke: revoke a token and confirm it cannot be used.
+- [ ] Export tokens CSV per `bimtek` and validate format and encoding.
+- [ ] Verify UI elements: invite link create/regenerate/copy, print modal, buttons disabled/enabled states.
+- [ ] Run full test suite in staging or CI and ensure green checks.
+
+Add any reviewer notes or known caveats here.
+
