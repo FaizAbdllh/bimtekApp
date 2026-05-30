@@ -1,5 +1,6 @@
 {{-- Sidebar --}}
 <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0">
+    @auth
     <div class="h-full flex flex-col bg-primary-600 text-white">
         {{-- Logo & Brand --}}
         <div class="flex items-center justify-center px-4 py-5 border-b border-primary-500">
@@ -165,4 +166,5 @@
             </div>
         </div>
     </div>
+    @endauth
 </aside>

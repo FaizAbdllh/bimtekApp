@@ -37,6 +37,33 @@
                                 
                             </div>
 
+                            {{-- Invite code for shared registration link (PIC/Panitia) --}}
+                            @if($canManage)
+                                <div class="mt-4 pt-4 border-t">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-gray-700 text-sm font-semibold">Link Pendaftaran (untuk disisipkan di Surat)</span>
+                                    </div>
+                                    @if($bimtek->invite_code)
+                                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                            <input id="invite-link" class="flex-1 border p-2 rounded" readonly value="{{ $bimtek->invite_link }}">
+                                            <button onclick="navigator.clipboard.writeText(document.getElementById('invite-link').value)" class="px-3 py-2 bg-blue-600 text-white rounded">Copy</button>
+                                            <form action="{{ route('bimtek.generate-invite', $bimtek) }}" method="post">
+                                                @csrf
+                                                <button class="px-3 py-2 bg-gray-200 text-gray-800 rounded">Regenerate</button>
+                                            </form>
+                                        </div>
+                                        <div class="mt-2">
+                                            <a href="{{ route('bimtek.activation-tokens.export', $bimtek) }}" class="inline-block mt-2 px-3 py-2 bg-green-600 text-white rounded">Export Tokens (CSV)</a>
+                                        </div>
+                                    @else
+                                        <form action="{{ route('bimtek.generate-invite', $bimtek) }}" method="post">
+                                            @csrf
+                                            <button class="px-3 py-2 bg-blue-600 text-white rounded">Buat Link Pendaftaran</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
+
                             <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ $bimtek->judul_final }}</h2>
 
                             @php

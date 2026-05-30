@@ -139,6 +139,52 @@ class BimtekController extends Controller
     }
 
     /**
+     * Generate invite code for a bimtek (PIC or Panitia only).
+     */
+    public function generateInviteCode(Bimtek $bimtek)
+    {
+        $this->authorizePicPanitia($bimtek);
+        if (!$bimtek->invite_code) {
+            $bimtek->invite_code = Str::upper(Str::random(8));
+            $bimtek->save();
+        }
+        return redirect()->route('bimtek.show', $bimtek)->with('success', 'Kode undangan berhasil dibuat. Silakan sisipkan link pada surat undangan.');
+    }
+
+    public function exportActivationTokens(Bimtek $bimtek)
+    {
+        $this->authorize('manage', $bimtek);
+
+        $tokens = \App\Models\ActivationToken::where('bimtek_id', $bimtek->id)
+            ->with('user')
+            ->get();
+
+        $filename = 'activation_tokens_bimtek_' . $bimtek->id . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=$filename",
+        ];
+
+        $callback = function () use ($tokens) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['user_id', 'email', 'token_hash', 'created_at', 'used_at']);
+            foreach ($tokens as $t) {
+                fputcsv($out, [
+                    $t->user_id,
+                    $t->user?->email,
+                    $t->token_hash,
+                    $t->created_at,
+                    $t->used_at,
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Show the form for editing the specified bimtek.
      */
     public function edit(Bimtek $bimtek): View

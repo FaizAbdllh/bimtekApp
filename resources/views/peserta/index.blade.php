@@ -204,6 +204,17 @@
                                         Hapus
                                     </button>
                                 </div>
+                                <div class="ml-2">
+                                    <button type="button"
+                                        x-data
+                                        @click="$dispatch('open-modal', 'generate-tokens')"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        Batch Generate Tokens
+                                    </button>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -278,6 +289,33 @@
                                                         </svg>
                                                     </button>
                                                 </form>
+                                                {{-- Revoke Token (if exists) --}}
+                                                @php
+                                                    $latestToken = \App\Models\ActivationToken::where('user_id', $peserta->id)
+                                                        ->where('bimtek_id', $bimtek->id)
+                                                        ->latest()
+                                                        ->first();
+                                                @endphp
+                                                @if($latestToken && ! $latestToken->used_at && ! $latestToken->revoked_at)
+                                                    <form action="{{ route('bimtek.activation-tokens.revoke', [$bimtek, $latestToken]) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-lg transition" title="Revoke Token" onclick="return confirm('Revoke token untuk {{ $peserta->name }}?')">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                {{-- Generate Token --}}
+                                                <button type="button"
+                                                    data-url="{{ route('peserta.generate-token', [$bimtek, $peserta]) }}"
+                                                    onclick="generateToken(this)"
+                                                    class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition"
+                                                    title="Buat Token Aktivasi">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.657-1.343-3-3-3S6 9.343 6 11s1.343 3 3 3 3-1.343 3-3zM12 5v2m0 10v2m7-7h-2M5 12H3"/>
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </td>
                                     @endif
@@ -388,6 +426,26 @@
     </div>
 
     {{-- Modal: Tambah Peserta & Import hanya untuk PIC/Panitia/Admin --}}
+    {{-- Modal: Batch Generate Tokens --}}
+    <x-modal name="generate-tokens" :show="false">
+        <form id="generate-tokens-form" action="{{ route('bimtek.activation-tokens.generate-batch', $bimtek) }}" method="POST" class="p-6">
+            @csrf
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Batch Generate Activation Tokens</h3>
+            <p class="text-sm text-gray-500 mb-4">Pilih peserta yang akan dibuatkan token. Token akan diunduh sebagai CSV (raw tokens hanya ditampilkan pada file CSV sekali saja).</p>
+            <div class="mb-3">
+                <label class="block text-sm text-gray-700 mb-1">Jumlah hari berlaku (opsional)</label>
+                <input type="number" name="days" min="1" max="365" class="w-32 px-3 py-2 border rounded" placeholder="7">
+            </div>
+            <div class="mb-4 text-sm text-gray-700">
+                <p>Pilih peserta menggunakan kotak centang di daftar peserta, lalu klik "Generate".</p>
+            </div>
+            <div id="generate-hidden-inputs"></div>
+            <div class="flex justify-end gap-2">
+                <button type="button" x-data @click="$dispatch('close-modal', 'generate-tokens')" class="px-4 py-2 bg-white border rounded">Batal</button>
+                <button type="submit" onclick="return submitGenerateBatch()" class="px-4 py-2 bg-blue-600 text-white rounded">Generate</button>
+            </div>
+        </form>
+    </x-modal>
     @if($canManage)
         <x-modal name="tambah-peserta" :show="false" maxWidth="lg">
             <div class="p-6 space-y-6">
@@ -575,6 +633,74 @@
                     }
                 }
             }
+        }
+    </script>
+    <script>
+        async function generateToken(btn) {
+            const url = btn.dataset.url;
+            btn.disabled = true;
+            try {
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                let data = {};
+                try { data = await res.json(); } catch(e) {}
+                if (res.ok) {
+                    if (data.raw_token) {
+                        try { await navigator.clipboard.writeText(data.raw_token); } catch(e) {}
+                        // Open print-friendly window with the raw token and trigger print
+                        const printHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Token Aktivasi</title>
+                            <style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;padding:40px} .token{font-size:24px; font-weight:600; background:#f7fafc; padding:20px; border-radius:8px; display:inline-block}</style>
+                            </head><body><h2>Token Aktivasi untuk Peserta</h2><p class="token">${data.raw_token}</p>
+                            <p style="margin-top:20px; font-size:12px;color:#666">Simpan token ini; tampilkan pada surat undangan atau cetak untuk distribusi.</p>
+                            <script>window.onload=function(){window.print();};</script></body></html>`;
+                        const w = window.open('', '_blank');
+                        if (w) {
+                            w.document.write(printHtml);
+                            w.document.close();
+                            w.focus();
+                        } else {
+                            alert('Token aktivasi: ' + data.raw_token + '\n(Disalin ke clipboard)');
+                        }
+                    } else if (data.sent_email) {
+                        alert('Token telah dikirimkan via email.');
+                    } else {
+                        alert('Token dibuat.');
+                    }
+                } else {
+                    alert('Gagal membuat token: ' + (data.message || res.statusText));
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan saat membuat token.');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        function submitGenerateBatch() {
+            const checkboxes = Array.from(document.querySelectorAll('.peserta-checkbox:checked'));
+            if (checkboxes.length === 0) {
+                alert('Pilih minimal 1 peserta dari daftar sebelum generate.');
+                return false;
+            }
+            const container = document.getElementById('generate-hidden-inputs');
+            container.innerHTML = '';
+            checkboxes.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'peserta_ids[]';
+                input.value = cb.value;
+                container.appendChild(input);
+            });
+            // allow form to submit normally
+            return true;
         }
     </script>
 </x-app-layout>

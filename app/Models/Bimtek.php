@@ -41,6 +41,7 @@ class Bimtek extends Model
         'syarat_tugas_wajib',
         'butuh_verifikasi_dokumen',
         'jenis_dokumen_wajib',
+        'invite_code',
     ];
 
     protected $casts = [
@@ -55,6 +56,12 @@ class Bimtek extends Model
         'has_tugas' => 'boolean',
         'has_sertifikat' => 'boolean',
     ];
+
+    public function getInviteLinkAttribute(): ?string
+    {
+        if (!$this->invite_code) return null;
+        return url("/bimtek/{$this->id}/daftar?code={$this->invite_code}");
+    }
 
     /**
      * Get the pengajuan that owns the bimtek.

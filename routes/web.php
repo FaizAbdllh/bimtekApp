@@ -14,11 +14,26 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RtController;
 use App\Http\Controllers\SertifikatController;
 use App\Http\Controllers\TugasController;
+use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Controllers\ActivationController;
+use App\Http\Controllers\ActivationTokenAdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Public registration for peserta (self-claim)
+Route::get('/bimtek/{bimtek}/daftar', [PublicRegistrationController::class, 'show'])->name('bimtek.daftar.show');
+Route::post('/bimtek/{bimtek}/daftar', [PublicRegistrationController::class, 'register'])->name('bimtek.daftar.register');
+
+// Activation token routes
+Route::post('/bimtek/{bimtek}/peserta/{user}/generate-token', [ActivationController::class, 'generate'])
+    ->middleware('auth')
+    ->name('peserta.generate-token');
+
+Route::get('/activate/{token}', [ActivationController::class, 'showActivate'])->name('activation.show');
+Route::post('/activate/{token}', [ActivationController::class, 'activate'])->name('activation.activate');
 
 // Dashboard - accessible by all authenticated users
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -188,6 +203,8 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
 
     // Peserta routes
     Route::get('/{bimtek}/peserta', [PesertaController::class, 'index'])->name('peserta.index');
+    // Backward-compatible alias used by registration redirect
+    Route::get('/{bimtek}/peserta/list', [PesertaController::class, 'index'])->name('show.peserta');
     Route::post('/{bimtek}/peserta', [PesertaController::class, 'store'])->name('peserta.store');
     Route::post('/{bimtek}/peserta/new', [PesertaController::class, 'storeNew'])->name('peserta.store-new');
     Route::delete('/{bimtek}/peserta/{user}', [PesertaController::class, 'destroy'])->name('peserta.destroy');
@@ -195,6 +212,22 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::patch('/{bimtek}/peserta/{user}/change-role', [PesertaController::class, 'changeRole'])->name('peserta.change-role');
     Route::post('/{bimtek}/peserta/import', [PesertaController::class, 'import'])->name('peserta.import');
     Route::get('/{bimtek}/peserta/export', [PesertaController::class, 'export'])->name('peserta.export');
+    // Generate invite code for sharing registration link (PIC/Panitia only)
+    Route::post('/{bimtek}/generate-invite-code', [\App\Http\Controllers\BimtekController::class, 'generateInviteCode'])
+        ->middleware('auth')
+        ->name('bimtek.generate-invite');
+    // Export activation tokens for this bimtek (CSV)
+    Route::get('/{bimtek}/activation-tokens/export', [\App\Http\Controllers\BimtekController::class, 'exportActivationTokens'])
+        ->middleware('auth')
+        ->name('bimtek.activation-tokens.export');
+    // Batch generate activation tokens and download CSV
+    Route::post('/{bimtek}/activation-tokens/generate-batch', [ActivationTokenAdminController::class, 'generateBatch'])
+        ->middleware('auth')
+        ->name('bimtek.activation-tokens.generate-batch');
+    // Revoke a token
+    Route::post('/{bimtek}/activation-tokens/{activationToken}/revoke', [ActivationTokenAdminController::class, 'revoke'])
+        ->middleware('auth')
+        ->name('bimtek.activation-tokens.revoke');
 });
 
 // Download template (tidak perlu bimtek)
