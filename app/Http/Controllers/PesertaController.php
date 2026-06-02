@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\PesertaCredentialsMail;
-use App\Mail\PesertaBimtekInvitedMail;
 use App\Mail\PesertaAddedToBimtekMail;
+use App\Mail\PesertaBimtekInvitedMail;
+use App\Mail\PesertaCredentialsMail;
 use App\Models\Bimtek;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -34,7 +33,7 @@ class PesertaController extends Controller
         // Get available users for adding (excluding already assigned users)
         $assignedUserIds = $bimtek->users()->pluck('users.id')->toArray();
         $availableUsers = collect();
-        
+
         if ($canManage) {
             $availableUsers = User::whereNotIn('id', $assignedUserIds)
                 ->orderBy('name')
@@ -65,9 +64,10 @@ class PesertaController extends Controller
         foreach ($validated['user_ids'] as $userId) {
             // Check if user is already assigned to this bimtek
             $exists = $bimtek->users()->where('users.id', $userId)->exists();
-            
+
             if ($exists) {
                 $skippedCount++;
+
                 continue;
             }
 
@@ -76,18 +76,18 @@ class PesertaController extends Controller
                 'id' => (string) Str::uuid(),
                 'peran_kontekstual' => 'peserta',
             ];
-            
+
             // If bimtek requires document verification, set initial status
             if ($bimtek->butuh_verifikasi_dokumen) {
                 $pivotData['status_verifikasi'] = 'invited';
                 $pivotData['notified_at'] = now();
             }
-            
+
             $bimtek->users()->attach($userId, $pivotData);
-            
+
             // Send appropriate email notification
             $user = User::find($userId);
-            
+
             if ($bimtek->butuh_verifikasi_dokumen) {
                 // Send email for document verification
                 try {
@@ -97,7 +97,7 @@ class PesertaController extends Controller
                         route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
                     ));
                 } catch (\Exception $e) {
-                    Log::error('Failed to send invitation email for document verification: ' . $e->getMessage());
+                    Log::error('Failed to send invitation email for document verification: '.$e->getMessage());
                     \App\Models\LogSistem::warning(
                         "Gagal mengirim email undangan verifikasi dokumen ke {$user->email} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                         Auth::id()
@@ -112,14 +112,14 @@ class PesertaController extends Controller
                         route('login')
                     ));
                 } catch (\Exception $e) {
-                    Log::error('Failed to send peserta added notification email: ' . $e->getMessage());
+                    Log::error('Failed to send peserta added notification email: '.$e->getMessage());
                     \App\Models\LogSistem::warning(
                         "Gagal mengirim email notifikasi peserta ke {$user->email} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                         Auth::id()
                     );
                 }
             }
-            
+
             $addedCount++;
         }
 
@@ -127,12 +127,12 @@ class PesertaController extends Controller
         if ($skippedCount > 0) {
             $message .= " {$skippedCount} user dilewati (sudah terdaftar).";
         }
-        
+
         if ($addedCount > 0) {
             if ($bimtek->butuh_verifikasi_dokumen) {
-                $message .= " Email undangan verifikasi dokumen telah dikirim.";
+                $message .= ' Email undangan verifikasi dokumen telah dikirim.';
             } else {
-                $message .= " Email notifikasi telah dikirim ke peserta.";
+                $message .= ' Email notifikasi telah dikirim ke peserta.';
             }
         }
 
@@ -182,13 +182,13 @@ class PesertaController extends Controller
             'id' => (string) Str::uuid(),
             'peran_kontekstual' => 'peserta',
         ];
-        
+
         // If bimtek requires document verification, set initial status
         if ($bimtek->butuh_verifikasi_dokumen) {
             $pivotData['status_verifikasi'] = 'invited';
             $pivotData['notified_at'] = now();
         }
-        
+
         $bimtek->users()->attach($user->id, $pivotData);
 
         // Send email with login credentials
@@ -197,13 +197,13 @@ class PesertaController extends Controller
             Mail::to($user->email)->send(new PesertaCredentialsMail($user, $password, $bimtek));
             $emailSent = true;
         } catch (\Exception $e) {
-            Log::error('Failed to send credentials email: ' . $e->getMessage());
+            Log::error('Failed to send credentials email: '.$e->getMessage());
             \App\Models\LogSistem::warning(
                 "Gagal mengirim email kredensial peserta baru ke {$user->email} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                 Auth::id()
             );
         }
-        
+
         // Send document verification invitation if required
         if ($bimtek->butuh_verifikasi_dokumen) {
             try {
@@ -213,7 +213,7 @@ class PesertaController extends Controller
                     route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
                 ));
             } catch (\Exception $e) {
-                Log::error('Failed to send invitation email for document verification: ' . $e->getMessage());
+                Log::error('Failed to send invitation email for document verification: '.$e->getMessage());
                 \App\Models\LogSistem::warning(
                     "Gagal mengirim email undangan verifikasi dokumen ke {$user->email} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                     Auth::id()
@@ -223,13 +223,13 @@ class PesertaController extends Controller
 
         $message = "Peserta {$user->name} berhasil ditambahkan.";
         if ($emailSent) {
-            $message .= " Email kredensial telah dikirim.";
+            $message .= ' Email kredensial telah dikirim.';
         } else {
             $message .= " Password: {$password} (email gagal dikirim)";
         }
-        
+
         if ($bimtek->butuh_verifikasi_dokumen) {
-            $message .= " Email undangan verifikasi dokumen telah dikirim.";
+            $message .= ' Email undangan verifikasi dokumen telah dikirim.';
         }
 
         return redirect()
@@ -247,8 +247,8 @@ class PesertaController extends Controller
 
         // Check if user is assigned as peserta
         $isPeserta = $bimtek->peserta()->where('users.id', $user->id)->exists();
-        
-        if (!$isPeserta) {
+
+        if (! $isPeserta) {
             return redirect()
                 ->route('bimtek.peserta.index', $bimtek)
                 ->with('error', 'User bukan peserta bimtek ini.');
@@ -280,7 +280,7 @@ class PesertaController extends Controller
 
         foreach ($validated['user_ids'] as $userId) {
             $isPeserta = $bimtek->peserta()->where('users.id', $userId)->exists();
-            
+
             if ($isPeserta) {
                 $bimtek->users()->detach($userId);
                 $removedCount++;
@@ -303,7 +303,7 @@ class PesertaController extends Controller
             'peran' => 'required|in:peserta,panitia',
         ]);
 
-        if ($validated['peran'] === 'panitia' && !$user->isPegawaiInternal()) {
+        if ($validated['peran'] === 'panitia' && ! $user->isPegawaiInternal()) {
             return redirect()
                 ->route('bimtek.peserta.index', $bimtek)
                 ->with('error', 'Hanya user dengan role Pegawai Internal yang dapat diubah menjadi panitia.');
@@ -311,8 +311,8 @@ class PesertaController extends Controller
 
         // Check if user is assigned to this bimtek
         $assignment = $bimtek->users()->where('users.id', $user->id)->first();
-        
-        if (!$assignment) {
+
+        if (! $assignment) {
             return redirect()
                 ->route('bimtek.peserta.index', $bimtek)
                 ->with('error', 'User tidak terdaftar di bimtek ini.');
@@ -358,16 +358,16 @@ class PesertaController extends Controller
         $pesertaRole = Role::where('nama_peran', 'Peserta Eksternal')->first();
 
         $handle = fopen($file->getRealPath(), 'r');
-        
+
         // Skip BOM if present
         $bom = fread($handle, 3);
         if ($bom !== chr(0xEF).chr(0xBB).chr(0xBF)) {
             rewind($handle);
         }
-        
+
         $header = null;
         $lineNumber = 0;
-        
+
         // Auto-detect delimiter (comma atau semicolon) dari line pertama setelah BOM
         $firstLine = fgets($handle);
         rewind($handle);
@@ -380,16 +380,18 @@ class PesertaController extends Controller
 
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $lineNumber++;
-            
+
             // First row is header
             if ($header === null) {
                 // Clean dan lowercase header, remove BOM jika ada
-                $header = array_map(function($h) {
+                $header = array_map(function ($h) {
                     $h = trim($h);
                     // Remove BOM dari first column jika ada
                     $h = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $h);
+
                     return strtolower($h);
                 }, $row);
+
                 continue;
             }
 
@@ -415,13 +417,15 @@ class PesertaController extends Controller
             if (empty($name) || empty($email)) {
                 $errorCount++;
                 $errors[] = "Baris {$lineNumber}: Nama dan Email wajib diisi.";
+
                 continue;
             }
 
             // Validate email format
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errorCount++;
                 $errors[] = "Baris {$lineNumber}: Format email '{$email}' tidak valid.";
+
                 continue;
             }
 
@@ -430,23 +434,24 @@ class PesertaController extends Controller
             $isNewUser = false;
             $password = null;
 
-            if (!$user) {
+            if (! $user) {
                 // Check if NIP exists (if provided)
-                if (!empty($nip) && User::where('nip', $nip)->exists()) {
+                if (! empty($nip) && User::where('nip', $nip)->exists()) {
                     $errorCount++;
                     $errors[] = "Baris {$lineNumber}: NIP '{$nip}' sudah terdaftar untuk user lain.";
+
                     continue;
                 }
 
                 // Create new user
                 $password = Str::random(10);
-                
+
                 $user = User::create([
                     'name' => $name,
                     'email' => $email,
                     'password' => Hash::make($password),
-                    'nip' => !empty($nip) ? $nip : null,
-                    'asal_instansi' => !empty($instansi) ? $instansi : null,
+                    'nip' => ! empty($nip) ? $nip : null,
+                    'asal_instansi' => ! empty($instansi) ? $instansi : null,
                     'role_id' => $pesertaRole?->id,
                 ]);
 
@@ -457,6 +462,7 @@ class PesertaController extends Controller
             // Check if already assigned to this bimtek
             if ($bimtek->users()->where('users.id', $user->id)->exists()) {
                 $skippedCount++;
+
                 continue;
             }
 
@@ -465,13 +471,13 @@ class PesertaController extends Controller
                 'id' => (string) Str::uuid(),
                 'peran_kontekstual' => 'peserta',
             ];
-            
+
             // If bimtek requires document verification, set initial status
             if ($bimtek->butuh_verifikasi_dokumen) {
                 $pivotData['status_verifikasi'] = 'invited';
                 $pivotData['notified_at'] = now();
             }
-            
+
             $bimtek->users()->attach($user->id, $pivotData);
             $addedCount++;
 
@@ -486,7 +492,7 @@ class PesertaController extends Controller
                         'password' => '(dikirim via email)',
                     ];
                 } catch (\Exception $e) {
-                    Log::error("Failed to send email to {$email}: " . $e->getMessage());
+                    Log::error("Failed to send email to {$email}: ".$e->getMessage());
                     \App\Models\LogSistem::warning(
                         "Gagal mengirim email kredensial hasil import ke {$email} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                         Auth::id()
@@ -494,7 +500,7 @@ class PesertaController extends Controller
                     $newUsers[] = [
                         'name' => $name,
                         'email' => $email,
-                        'password' => $password . ' (email gagal)',
+                        'password' => $password.' (email gagal)',
                     ];
                 }
             } else {
@@ -514,7 +520,7 @@ class PesertaController extends Controller
                         ));
                     }
                 } catch (\Exception $e) {
-                    Log::error("Failed to send notification email to {$email}: " . $e->getMessage());
+                    Log::error("Failed to send notification email to {$email}: ".$e->getMessage());
                     \App\Models\LogSistem::warning(
                         "Gagal mengirim email notifikasi hasil import ke {$email} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                         Auth::id()
@@ -553,7 +559,7 @@ class PesertaController extends Controller
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
 
-        $filename = 'peserta_' . str_replace(' ', '_', $bimtek->judul_final) . '_' . date('Ymd') . '.csv';
+        $filename = 'peserta_'.str_replace(' ', '_', $bimtek->judul_final).'_'.date('Ymd').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -562,10 +568,10 @@ class PesertaController extends Controller
 
         $callback = function () use ($peserta) {
             $file = fopen('php://output', 'w');
-            
+
             // Tambahkan BOM untuk Excel agar auto-detect UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             // Header tanpa spasi, gunakan semicolon delimiter untuk Excel
             fputcsv($file, ['Nama', 'Email', 'NIP', 'Instansi'], ';');
 
@@ -597,14 +603,14 @@ class PesertaController extends Controller
 
         $callback = function () {
             $file = fopen('php://output', 'w');
-            
+
             // Tambahkan BOM untuk Excel agar auto-detect UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             // Gunakan semicolon sebagai delimiter (lebih compatible dengan Excel)
             // Header tanpa spasi agar Excel bisa parse dengan benar
             fputcsv($file, ['Nama', 'Email', 'NIP', 'Instansi'], ';');
-            
+
             // Contoh data hanya 1 baris
             fputcsv($file, ['Ahmad Hidayat', 'ahmad.hidayat@gmail.com', '198501012010011001', 'Dinas Pendidikan Kota Padang'], ';');
 
@@ -643,7 +649,7 @@ class PesertaController extends Controller
 
         $hasAccess = $bimtek->users()->where('users.id', $user->id)->exists();
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
         }
     }
@@ -653,7 +659,7 @@ class PesertaController extends Controller
      */
     private function authorizeManage(Bimtek $bimtek): void
     {
-        if (!$this->canManage($bimtek)) {
+        if (! $this->canManage($bimtek)) {
             abort(403, 'Hanya PIC atau Panitia yang dapat mengelola peserta.');
         }
     }

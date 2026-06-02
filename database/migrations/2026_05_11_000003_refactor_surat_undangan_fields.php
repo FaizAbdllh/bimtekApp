@@ -15,24 +15,24 @@ return new class extends Migration
     {
         Schema::table('bimteks', function (Blueprint $table) {
             // Add draft fields (uploaded by PIC/Panitia)
-            if (!Schema::hasColumn('bimteks', 'file_surat_draft_path')) {
+            if (! Schema::hasColumn('bimteks', 'file_surat_draft_path')) {
                 $table->string('file_surat_draft_path')->nullable();
             }
-            if (!Schema::hasColumn('bimteks', 'file_surat_draft_uploaded_by')) {
+            if (! Schema::hasColumn('bimteks', 'file_surat_draft_uploaded_by')) {
                 $table->foreignUuid('file_surat_draft_uploaded_by')->nullable()->constrained('users')->onDelete('set null');
             }
-            if (!Schema::hasColumn('bimteks', 'file_surat_draft_uploaded_at')) {
+            if (! Schema::hasColumn('bimteks', 'file_surat_draft_uploaded_at')) {
                 $table->timestamp('file_surat_draft_uploaded_at')->nullable();
             }
 
             // Add final fields (uploaded by Persuratan)
-            if (!Schema::hasColumn('bimteks', 'file_surat_final_path')) {
+            if (! Schema::hasColumn('bimteks', 'file_surat_final_path')) {
                 $table->string('file_surat_final_path')->nullable();
             }
-            if (!Schema::hasColumn('bimteks', 'file_surat_final_uploaded_by')) {
+            if (! Schema::hasColumn('bimteks', 'file_surat_final_uploaded_by')) {
                 $table->foreignUuid('file_surat_final_uploaded_by')->nullable()->constrained('users')->onDelete('set null');
             }
-            if (!Schema::hasColumn('bimteks', 'file_surat_final_uploaded_at')) {
+            if (! Schema::hasColumn('bimteks', 'file_surat_final_uploaded_at')) {
                 $table->timestamp('file_surat_final_uploaded_at')->nullable();
             }
         });
@@ -72,5 +72,3 @@ return new class extends Migration
         });
     }
 };
-
-

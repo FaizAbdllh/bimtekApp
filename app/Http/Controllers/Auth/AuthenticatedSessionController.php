@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
     protected function redirectBasedOnRole(): RedirectResponse
     {
         $user = Auth::user();
-        
+
         // Semua role redirect ke dashboard yang sama
         // Nanti di dashboard akan ditampilkan konten berbeda sesuai role
         return redirect()->intended(route('dashboard', absolute: false));

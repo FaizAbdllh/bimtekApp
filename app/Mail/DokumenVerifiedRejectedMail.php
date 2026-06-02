@@ -15,9 +15,13 @@ class DokumenVerifiedRejectedMail extends Mailable
     use Queueable, SerializesModels;
 
     public Bimtek $bimtek;
+
     public User $peserta;
+
     public string $status; // 'verified' or 'rejected'
+
     public ?string $catatan;
+
     public ?string $uploadUrl;
 
     /**
@@ -37,9 +41,9 @@ class DokumenVerifiedRejectedMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $subject = $this->status === 'verified' 
-            ? 'Dokumen Disetujui: ' . $this->bimtek->judul_final
-            : 'Dokumen Ditolak: ' . $this->bimtek->judul_final;
+        $subject = $this->status === 'verified'
+            ? 'Dokumen Disetujui: '.$this->bimtek->judul_final
+            : 'Dokumen Ditolak: '.$this->bimtek->judul_final;
 
         return new Envelope(
             subject: $subject,

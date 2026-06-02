@@ -25,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasColumn('absensi_pesertas', 'bukti_hadir_online_path')) {
+        if (! Schema::hasColumn('absensi_pesertas', 'bukti_hadir_online_path')) {
             return;
         }
 

@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, HasUuids, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -157,11 +157,12 @@ class User extends Authenticatable
      */
     public function hasRole(string|array $roleNames): bool
     {
-        if (!$this->role) {
+        if (! $this->role) {
             return false;
         }
-        
+
         $roles = is_array($roleNames) ? $roleNames : [$roleNames];
+
         return in_array($this->role->nama_peran, $roles);
     }
 
@@ -227,6 +228,7 @@ class User extends Authenticatable
     public function getPeranKontekstual(Bimtek $bimtek): ?string
     {
         $pivot = $this->bimteks()->where('bimtek_id', $bimtek->id)->first();
+
         return $pivot ? $pivot->pivot->peran_kontekstual : null;
     }
 

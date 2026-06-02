@@ -12,7 +12,7 @@ class CompleteRoleUsersSeeder extends Seeder
     public function run(): void
     {
         $password = Hash::make('password');
-        
+
         // Get all roles
         $adminItRole = Role::where('nama_peran', 'Admin IT')->first();
         $kepalaRole = Role::where('nama_peran', 'Kepala')->first();
@@ -20,7 +20,7 @@ class CompleteRoleUsersSeeder extends Seeder
         $rtRole = Role::where('nama_peran', 'Koordinator RT')->first();
         $pegawaiRole = Role::where('nama_peran', 'Pegawai Internal')->first();
         $eksternalRole = Role::where('nama_peran', 'Peserta Eksternal')->first();
-        
+
         // Create or update users for each role
         $users = [
             [
@@ -54,7 +54,7 @@ class CompleteRoleUsersSeeder extends Seeder
                 'role_id' => $eksternalRole->id,
             ],
         ];
-        
+
         foreach ($users as $userData) {
             $user = User::updateOrCreate(
                 ['email' => $userData['email']],
@@ -64,27 +64,27 @@ class CompleteRoleUsersSeeder extends Seeder
                     'role_id' => $userData['role_id'],
                 ]
             );
-            
+
             $this->command->info("✓ Created/Updated: {$userData['email']} ({$userData['name']})");
         }
-        
+
         // Update existing pic@test.com and peserta@test.com to proper names
         $pic = User::where('email', 'pic@test.com')->first();
         if ($pic) {
             $pic->name = 'PIC Bimtek';
             $pic->role_id = $pegawaiRole->id; // PIC is Pegawai Internal
             $pic->save();
-            $this->command->info("✓ Updated: pic@test.com (PIC Bimtek)");
+            $this->command->info('✓ Updated: pic@test.com (PIC Bimtek)');
         }
-        
+
         $peserta = User::where('email', 'peserta@test.com')->first();
         if ($peserta) {
             $peserta->name = 'Peserta Test';
             $peserta->role_id = $pegawaiRole->id; // Peserta internal
             $peserta->save();
-            $this->command->info("✓ Updated: peserta@test.com (Peserta Test)");
+            $this->command->info('✓ Updated: peserta@test.com (Peserta Test)');
         }
-        
+
         $this->command->info('');
         $this->command->info('===========================================');
         $this->command->info('✓ All role users created/updated!');

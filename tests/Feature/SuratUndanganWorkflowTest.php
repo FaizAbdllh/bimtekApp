@@ -17,8 +17,11 @@ class SuratUndanganWorkflowTest extends TestCase
     use RefreshDatabase;
 
     protected User $pic;
+
     protected User $persuratan;
+
     protected User $panitia;
+
     protected Bimtek $bimtek;
 
     protected function setUp(): void
@@ -36,19 +39,19 @@ class SuratUndanganWorkflowTest extends TestCase
         $this->pic = User::factory()->create([
             'name' => 'PIC Test',
             'email' => 'pic@test.com',
-            'role_id' => $rolePegawaiInternal->id
+            'role_id' => $rolePegawaiInternal->id,
         ]);
 
         $this->panitia = User::factory()->create([
             'name' => 'Panitia Test',
             'email' => 'panitia@test.com',
-            'role_id' => $rolePegawaiInternal->id
+            'role_id' => $rolePegawaiInternal->id,
         ]);
 
         $this->persuratan = User::factory()->create([
             'name' => 'Bagian Persuratan',
             'email' => 'persuratan@test.com',
-            'role_id' => $rolePersuratan->id
+            'role_id' => $rolePersuratan->id,
         ]);
 
         // Create bimtek

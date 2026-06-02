@@ -59,7 +59,10 @@ class Bimtek extends Model
 
     public function getInviteLinkAttribute(): ?string
     {
-        if (!$this->invite_code) return null;
+        if (! $this->invite_code) {
+            return null;
+        }
+
         return url("/bimtek/{$this->id}/daftar?code={$this->invite_code}");
     }
 
@@ -311,6 +314,7 @@ class Bimtek extends Model
         if (is_array($this->daftar_pemateri) && count($this->daftar_pemateri) > 0) {
             return $this->daftar_pemateri[0];
         }
+
         return null;
     }
 

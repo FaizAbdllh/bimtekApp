@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Bimtek;
 use App\Models\Pengajuan;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -17,10 +16,10 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = Auth::user();
-        
+
         // Data dashboard berbeda sesuai role
         $data = $this->getDashboardData($user);
-        
+
         return view('dashboard', $data);
     }
 
@@ -148,7 +147,7 @@ class DashboardController extends Controller
 
         // Load bimtek data once
         $bimtekData = $user->bimteks()->withPivot('peran_kontekstual')->get();
-        
+
         // Count bimtek sebagai PIC (dari kolom pic_user_id)
         $bimtekSebagaiPic = Bimtek::where('pic_user_id', $user->id)->count();
 

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Bimtek;
 use App\Models\TemplateSertifikat;
 use App\Services\SertifikatTemplateService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -11,7 +10,7 @@ echo "=== TESTING CERTIFICATE GENERATION SYSTEM ===\n\n";
 // Test 1: Check if SertifikatTemplateService works
 echo "[TEST 1] SertifikatTemplateService - getAvailablePlaceholders()\n";
 $placeholders = SertifikatTemplateService::getAvailablePlaceholders();
-echo "Found " . count($placeholders) . " placeholders:\n";
+echo 'Found '.count($placeholders)." placeholders:\n";
 foreach ($placeholders as $code => $description) {
     echo "  - $code: $description\n";
 }
@@ -20,8 +19,8 @@ echo "✓ Test 1 PASSED\n\n";
 // Test 2: Check renderAsHtml() generates HTML template
 echo "[TEST 2] SertifikatTemplateService - renderAsHtml()\n";
 $testData = [
-    'peserta' => (object)['name' => 'Test Peserta', 'nip' => '123456789', 'instansi' => 'Test Instansi'],
-    'bimtek' => (object)['judul_final' => 'Test Bimtek Title'],
+    'peserta' => (object) ['name' => 'Test Peserta', 'nip' => '123456789', 'instansi' => 'Test Instansi'],
+    'bimtek' => (object) ['judul_final' => 'Test Bimtek Title'],
     'nomorSertifikat' => 'CERT-2024-001',
     'tanggalTerbit' => '2024-01-15',
 ];
@@ -34,8 +33,8 @@ $html = SertifikatTemplateService::renderAsHtml(
 );
 
 if (strlen($html) > 100) {
-    echo "Generated HTML template (" . strlen($html) . " bytes)\n";
-    echo "First 200 chars: " . substr($html, 0, 200) . "...\n";
+    echo 'Generated HTML template ('.strlen($html)." bytes)\n";
+    echo 'First 200 chars: '.substr($html, 0, 200)."...\n";
     echo "✓ Test 2 PASSED\n\n";
 } else {
     echo "✗ Test 2 FAILED - HTML too short\n\n";
@@ -50,9 +49,9 @@ $testReplacements = [
     '${NOMOR_SERTIFIKAT}' => 'CERT-2024-001',
 ];
 
-$testHtml = "Nama: \${NAMA_PESERTA}, NIP: \${NIP}, Instansi: \${INSTANSI}, No: \${NOMOR_SERTIFIKAT}";
+$testHtml = 'Nama: ${NAMA_PESERTA}, NIP: ${NIP}, Instansi: ${INSTANSI}, No: ${NOMOR_SERTIFIKAT}';
 $result = strtr($testHtml, $testReplacements);
-$expectedResult = "Nama: TEST PESERTA, NIP: 123456789, Instansi: Test Instansi, No: CERT-2024-001";
+$expectedResult = 'Nama: TEST PESERTA, NIP: 123456789, Instansi: Test Instansi, No: CERT-2024-001';
 
 if ($result === $expectedResult) {
     echo "Placeholder replacement working correctly\n";
@@ -67,24 +66,24 @@ if ($result === $expectedResult) {
 // Test 4: Check PDF generation capability
 echo "[TEST 4] PDF Generation Test\n";
 try {
-    $simpleHtml = "<!DOCTYPE html><html><body><h1>Test Certificate</h1><p>This is a test PDF.</p></body></html>";
+    $simpleHtml = '<!DOCTYPE html><html><body><h1>Test Certificate</h1><p>This is a test PDF.</p></body></html>';
     $pdf = Pdf::loadHTML($simpleHtml);
     $pdfOutput = $pdf->output();
-    
+
     $pdfSize = strlen($pdfOutput);
-    echo "PDF generated: " . $pdfSize . " bytes\n";
-    
+    echo 'PDF generated: '.$pdfSize." bytes\n";
+
     if ($pdfSize > 1000) {
         echo "PDF size looks good (> 1KB)\n";
         echo "✓ Test 4 PASSED\n\n";
     } else {
-        echo "⚠ Test 4 WARNING - PDF size very small (" . $pdfSize . " bytes)\n";
+        echo '⚠ Test 4 WARNING - PDF size very small ('.$pdfSize." bytes)\n";
         echo "This may indicate DomPDF issues on Windows\n";
         echo "System will fallback to HTML output\n";
         echo "✓ Test 4 PASSED (with fallback)\n\n";
     }
 } catch (\Exception $e) {
-    echo "✗ Test 4 FAILED - " . $e->getMessage() . "\n";
+    echo '✗ Test 4 FAILED - '.$e->getMessage()."\n";
     echo "System will fallback to HTML output\n\n";
 }
 
@@ -114,17 +113,17 @@ echo "[TEST 6] TemplateSertifikat Model Check\n";
 try {
     $templateCount = TemplateSertifikat::count();
     echo "Found $templateCount template(s) in database\n";
-    
+
     if ($templateCount > 0) {
         $firstTemplate = TemplateSertifikat::first();
-        echo "  - Sample: " . $firstTemplate->nama_template . "\n";
-        echo "  - File: " . $firstTemplate->file_path . "\n";
+        echo '  - Sample: '.$firstTemplate->nama_template."\n";
+        echo '  - File: '.$firstTemplate->file_path."\n";
     } else {
         echo "No templates yet - will be created during usage\n";
     }
     echo "✓ Test 6 PASSED\n\n";
 } catch (\Exception $e) {
-    echo "✗ Test 6 FAILED - " . $e->getMessage() . "\n\n";
+    echo '✗ Test 6 FAILED - '.$e->getMessage()."\n\n";
 }
 
 // Summary

@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PublicRegistrationController extends Controller
@@ -61,16 +60,16 @@ class PublicRegistrationController extends Controller
 
         // Find or create user
         $user = null;
-        if (!empty($validated['email'])) {
+        if (! empty($validated['email'])) {
             $user = User::where('email', $validated['email'])->first();
         }
-        if (!$user && !empty($validated['nip'])) {
+        if (! $user && ! empty($validated['nip'])) {
             $user = User::where('nip', $validated['nip'])->first();
         }
 
-        if (!$user) {
+        if (! $user) {
             // Create user with placeholder email if none provided
-            $email = $validated['email'] ?? ('no-email+' . Str::uuid() . '@example.local');
+            $email = $validated['email'] ?? ('no-email+'.Str::uuid().'@example.local');
             $password = Str::random(12);
             $pesertaRole = Role::where('nama_peran', 'Peserta Eksternal')->first();
 
@@ -85,7 +84,7 @@ class PublicRegistrationController extends Controller
         }
 
         // Attach to bimtek if not already
-        if (!$bimtek->users()->where('users.id', $user->id)->exists()) {
+        if (! $bimtek->users()->where('users.id', $user->id)->exists()) {
             $pivotData = [
                 'id' => (string) Str::uuid(),
                 'peran_kontekstual' => 'peserta',
@@ -100,8 +99,10 @@ class PublicRegistrationController extends Controller
         // Store uploaded documents if any
         if ($request->hasFile('dokumen')) {
             foreach ($request->file('dokumen') as $jenis => $file) {
-                if (!$file) continue;
-                $fileName = time() . '_' . Str::slug($jenis) . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+                if (! $file) {
+                    continue;
+                }
+                $fileName = time().'_'.Str::slug($jenis).'_'.$user->id.'.'.$file->getClientOriginalExtension();
                 $filePath = $file->storeAs('dokumen_persyaratan', $fileName, 'public');
 
                 DokumenPersyaratanPeserta::create([

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('justifikasi_deviasi')->nullable()->after('persentase_deviasi')->comment('Alasan jika ada deviasi dari SBM');
             $table->foreignUuid('approved_by')->nullable()->after('justifikasi_deviasi')->constrained('users')->nullOnDelete()->comment('User yang approve deviasi');
             $table->timestamp('approved_at')->nullable()->after('approved_by');
-            
+
             // Index untuk query performa
             $table->index('status_validasi');
             $table->index('sbm_master_id');
@@ -43,7 +43,7 @@ return new class extends Migration
                 'persentase_deviasi',
                 'justifikasi_deviasi',
                 'approved_by',
-                'approved_at'
+                'approved_at',
             ]);
         });
     }

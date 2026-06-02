@@ -15,7 +15,7 @@ class DeleteDuplicateTestingUsersSeeder extends Seeder
         $this->command->info('===========================================');
         $this->command->info('DELETING DUPLICATE TESTING USERS');
         $this->command->info('===========================================');
-        
+
         // List of testing user emails to delete (users with duplicate roles)
         $testingEmails = [
             // @test.com users with duplicate roles
@@ -26,7 +26,7 @@ class DeleteDuplicateTestingUsersSeeder extends Seeder
             'eksternal@test.com',    // Duplicate of faiz@gmail.com (Peserta Eksternal)
             'pic@test.com',          // Testing user (Pegawai Internal)
             'peserta@test.com',      // Testing user (Pegawai Internal)
-            
+
             // @bbpmp.go.id users (also testing data)
             'kepala@bbpmp.go.id',
             'ppk@bbpmp.go.id',
@@ -35,33 +35,33 @@ class DeleteDuplicateTestingUsersSeeder extends Seeder
             'peserta@gmail.com',     // Testing peserta
             'admin@bbpmp.go.id',     // Keep only admin@test.com
         ];
-        
+
         $deleted = 0;
-        
+
         foreach ($testingEmails as $email) {
             $user = User::where('email', $email)->first();
-            
+
             if ($user) {
                 $this->command->info("✓ Deleting: {$user->name} ({$email})");
                 $user->delete();
                 $deleted++;
             }
         }
-        
+
         $this->command->info('');
         $this->command->info('===========================================');
         $this->command->info("✓ Deleted {$deleted} duplicate testing users");
         $this->command->info('===========================================');
         $this->command->info('');
         $this->command->info('Remaining users:');
-        
+
         $remaining = User::with('role')->get();
         foreach ($remaining as $user) {
             $role = $user->role ? $user->role->nama_peran : 'No Role';
             $this->command->info("  - {$user->name} ({$user->email}) - {$role}");
         }
-        
+
         $this->command->info('');
-        $this->command->info('Total remaining: ' . $remaining->count());
+        $this->command->info('Total remaining: '.$remaining->count());
     }
 }

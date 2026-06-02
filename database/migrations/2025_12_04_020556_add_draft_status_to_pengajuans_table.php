@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -16,7 +14,7 @@ return new class extends Migration
         if (DB::connection()->getDriverName() === 'sqlite') {
             return;
         }
-        
+
         // Modify enum to include 'draft' as the first option
         DB::statement("ALTER TABLE pengajuans MODIFY COLUMN status_pengajuan ENUM('draft', 'diajukan', 'disetujui_kepala', 'disetujui_ppk', 'disetujui_final', 'ditolak', 'perlu_revisi') NOT NULL DEFAULT 'diajukan'");
     }
@@ -30,7 +28,7 @@ return new class extends Migration
         if (DB::connection()->getDriverName() === 'sqlite') {
             return;
         }
-        
+
         // Revert to original enum without 'draft'
         DB::statement("ALTER TABLE pengajuans MODIFY COLUMN status_pengajuan ENUM('diajukan', 'disetujui_kepala', 'disetujui_ppk', 'disetujui_final', 'ditolak', 'perlu_revisi') NOT NULL DEFAULT 'diajukan'");
     }

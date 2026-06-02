@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Bimtek;
 use App\Models\Pengajuan;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -31,7 +30,7 @@ class BimtekFactory extends Factory
             'anggaran_disetujui' => fake()->randomFloat(2, 5000000, 50000000),
             'deskripsi_jadwal' => fake()->paragraph(),
             'daftar_pemateri' => null,
-            'file_surat_undangan_path' => null,
+            'file_surat_final_path' => null,
             'status_pelaksanaan' => 'persiapan',
             'syarat_kehadiran_persen' => 80,
             'syarat_tugas_persen' => 70,

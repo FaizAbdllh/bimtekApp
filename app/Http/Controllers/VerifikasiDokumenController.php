@@ -28,7 +28,7 @@ class VerifikasiDokumenController extends Controller
 
         // Check if user is peserta of this bimtek
         $isPeserta = $bimtek->peserta()->where('users.id', $user->id)->exists();
-        if (!$isPeserta) {
+        if (! $isPeserta) {
             abort(403, 'Anda bukan peserta bimtek ini.');
         }
 
@@ -91,7 +91,7 @@ class VerifikasiDokumenController extends Controller
 
         // Store file
         $file = $request->file('file');
-        $fileName = time() . '_' . Str::slug($validated['jenis_dokumen']) . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+        $fileName = time().'_'.Str::slug($validated['jenis_dokumen']).'_'.$user->id.'.'.$file->getClientOriginalExtension();
         $filePath = $file->storeAs('dokumen_persyaratan', $fileName, 'public');
 
         // Create dokumen record
@@ -113,7 +113,7 @@ class VerifikasiDokumenController extends Controller
             ->update(['status_verifikasi' => 'pending']);
 
         $jenisLabel = Str::of($validated['jenis_dokumen'])->replace('_', ' ')->title();
-        
+
         return redirect()
             ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
             ->with('success', "Dokumen {$jenisLabel} berhasil diunggah. Menunggu verifikasi dari panitia.");
@@ -216,7 +216,7 @@ class VerifikasiDokumenController extends Controller
                 new DokumenVerifiedRejectedMail($bimtek, $peserta, 'rejected', $validated['catatan_verifikasi'], $uploadUrl)
             );
         } catch (\Exception $e) {
-            Log::error('Failed to send document rejected email: ' . $e->getMessage());
+            Log::error('Failed to send document rejected email: '.$e->getMessage());
             \App\Models\LogSistem::warning(
                 "Gagal mengirim email dokumen ditolak ke peserta {$dokumen->user_id} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                 Auth::id()
@@ -243,7 +243,7 @@ class VerifikasiDokumenController extends Controller
                 ->latest('uploaded_at')
                 ->first();
 
-            if (!$dokumen || $dokumen->status !== 'approved') {
+            if (! $dokumen || $dokumen->status !== 'approved') {
                 $allApproved = false;
                 break;
             }
@@ -262,7 +262,7 @@ class VerifikasiDokumenController extends Controller
                     new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified')
                 );
             } catch (\Exception $e) {
-                Log::error('Failed to send document verified email: ' . $e->getMessage());
+                Log::error('Failed to send document verified email: '.$e->getMessage());
                 \App\Models\LogSistem::warning(
                     "Gagal mengirim email dokumen terverifikasi ke peserta {$userId} pada bimtek {$bimtek->id}: {$e->getMessage()}",
                     Auth::id()
@@ -280,11 +280,11 @@ class VerifikasiDokumenController extends Controller
         $user = Auth::user();
 
         // Authorization: PIC, Panitia, or the peserta who uploaded
-        $isPicPanitia = $bimtek->pic_user_id === $user->id || 
+        $isPicPanitia = $bimtek->pic_user_id === $user->id ||
                         $bimtek->panitia()->where('users.id', $user->id)->exists();
         $isOwner = $dokumen->user_id === $user->id;
 
-        if (!$isPicPanitia && !$isOwner && !$user->isAdminIt()) {
+        if (! $isPicPanitia && ! $isOwner && ! $user->isAdminIt()) {
             abort(403, 'Anda tidak memiliki akses untuk melihat dokumen ini.');
         }
 
@@ -299,7 +299,7 @@ class VerifikasiDokumenController extends Controller
 
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . $dokumen->file_name . '"',
+            'Content-Disposition' => 'inline; filename="'.$dokumen->file_name.'"',
         ]);
     }
 
@@ -312,11 +312,11 @@ class VerifikasiDokumenController extends Controller
         $user = Auth::user();
 
         // Authorization: PIC, Panitia, or the peserta who uploaded
-        $isPicPanitia = $bimtek->pic_user_id === $user->id || 
+        $isPicPanitia = $bimtek->pic_user_id === $user->id ||
                         $bimtek->panitia()->where('users.id', $user->id)->exists();
         $isOwner = $dokumen->user_id === $user->id;
 
-        if (!$isPicPanitia && !$isOwner && !$user->isAdminIt()) {
+        if (! $isPicPanitia && ! $isOwner && ! $user->isAdminIt()) {
             abort(403, 'Anda tidak memiliki akses untuk mengunduh dokumen ini.');
         }
 
@@ -333,9 +333,8 @@ class VerifikasiDokumenController extends Controller
         $isPic = $bimtek->pic_user_id === $user->id;
         $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
 
-        if (!$isPic && !$isPanitia) {
+        if (! $isPic && ! $isPanitia) {
             abort(403, 'Hanya PIC atau Panitia yang dapat mengelola verifikasi dokumen.');
         }
     }
 }
-

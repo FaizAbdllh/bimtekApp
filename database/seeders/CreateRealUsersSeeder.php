@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,8 +11,8 @@ class CreateRealUsersSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info("===========================================");
-        $this->command->info("CREATING REAL USER ACCOUNTS (UUID)");
+        $this->command->info('===========================================');
+        $this->command->info('CREATING REAL USER ACCOUNTS (UUID)');
         $this->command->info("===========================================\n");
 
         $users = [
@@ -50,7 +50,7 @@ class CreateRealUsersSeeder extends Seeder
 
         foreach ($users as $userData) {
             $role = Role::where('nama_peran', $userData['role'])->first();
-            
+
             $user = User::updateOrCreate(
                 ['email' => $userData['email']],
                 [
@@ -65,8 +65,8 @@ class CreateRealUsersSeeder extends Seeder
         }
 
         $this->command->info("\n===========================================");
-        $this->command->info("✓ All real users created with UUID!");
-        $this->command->info("All passwords: password");
-        $this->command->info("===========================================");
+        $this->command->info('✓ All real users created with UUID!');
+        $this->command->info('All passwords: password');
+        $this->command->info('===========================================');
     }
 }

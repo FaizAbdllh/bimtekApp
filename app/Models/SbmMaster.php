@@ -68,7 +68,7 @@ class SbmMaster extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return "{$this->nama_item} - Rp" . number_format($this->harga_satuan, 0, ',', '.');
+        return "{$this->nama_item} - Rp".number_format($this->harga_satuan, 0, ',', '.');
     }
 
     /**
@@ -76,6 +76,6 @@ class SbmMaster extends Model
      */
     public function formatHarga(): string
     {
-        return "Rp" . number_format($this->harga_satuan, 0, ',', '.');
+        return 'Rp'.number_format($this->harga_satuan, 0, ',', '.');
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class DokumenPersyaratanPeserta extends Model
 {
     use HasUuids;
+
     protected $table = 'dokumen_persyaratan_peserta';
 
     protected $fillable = [

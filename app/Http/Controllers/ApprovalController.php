@@ -6,7 +6,6 @@ use App\Models\Bimtek;
 use App\Models\Pengajuan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ApprovalController extends Controller
@@ -29,9 +28,9 @@ class ApprovalController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul_rencana', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -53,6 +52,7 @@ class ApprovalController extends Controller
     public function showKepala(Pengajuan $pengajuan): View
     {
         $pengajuan->load(['user', 'fasilitasLogistiks']);
+
         return view('approval.kepala.show', compact('pengajuan'));
     }
 
@@ -163,9 +163,9 @@ class ApprovalController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul_rencana', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -186,6 +186,7 @@ class ApprovalController extends Controller
     public function showPpk(Pengajuan $pengajuan): View
     {
         $pengajuan->load(['user', 'fasilitasLogistiks']);
+
         return view('approval.ppk.show', compact('pengajuan'));
     }
 

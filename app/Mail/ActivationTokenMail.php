@@ -5,16 +5,18 @@ namespace App\Mail;
 use App\Models\Bimtek;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class ActivationTokenMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     public $user;
+
     public $bimtek;
+
     public $token;
 
     public function __construct(User $user, Bimtek $bimtek, string $rawToken)

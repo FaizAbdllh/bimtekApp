@@ -27,7 +27,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasColumn('bimteks', 'mode_pelaksanaan')) {
+        if (! Schema::hasColumn('bimteks', 'mode_pelaksanaan')) {
             return;
         }
 

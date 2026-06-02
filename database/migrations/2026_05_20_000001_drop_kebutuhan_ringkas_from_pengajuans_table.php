@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pengajuans', function (Blueprint $table) {
-            if (!Schema::hasColumn('pengajuans', 'kebutuhan_ringkas')) {
+            if (! Schema::hasColumn('pengajuans', 'kebutuhan_ringkas')) {
                 $table->text('kebutuhan_ringkas')->nullable()->after('jumlah_peserta')->comment('Ringkasan kebutuhan / telaah staf (short list)');
             }
         });

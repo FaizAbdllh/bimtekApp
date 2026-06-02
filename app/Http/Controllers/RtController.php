@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FasilitasLogistik;
 use App\Models\Pengajuan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,10 +28,10 @@ class RtController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul_rencana', 'like', "%{$search}%")
-                  ->orWhere('tempat_kegiatan', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('tempat_kegiatan', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -47,7 +46,7 @@ class RtController extends Controller
         // Statistics with single query for performance
         $baseQuery = Pengajuan::where('status_pengajuan', 'disetujui_final')
             ->whereHas('fasilitasLogistiks');
-        
+
         $stats = $baseQuery->selectRaw("
             SUM(CASE WHEN status_rt = 'belum_dipenuhi' THEN 1 ELSE 0 END) as belum_dipenuhi,
             SUM(CASE WHEN status_rt = 'sebagian_dipenuhi' THEN 1 ELSE 0 END) as sebagian_dipenuhi,
@@ -67,6 +66,7 @@ class RtController extends Controller
         }
 
         $pengajuan->load(['user', 'fasilitasLogistiks']);
+
         return view('rt.show', compact('pengajuan'));
     }
 

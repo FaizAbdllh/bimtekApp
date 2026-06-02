@@ -27,7 +27,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasColumn('bimteks', 'virtual_meeting_url')) {
+        if (! Schema::hasColumn('bimteks', 'virtual_meeting_url')) {
             return;
         }
 

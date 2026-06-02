@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePengajuanRequest;
 use App\Http\Requests\UpdatePengajuanRequest;
-use App\Models\FasilitasLogistik;
 use App\Models\Pengajuan;
 use App\Models\SbmMaster;
 use Illuminate\Http\RedirectResponse;
@@ -43,10 +42,10 @@ class PengajuanController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul_rencana', 'like', "%{$search}%")
-                  ->orWhere('tempat_kegiatan', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('tempat_kegiatan', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -77,7 +76,7 @@ class PengajuanController extends Controller
             ->orderBy('nama_item')
             ->get()
             ->groupBy('kategori');
-            
+
         return view('pengajuan.create', compact('sbmMasters'));
     }
 
@@ -91,7 +90,7 @@ class PengajuanController extends Controller
         try {
             $validated = $request->validated();
             $validated['user_id'] = Auth::id();
-            
+
             // Cek apakah ini draft atau submit
             $isDraft = $request->has('save_draft');
             $validated['is_draft'] = $isDraft;
@@ -104,7 +103,7 @@ class PengajuanController extends Controller
             if ($request->has('anggaran') && is_array($request->anggaran)) {
                 foreach ($request->anggaran as $item) {
                     // Skip jika nama dan harga kosong
-                    if (empty($item['nama_item']) && !$item['total_biaya']) {
+                    if (empty($item['nama_item']) && ! $item['total_biaya']) {
                         continue;
                     }
 
@@ -153,10 +152,11 @@ class PengajuanController extends Controller
                 ->with('success', 'Pengajuan bimtek berhasil dibuat dan menunggu persetujuan Kepala.');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan saat menyimpan pengajuan: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan saat menyimpan pengajuan: '.$e->getMessage());
         }
     }
 
@@ -171,17 +171,17 @@ class PengajuanController extends Controller
         $user->load('role');
 
         // Cek akses: pemilik, Admin IT, Kepala, PPK, atau Koordinator RT bisa melihat
-        $canAccess = $pengajuan->user_id === $user->id 
-            || $user->isAdminIt() 
-            || $user->isKepala() 
-            || $user->isPpk() 
+        $canAccess = $pengajuan->user_id === $user->id
+            || $user->isAdminIt()
+            || $user->isKepala()
+            || $user->isPpk()
             || $user->isRt();
 
-        if (!$canAccess) {
+        if (! $canAccess) {
             abort(403, 'Anda tidak memiliki akses untuk melihat pengajuan ini.');
         }
 
-            $pengajuan->load(['user', 'fasilitasLogistiks', 'bimtek']);
+        $pengajuan->load(['user', 'fasilitasLogistiks', 'bimtek']);
 
         return view('pengajuan.show', compact('pengajuan'));
     }
@@ -194,11 +194,11 @@ class PengajuanController extends Controller
         $user = Auth::user();
 
         // Pemilik atau Admin IT bisa edit
-        if ($pengajuan->user_id !== $user->id && !$user->isAdminIt()) {
+        if ($pengajuan->user_id !== $user->id && ! $user->isAdminIt()) {
             abort(403, 'Anda tidak memiliki akses untuk mengedit pengajuan ini.');
         }
 
-        if (!in_array($pengajuan->status_pengajuan, ['draft', 'diajukan', 'perlu_revisi'])) {
+        if (! in_array($pengajuan->status_pengajuan, ['draft', 'diajukan', 'perlu_revisi'])) {
             return redirect()
                 ->route('pengajuan.show', $pengajuan)
                 ->with('error', 'Pengajuan tidak dapat diedit karena sudah diproses.');
@@ -222,11 +222,11 @@ class PengajuanController extends Controller
         $user = Auth::user();
 
         // Pemilik atau Admin IT bisa update
-        if ($pengajuan->user_id !== $user->id && !$user->isAdminIt()) {
+        if ($pengajuan->user_id !== $user->id && ! $user->isAdminIt()) {
             abort(403, 'Anda tidak memiliki akses untuk mengupdate pengajuan ini.');
         }
 
-        if (!in_array($pengajuan->status_pengajuan, ['draft', 'diajukan', 'perlu_revisi'])) {
+        if (! in_array($pengajuan->status_pengajuan, ['draft', 'diajukan', 'perlu_revisi'])) {
             return redirect()
                 ->route('pengajuan.show', $pengajuan)
                 ->with('error', 'Pengajuan tidak dapat diupdate karena sudah diproses.');
@@ -236,11 +236,11 @@ class PengajuanController extends Controller
 
         try {
             $validated = $request->validated();
-            
+
             // Cek apakah ini simpan draft atau submit
             $isDraft = $request->has('save_draft');
             $validated['is_draft'] = $isDraft;
-            
+
             // Update status berdasarkan aksi
             if ($isDraft) {
                 $validated['status_pengajuan'] = 'draft';
@@ -266,7 +266,7 @@ class PengajuanController extends Controller
 
                 foreach ($request->anggaran as $item) {
                     // Skip jika nama dan harga kosong
-                    if (empty($item['nama_item']) && !$item['total_biaya']) {
+                    if (empty($item['nama_item']) && ! $item['total_biaya']) {
                         continue;
                     }
 
@@ -317,10 +317,11 @@ class PengajuanController extends Controller
                 ->with('success', 'Pengajuan berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan saat memperbarui pengajuan: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan saat memperbarui pengajuan: '.$e->getMessage());
         }
     }
 
@@ -332,7 +333,7 @@ class PengajuanController extends Controller
         $user = Auth::user();
 
         // Hanya pemilik atau Admin IT yang bisa hapus
-        if (!$user->isAdminIt() && $pengajuan->user_id !== $user->id) {
+        if (! $user->isAdminIt() && $pengajuan->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses untuk menghapus pengajuan ini.');
         }
 

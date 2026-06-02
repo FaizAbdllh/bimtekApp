@@ -14,7 +14,7 @@ class LogSistemSeeder extends Seeder
     public function run(): void
     {
         $users = User::all();
-        
+
         // Sample log entries
         $logs = [
             // Info logs
@@ -28,14 +28,14 @@ class LogSistemSeeder extends Seeder
             ['level' => 'info', 'pesan' => 'Password user berhasil direset oleh Admin IT'],
             ['level' => 'info', 'pesan' => 'Export laporan rekap peserta berhasil didownload'],
             ['level' => 'info', 'pesan' => 'Template sertifikat baru berhasil diupload'],
-            
+
             // Warning logs
             ['level' => 'warning', 'pesan' => 'User mencoba login dengan password salah sebanyak 3 kali'],
             ['level' => 'warning', 'pesan' => 'Kuota peserta bimtek hampir penuh (45/50 peserta)'],
             ['level' => 'warning', 'pesan' => 'Deadline pengumpulan tugas tinggal 1 hari'],
             ['level' => 'warning', 'pesan' => 'Storage hampir penuh: 85% terpakai'],
             ['level' => 'warning', 'pesan' => 'Beberapa peserta belum melakukan absensi sesi pagi'],
-            
+
             // Error logs
             ['level' => 'error', 'pesan' => 'Gagal mengirim email notifikasi ke peserta: SMTP connection refused'],
             ['level' => 'error', 'pesan' => 'Upload materi gagal: File size melebihi batas maksimal 10MB'],

@@ -18,7 +18,9 @@ class PesertaBimtekInvitedMail extends Mailable
     use Queueable, SerializesModels;
 
     public Bimtek $bimtek;
+
     public User $peserta;
+
     public string $uploadUrl;
 
     /**
@@ -37,7 +39,7 @@ class PesertaBimtekInvitedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Undangan Bimtek: ' . $this->bimtek->judul_final,
+            subject: 'Undangan Bimtek: '.$this->bimtek->judul_final,
         );
     }
 
@@ -59,7 +61,7 @@ class PesertaBimtekInvitedMail extends Mailable
     public function attachments(): array
     {
         $path = $this->bimtek->file_surat_final_path ?: $this->bimtek->file_surat_draft_path;
-        if (!$path || !Storage::disk('public')->exists($path)) {
+        if (! $path || ! Storage::disk('public')->exists($path)) {
             return [];
         }
 

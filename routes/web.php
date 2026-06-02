@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\ActivationController;
+use App\Http\Controllers\ActivationTokenAdminController;
 use App\Http\Controllers\Admin\LogSistemController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApprovalController;
@@ -11,12 +13,10 @@ use App\Http\Controllers\MateriController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\RtController;
 use App\Http\Controllers\SertifikatController;
 use App\Http\Controllers\TugasController;
-use App\Http\Controllers\PublicRegistrationController;
-use App\Http\Controllers\ActivationController;
-use App\Http\Controllers\ActivationTokenAdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -56,7 +56,7 @@ Route::middleware(['auth', 'role:Admin IT'])->prefix('admin')->name('admin.')->g
     // User management
     Route::resource('users', UserController::class);
     Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
-    
+
     Route::get('log-sistem', [LogSistemController::class, 'index'])->name('log-sistem.index');
     Route::get('log-sistem/export', [LogSistemController::class, 'export'])->name('log-sistem.export');
     Route::post('log-sistem/clear-all', [LogSistemController::class, 'clearAll'])->name('log-sistem.clear-all');
@@ -106,10 +106,10 @@ Route::middleware(['auth', 'role:Admin IT,Kepala,PPK,Koordinator RT,Pegawai Inte
 Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function () {
     // List bimtek
     Route::get('/', [BimtekController::class, 'index'])->name('index');
-    
+
     // Detail bimtek
     Route::get('/{bimtek}', [BimtekController::class, 'show'])->name('show');
-    
+
     // Assign Panitia
     Route::post('/{bimtek}/assign-panitia', [BimtekController::class, 'assignPanitia'])->name('assign-panitia');
 
@@ -118,26 +118,26 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
 
     // Ajukan revisi pengajuan oleh PIC
     Route::post('/{bimtek}/ajukan-revisi', [BimtekController::class, 'requestRevisi'])->name('request-revisi');
-    
+
     // Update Status
     Route::patch('/{bimtek}/status', [BimtekController::class, 'updateStatus'])->name('update-status');
-    
+
     // Upload Surat Undangan Draft
     Route::post('/{bimtek}/upload-draft', [BimtekController::class, 'uploadDraft'])->name('upload-draft');
     // Backward-compatible alias used by legacy tests/flow
     Route::post('/{bimtek}/upload-undangan', [BimtekController::class, 'uploadDraft'])->name('upload-undangan');
-    
+
     // Preview & Download Surat Draft
     Route::get('/{bimtek}/preview-draft', [BimtekController::class, 'previewDraft'])->name('preview-draft');
     Route::get('/{bimtek}/download-draft', [BimtekController::class, 'downloadDraft'])->name('download-draft');
 
     // Upload Surat Undangan Final (by Persuratan)
     Route::post('/{bimtek}/upload-final', [BimtekController::class, 'uploadFinal'])->name('upload-final');
-    
+
     // Preview & Download Surat Final
     Route::get('/{bimtek}/preview-final', [BimtekController::class, 'previewFinal'])->name('preview-final');
     Route::get('/{bimtek}/download-final', [BimtekController::class, 'downloadFinal'])->name('download-final');
-    
+
     // Verifikasi Dokumen routes
     Route::get('/{bimtek}/verifikasi-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'index'])->name('verifikasi-dokumen.index');
     Route::get('/{bimtek}/upload-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'uploadForm'])->name('verifikasi-dokumen.upload-form');
@@ -146,7 +146,7 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::post('/dokumen/{dokumen}/reject', [\App\Http\Controllers\VerifikasiDokumenController::class, 'reject'])->name('verifikasi-dokumen.reject');
     Route::get('/dokumen/{dokumen}/preview', [\App\Http\Controllers\VerifikasiDokumenController::class, 'preview'])->name('verifikasi-dokumen.preview');
     Route::get('/dokumen/{dokumen}/download', [\App\Http\Controllers\VerifikasiDokumenController::class, 'download'])->name('verifikasi-dokumen.download');
-    
+
     // Materi routes
     Route::get('/{bimtek}/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/{bimtek}/materi/create', [MateriController::class, 'create'])->name('materi.create');
@@ -165,11 +165,11 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/{bimtek}/tugas/{tugas}/edit', [TugasController::class, 'edit'])->name('tugas.edit');
     Route::put('/{bimtek}/tugas/{tugas}', [TugasController::class, 'update'])->name('tugas.update');
     Route::delete('/{bimtek}/tugas/{tugas}', [TugasController::class, 'destroy'])->name('tugas.destroy');
-    
+
     // Tugas file routes
     Route::get('/{bimtek}/tugas/{tugas}/preview-instruksi', [TugasController::class, 'previewInstruksi'])->name('tugas.preview-instruksi')->middleware('verified.peserta');
     Route::get('/{bimtek}/tugas/{tugas}/download-instruksi', [TugasController::class, 'downloadInstruksi'])->name('tugas.download-instruksi')->middleware('verified.peserta');
-    
+
     // Pengumpulan tugas routes (protected by verification middleware)
     Route::post('/{bimtek}/tugas/{tugas}/submit', [TugasController::class, 'submit'])->name('tugas.submit')->middleware('verified.peserta');
     Route::get('/{bimtek}/tugas/{tugas}/pengumpulan/{pengumpulan}/preview', [TugasController::class, 'previewJawaban'])->name('tugas.preview-jawaban');

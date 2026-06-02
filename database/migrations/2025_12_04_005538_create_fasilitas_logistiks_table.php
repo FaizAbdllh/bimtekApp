@@ -35,7 +35,7 @@ return new class extends Migration
         Schema::table('pengajuans', function (Blueprint $table) {
             $table->dropColumn('catatan_logistik');
         });
-        
+
         Schema::dropIfExists('fasilitas_logistiks');
     }
 };

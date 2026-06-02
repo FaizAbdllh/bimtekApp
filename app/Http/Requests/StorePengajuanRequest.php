@@ -57,7 +57,7 @@ class StorePengajuanRequest extends FormRequest
             'jenis_dokumen_wajib.*' => ['string', 'max:100', 'distinct'],
         ];
 
-        if (!$isDraft && $this->boolean('butuh_verifikasi_dokumen')) {
+        if (! $isDraft && $this->boolean('butuh_verifikasi_dokumen')) {
             $verif['jenis_dokumen_wajib'] = ['required', 'array', 'min:1'];
         }
 

@@ -36,7 +36,7 @@ class UpdatePengajuanRequest extends FormRequest
     {
         // Jika simpan draft, validasi lebih longgar
         $isDraft = $this->has('save_draft');
-        
+
         if ($isDraft) {
             return [
                 'judul_rencana' => ['required', 'string', 'max:255'],
@@ -54,7 +54,7 @@ class UpdatePengajuanRequest extends FormRequest
                 'jenis_dokumen_wajib.*' => ['string', 'max:100', 'distinct'],
             ];
         }
-        
+
         // Validasi ketat untuk submit
         $rules = [
             'judul_rencana' => ['required', 'string', 'max:255'],

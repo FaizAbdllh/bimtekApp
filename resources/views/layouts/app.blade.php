@@ -19,6 +19,7 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
+            @auth
             {{-- Mobile Menu Button --}}
             <div class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-primary-600 px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -103,9 +104,22 @@
                         </div>
                     @endif
 
-                    {{ $slot }}
+                    @isset($slot)
+                        {{ $slot }}
+                    @else
+                        @yield('content')
+                    @endisset
                 </main>
             </div>
+            @else
+            <main class="min-h-screen">
+                @isset($slot)
+                    {{ $slot }}
+                @else
+                    @yield('content')
+                @endisset
+            </main>
+            @endauth
         </div>
 
         {{-- Mobile Menu Script --}}

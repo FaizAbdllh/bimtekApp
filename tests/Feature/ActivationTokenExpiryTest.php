@@ -5,15 +5,13 @@ namespace Tests\Feature;
 use App\Models\ActivationToken;
 use App\Models\Bimtek;
 use App\Models\User;
-use Illuminate\Support\Str;
-use Illuminate\Testing\Fluent\AssertableJson;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 class ActivationTokenExpiryTest extends TestCase
 {
     use RefreshDatabase;
+
     public function test_expired_token_cannot_be_used_to_activate()
     {
         // Create user and bimtek

@@ -106,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
         // Bisa kelola bimtek (PIC atau Panitia dalam bimtek tersebut)
         Gate::define('manage-bimtek', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return in_array($peran, ['pic', 'panitia']);
         });
 
@@ -115,6 +116,7 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return $peran !== null;
         });
 
@@ -125,6 +127,7 @@ class AppServiceProvider extends ServiceProvider
         // Bisa upload materi (PIC atau Panitia)
         Gate::define('upload-materi', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return in_array($peran, ['pic', 'panitia']);
         });
 
@@ -134,6 +137,7 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return $peran !== null;
         });
 
@@ -144,18 +148,21 @@ class AppServiceProvider extends ServiceProvider
         // Bisa membuat tugas (PIC atau Panitia)
         Gate::define('create-tugas', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return in_array($peran, ['pic', 'panitia']);
         });
 
         // Bisa mengumpulkan tugas (Peserta)
         Gate::define('submit-tugas', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return $peran === 'peserta';
         });
 
         // Bisa menilai tugas (PIC atau Panitia)
         Gate::define('grade-tugas', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return in_array($peran, ['pic', 'panitia']);
         });
 
@@ -166,12 +173,14 @@ class AppServiceProvider extends ServiceProvider
         // Bisa membuat sesi absensi (PIC atau Panitia)
         Gate::define('create-absensi', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return in_array($peran, ['pic', 'panitia']);
         });
 
         // Bisa mengisi absensi (Peserta)
         Gate::define('fill-absensi', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return $peran === 'peserta';
         });
 
@@ -187,6 +196,7 @@ class AppServiceProvider extends ServiceProvider
         // Bisa download sertifikat (Peserta yang eligible)
         Gate::define('download-sertifikat', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return $peran === 'peserta';
         });
 
@@ -206,6 +216,7 @@ class AppServiceProvider extends ServiceProvider
         // Bisa input kebutuhan anggaran (PIC atau Panitia)
         Gate::define('input-anggaran', function (User $user, Bimtek $bimtek) {
             $peran = $user->getPeranKontekstual($bimtek->id);
+
             return in_array($peran, ['pic', 'panitia']);
         });
 

@@ -85,8 +85,8 @@ class SesiAbsensi extends Model
     public function generateQrCode(): void
     {
         // Generate unique QR data: session_id|timestamp|random_token
-        $qrData = base64_encode($this->id . '|' . now()->timestamp . '|' . bin2hex(random_bytes(8)));
-        
+        $qrData = base64_encode($this->id.'|'.now()->timestamp.'|'.bin2hex(random_bytes(8)));
+
         $this->update([
             'qr_code' => $qrData,
             'qr_generated_at' => now(),
@@ -101,7 +101,7 @@ class SesiAbsensi extends Model
     public function isQrCodeValid(string $scannedQr): bool
     {
         // Check if QR exists
-        if (!$this->qr_code) {
+        if (! $this->qr_code) {
             return false;
         }
 
@@ -111,7 +111,7 @@ class SesiAbsensi extends Model
         }
 
         // Check if session is open (QR only valid while session is open)
-        if (!$this->isOpen()) {
+        if (! $this->isOpen()) {
             return false;
         }
 

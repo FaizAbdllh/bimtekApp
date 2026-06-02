@@ -7,7 +7,6 @@ use App\Models\TemplateSertifikat;
 use App\Services\SertifikatTemplateService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class TestSertifikatSystem extends Command
 {
@@ -37,7 +36,7 @@ class TestSertifikatSystem extends Command
         // Test 1: Check if SertifikatTemplateService works
         $this->info('[TEST 1] SertifikatTemplateService - getAvailablePlaceholders()');
         $placeholders = SertifikatTemplateService::getAvailablePlaceholders();
-        $this->line('Found ' . count($placeholders) . ' placeholders:');
+        $this->line('Found '.count($placeholders).' placeholders:');
         foreach ($placeholders as $code => $description) {
             $this->line("  - $code: $description");
         }
@@ -46,25 +45,25 @@ class TestSertifikatSystem extends Command
 
         // Test 2: Check renderAsHtml() generates HTML template
         $this->info('[TEST 2] SertifikatTemplateService - renderAsHtml()');
-        
+
         // Get a real Bimtek or create a test one
         $bimtek = Bimtek::first();
-        if (!$bimtek) {
+        if (! $bimtek) {
             $this->warn('No bimtek found in database - using mock data');
             // Create a temporary object with required attributes
-            $bimtek = new Bimtek();
+            $bimtek = new Bimtek;
             $bimtek->judul_final = 'Test Bimtek Title';
             $bimtek->tanggal_mulai_aktual = now();
             $bimtek->tanggal_selesai_aktual = now()->addWeek();
             $bimtek->lokasi = 'Test Location';
         }
-        
-        $peserta = (object)[
+
+        $peserta = (object) [
             'name' => 'Test Peserta',
             'nip' => '123456789',
-            'instansi' => 'Test Instansi'
+            'instansi' => 'Test Instansi',
         ];
-        
+
         $html = SertifikatTemplateService::renderAsHtml(
             $peserta,
             $bimtek,
@@ -73,8 +72,8 @@ class TestSertifikatSystem extends Command
         );
 
         if (strlen($html) > 100) {
-            $this->line('Generated HTML template (' . strlen($html) . ' bytes)');
-            $this->line('First 150 chars: ' . substr($html, 0, 150) . '...');
+            $this->line('Generated HTML template ('.strlen($html).' bytes)');
+            $this->line('First 150 chars: '.substr($html, 0, 150).'...');
             $this->line('✓ Test 2 PASSED');
         } else {
             $this->error('✗ Test 2 FAILED - HTML too short');
@@ -90,42 +89,42 @@ class TestSertifikatSystem extends Command
             '${NOMOR_SERTIFIKAT}' => 'CERT-2024-001',
         ];
 
-        $testHtml = "Nama: \${NAMA_PESERTA}, NIP: \${NIP}, Instansi: \${INSTANSI}, No: \${NOMOR_SERTIFIKAT}";
+        $testHtml = 'Nama: ${NAMA_PESERTA}, NIP: ${NIP}, Instansi: ${INSTANSI}, No: ${NOMOR_SERTIFIKAT}';
         $result = strtr($testHtml, $testReplacements);
-        $expectedResult = "Nama: TEST PESERTA, NIP: 123456789, Instansi: Test Instansi, No: CERT-2024-001";
+        $expectedResult = 'Nama: TEST PESERTA, NIP: 123456789, Instansi: Test Instansi, No: CERT-2024-001';
 
         if ($result === $expectedResult) {
             $this->line('Placeholder replacement working correctly');
-            $this->line('Result: ' . $result);
+            $this->line('Result: '.$result);
             $this->line('✓ Test 3 PASSED');
         } else {
             $this->error('✗ Test 3 FAILED');
-            $this->error('Expected: ' . $expectedResult);
-            $this->error('Got: ' . $result);
+            $this->error('Expected: '.$expectedResult);
+            $this->error('Got: '.$result);
         }
         $this->line('');
 
         // Test 4: Check PDF generation capability
         $this->info('[TEST 4] PDF Generation Test');
         try {
-            $simpleHtml = "<!DOCTYPE html><html><body><h1>Test Certificate</h1><p>This is a test PDF.</p></body></html>";
+            $simpleHtml = '<!DOCTYPE html><html><body><h1>Test Certificate</h1><p>This is a test PDF.</p></body></html>';
             $pdf = Pdf::loadHTML($simpleHtml);
             $pdfOutput = $pdf->output();
-            
+
             $pdfSize = strlen($pdfOutput);
-            $this->line('PDF generated: ' . $pdfSize . ' bytes');
-            
+            $this->line('PDF generated: '.$pdfSize.' bytes');
+
             if ($pdfSize > 1000) {
                 $this->line('PDF size looks good (> 1KB)');
                 $this->line('✓ Test 4 PASSED');
             } else {
-                $this->warn('⚠ Test 4 WARNING - PDF size very small (' . $pdfSize . ' bytes)');
+                $this->warn('⚠ Test 4 WARNING - PDF size very small ('.$pdfSize.' bytes)');
                 $this->line('This may indicate DomPDF issues on Windows');
                 $this->line('System will fallback to HTML output');
                 $this->line('✓ Test 4 PASSED (with fallback)');
             }
         } catch (\Exception $e) {
-            $this->error('✗ Test 4 FAILED - ' . $e->getMessage());
+            $this->error('✗ Test 4 FAILED - '.$e->getMessage());
             $this->line('System will fallback to HTML output');
         }
         $this->line('');
@@ -134,18 +133,18 @@ class TestSertifikatSystem extends Command
         $this->info('[TEST 5] TemplateSertifikat Model Check');
         try {
             $templateCount = TemplateSertifikat::count();
-            $this->line('Found ' . $templateCount . ' template(s) in database');
-            
+            $this->line('Found '.$templateCount.' template(s) in database');
+
             if ($templateCount > 0) {
                 $firstTemplate = TemplateSertifikat::first();
-                $this->line('  - Sample: ' . $firstTemplate->nama_template);
-                $this->line('  - File: ' . $firstTemplate->file_path);
+                $this->line('  - Sample: '.$firstTemplate->nama_template);
+                $this->line('  - File: '.$firstTemplate->file_path);
             } else {
                 $this->line('No templates yet - will be created during usage');
             }
             $this->line('✓ Test 5 PASSED');
         } catch (\Exception $e) {
-            $this->error('✗ Test 5 FAILED - ' . $e->getMessage());
+            $this->error('✗ Test 5 FAILED - '.$e->getMessage());
         }
         $this->line('');
 

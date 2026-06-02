@@ -16,14 +16,23 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
     use RefreshDatabase;
 
     protected User $pic;
+
     protected User $panitia;
+
     protected User $pesertaVerified;
+
     protected User $pesertaInvited;
+
     protected User $pesertaPending;
+
     protected User $pesertaRejected;
+
     protected Bimtek $bimtekWithVerification;
+
     protected Bimtek $bimtekWithoutVerification;
+
     protected Role $roleAdmin;
+
     protected Role $rolePeserta;
 
     protected function setUp(): void

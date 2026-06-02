@@ -28,7 +28,7 @@ return new class extends Migration
                 'disetujui_ppk',
                 'disetujui_final',
                 'ditolak',
-                'perlu_revisi'
+                'perlu_revisi',
             ])->notNull()->default('diajukan');
             $table->text('catatan_kepala')->nullable();
             $table->text('catatan_ppk')->nullable();

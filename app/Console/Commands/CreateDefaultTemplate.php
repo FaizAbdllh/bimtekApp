@@ -2,13 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Models\TemplateSertifikat;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class CreateDefaultTemplate extends Command
 {
     protected $signature = 'template:create-default';
+
     protected $description = 'Create a default certificate template file';
 
     public function handle()
@@ -26,8 +25,7 @@ class CreateDefaultTemplate extends Command
         $this->line('4. Upload via: /admin/template-sertifikat/create');
         $this->line('');
         $this->info('✓ Real Word template required for proper formatting');
-        
+
         return 0;
     }
 }
-

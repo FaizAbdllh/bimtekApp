@@ -20,7 +20,7 @@ class InviteCodeRegistrationTest extends TestCase
 
         $bimtek = Bimtek::factory()->create([
             'pic_user_id' => User::factory()->create(['role_id' => $role->id])->id,
-            'invite_code' => 'SECRET-CODE-123'
+            'invite_code' => 'SECRET-CODE-123',
         ]);
 
         $post = [
@@ -35,7 +35,7 @@ class InviteCodeRegistrationTest extends TestCase
 
         // Ensure user was not created because invite_code was required
         $this->assertDatabaseMissing('users', [
-            'email' => 'peserta@example.test'
+            'email' => 'peserta@example.test',
         ]);
     }
 
@@ -48,14 +48,14 @@ class InviteCodeRegistrationTest extends TestCase
 
         $bimtek = Bimtek::factory()->create([
             'pic_user_id' => $pic->id,
-            'invite_code' => 'SHARED-INVITE-456'
+            'invite_code' => 'SHARED-INVITE-456',
         ]);
 
         $post = [
             'name' => 'Peserta Test',
             'email' => 'peserta2@example.test',
             'nip' => '19700101 0002 1',
-            'invite_code' => 'SHARED-INVITE-456'
+            'invite_code' => 'SHARED-INVITE-456',
         ];
 
         $response = $this->post(route('bimtek.daftar.register', $bimtek), $post);
@@ -63,7 +63,7 @@ class InviteCodeRegistrationTest extends TestCase
         $response->assertRedirect();
 
         $this->assertDatabaseHas('users', [
-            'email' => 'peserta2@example.test'
+            'email' => 'peserta2@example.test',
         ]);
     }
 }

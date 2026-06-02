@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class ActivationToken extends Model
@@ -14,7 +13,7 @@ class ActivationToken extends Model
     protected $table = 'activation_tokens';
 
     protected $fillable = [
-        'id', 'user_id', 'bimtek_id', 'token_hash', 'expires_at', 'used_at', 'created_by', 'revoked_at', 'revoked_by'
+        'id', 'user_id', 'bimtek_id', 'token_hash', 'expires_at', 'used_at', 'created_by', 'revoked_at', 'revoked_by',
     ];
 
     protected $casts = [
@@ -24,6 +23,7 @@ class ActivationToken extends Model
     ];
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public function user()
@@ -49,13 +49,18 @@ class ActivationToken extends Model
     public static function findByRawToken(string $raw)
     {
         $hash = hash('sha256', $raw);
+
         return self::where('token_hash', $hash)->first();
     }
 
     public function markUsed()
     {
-        $this->used_at = now();
-        $this->save();
+        try {
+            $this->used_at = now();
+            $this->save();
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
     public function isExpired()

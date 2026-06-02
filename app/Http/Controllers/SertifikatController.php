@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bimtek;
-use App\Models\Sertifikat;
 use App\Models\AbsensiPeserta;
+use App\Models\Bimtek;
 use App\Models\PengumpulanTugas;
+use App\Models\Sertifikat;
 use App\Services\SertifikatTemplateService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
@@ -37,7 +37,7 @@ class SertifikatController extends Controller
         $canManage = $this->canManage($bimtek);
         $isPeserta = $this->isPeserta($bimtek);
         $user = Auth::user();
-        
+
         // Check verification status for peserta
         $isVerified = false;
         if ($isPeserta && $bimtek->butuh_verifikasi_dokumen) {
@@ -61,9 +61,9 @@ class SertifikatController extends Controller
         }
 
         return view('sertifikat.index', compact(
-            'bimtek', 
-            'canManage', 
-            'isPeserta', 
+            'bimtek',
+            'canManage',
+            'isPeserta',
             'eligibilityData',
             'userSertifikat',
             'isVerified'
@@ -100,13 +100,15 @@ class SertifikatController extends Controller
 
             if ($exists) {
                 $skippedCount++;
+
                 continue;
             }
 
             // Check if peserta is part of this bimtek
             $isPesertaBimtek = $bimtek->peserta()->where('users.id', $pesertaId)->exists();
-            if (!$isPesertaBimtek) {
+            if (! $isPesertaBimtek) {
                 $skippedCount++;
+
                 continue;
             }
 
@@ -119,7 +121,7 @@ class SertifikatController extends Controller
 
                 // Generate PDF from standard template
                 $filePath = $this->generateSertifikatFile($bimtek, $pesertaId, $nomorSertifikat, $tanggalTerbit);
-                if (!$filePath) {
+                if (! $filePath) {
                     break;
                 }
 
@@ -138,13 +140,13 @@ class SertifikatController extends Controller
                 } catch (QueryException $e) {
                     Storage::disk('public')->delete($filePath);
 
-                    if (!$this->isDuplicateNomorException($e)) {
+                    if (! $this->isDuplicateNomorException($e)) {
                         throw $e;
                     }
                 }
             }
 
-            if (!$created) {
+            if (! $created) {
                 $skippedCount++;
             }
         }
@@ -170,8 +172,8 @@ class SertifikatController extends Controller
         // Check ownership
         $user = Auth::user();
         $canManage = $this->canManage($bimtek);
-        
-        if (!$canManage && $sertifikat->user_id !== $user->id) {
+
+        if (! $canManage && $sertifikat->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses ke sertifikat ini.');
         }
 
@@ -179,19 +181,19 @@ class SertifikatController extends Controller
             abort(404);
         }
 
-        if (!$sertifikat->file_path || !Storage::disk('public')->exists($sertifikat->file_path)) {
+        if (! $sertifikat->file_path || ! Storage::disk('public')->exists($sertifikat->file_path)) {
             abort(404, 'File sertifikat tidak ditemukan.');
         }
 
         $nomorClean = str_replace(['/', '\\'], '-', $sertifikat->nomor_sertifikat);
         $extension = pathinfo($sertifikat->file_path, PATHINFO_EXTENSION);
-        
+
         // Better filename format: sertifikat_nomor_nama_tanggal.ext
         $peserta = $sertifikat->user;
         $namaPeserta = strtolower(str_replace(' ', '_', $peserta->name));
         $tanggal = $sertifikat->tanggal_terbit->format('d-m-Y');
         $filename = "sertifikat_{$nomorClean}_{$namaPeserta}_{$tanggal}.{$extension}";
-        
+
         $path = Storage::disk('public')->path($sertifikat->file_path);
 
         return response()->download($path, $filename);
@@ -208,8 +210,8 @@ class SertifikatController extends Controller
         // Check ownership
         $user = Auth::user();
         $canManage = $this->canManage($bimtek);
-        
-        if (!$canManage && $sertifikat->user_id !== $user->id) {
+
+        if (! $canManage && $sertifikat->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses ke sertifikat ini.');
         }
 
@@ -217,12 +219,12 @@ class SertifikatController extends Controller
             abort(404);
         }
 
-        if (!$sertifikat->file_path || !Storage::disk('public')->exists($sertifikat->file_path)) {
+        if (! $sertifikat->file_path || ! Storage::disk('public')->exists($sertifikat->file_path)) {
             abort(404, 'File sertifikat tidak ditemukan.');
         }
 
         $path = Storage::disk('public')->path($sertifikat->file_path);
-        
+
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
         ]);
@@ -264,18 +266,18 @@ class SertifikatController extends Controller
 
         $totalSesi = $bimtek->sesiAbsensis->count();
         $totalTugas = $bimtek->tugas->count();
-        
+
         // Pre-load all data to avoid N+1 queries
         $sesiIds = $bimtek->sesiAbsensis->pluck('id');
         $tugasIds = $bimtek->tugas->pluck('id');
         $pesertaIds = $bimtek->peserta->pluck('id');
-        
+
         $allAttendances = AbsensiPeserta::whereIn('user_id', $pesertaIds)
             ->whereIn('sesi_absensi_id', $sesiIds)
             ->get()
             ->groupBy('user_id')
-            ->map(fn($items) => $items->count());
-        
+            ->map(fn ($items) => $items->count());
+
         $allSubmissions = PengumpulanTugas::whereIn('user_id', $pesertaIds)
             ->whereIn('tugas_id', $tugasIds)
             ->get()
@@ -294,7 +296,7 @@ class SertifikatController extends Controller
             $rataRataNilaiTugas = $tugasDinilai > 0
                 ? round((float) $submissionsByPeserta->whereNotNull('nilai')->avg('nilai'), 1)
                 : null;
-            
+
             // Check tugas eligibility
             $lulusTugas = true;
             $lulusKelengkapanTugas = true;
@@ -357,11 +359,11 @@ class SertifikatController extends Controller
     {
         $year = date('Y', strtotime($tanggalTerbit));
         $month = date('m', strtotime($tanggalTerbit));
-        $suffix = '/SERT-BIMTEK/' . (string) $bimtek->id . '/' . $month . '/' . $year;
+        $suffix = '/SERT-BIMTEK/'.(string) $bimtek->id.'/'.$month.'/'.$year;
 
         $max = 0;
         $nomors = Sertifikat::where('bimtek_id', $bimtek->id)
-            ->where('nomor_sertifikat', 'like', '%' . $suffix)
+            ->where('nomor_sertifikat', 'like', '%'.$suffix)
             ->pluck('nomor_sertifikat');
 
         foreach ($nomors as $nomor) {
@@ -388,7 +390,7 @@ class SertifikatController extends Controller
      */
     private function ensureHasSertifikat(Bimtek $bimtek): void
     {
-        if (!$bimtek->has_sertifikat) {
+        if (! $bimtek->has_sertifikat) {
             abort(404, 'Fitur Sertifikat dinonaktifkan untuk bimtek ini.');
         }
     }
@@ -399,7 +401,7 @@ class SertifikatController extends Controller
     private function generateSertifikatFile(Bimtek $bimtek, $pesertaId, string $nomorSertifikat, string $tanggalTerbit): ?string
     {
         $peserta = $bimtek->peserta()->where('users.id', $pesertaId)->first();
-        if (!$peserta) {
+        if (! $peserta) {
             return null;
         }
 
@@ -421,14 +423,14 @@ class SertifikatController extends Controller
                 $filename = "sertifikat_{$safeNomor}_{$pesertaId}.pdf";
                 $filePath = "{$directory}/{$filename}";
                 Storage::disk('public')->put($filePath, $pdfOutput);
-                
-                Log::info('Sertifikat PDF generated', [
+
+                Log::debug('Sertifikat PDF generated', [
                     'bimtek_id' => $bimtek->id,
                     'peserta_id' => $pesertaId,
                     'file_path' => $filePath,
                     'size' => strlen($pdfOutput),
                 ]);
-                
+
                 return $filePath;
             }
         } catch (\Throwable $e) {
@@ -462,7 +464,7 @@ class SertifikatController extends Controller
     private function renderTemplateWithData($peserta, Bimtek $bimtek, string $nomorSertifikat, string $tanggalTerbit): string
     {
         $tanggalTerbitDate = \Carbon\Carbon::parse($tanggalTerbit);
-        
+
         $replacements = [
             '{PESERTA}' => strtoupper($peserta->name),
             '{NIP}' => $peserta->nip ?? '-',
@@ -476,7 +478,7 @@ class SertifikatController extends Controller
         ];
 
         $html = SertifikatTemplateService::renderAsHtml($peserta, $bimtek, $nomorSertifikat, $tanggalTerbit);
-        
+
         return strtr($html, $replacements);
     }
 
@@ -508,7 +510,7 @@ class SertifikatController extends Controller
 
         $hasAccess = $bimtek->users()->where('users.id', $user->id)->exists();
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
         }
     }
@@ -518,7 +520,7 @@ class SertifikatController extends Controller
      */
     private function authorizeManage(Bimtek $bimtek): void
     {
-        if (!$this->canManage($bimtek)) {
+        if (! $this->canManage($bimtek)) {
             abort(403, 'Hanya PIC atau Panitia yang dapat mengelola sertifikat.');
         }
     }

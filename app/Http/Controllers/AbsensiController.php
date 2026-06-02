@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AbsensiPeserta;
 use App\Models\Bimtek;
 use App\Models\SesiAbsensi;
-use App\Models\AbsensiPeserta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,13 +23,13 @@ class AbsensiController extends Controller
             'sesiAbsensis' => function ($q) {
                 $q->with('openedBy')->withCount('absensiPesertas')->latest();
             },
-            'peserta'
+            'peserta',
         ]);
 
         $canManage = $this->canManage($bimtek);
         $isPeserta = $this->isPeserta($bimtek);
         $user = Auth::user();
-        
+
         // Check verification status for peserta
         $isVerified = false;
         if ($isPeserta && $bimtek->butuh_verifikasi_dokumen) {
@@ -205,8 +205,8 @@ class AbsensiController extends Controller
             $sesi->generateQrCode();
         }
 
-        $message = $newStatus === 'terbuka' 
-            ? 'Sesi absensi berhasil dibuka. QR Code telah digenerate.' 
+        $message = $newStatus === 'terbuka'
+            ? 'Sesi absensi berhasil dibuka. QR Code telah digenerate.'
             : 'Sesi absensi berhasil ditutup.';
 
         return redirect()
@@ -232,7 +232,7 @@ class AbsensiController extends Controller
 
         // Generate QR only if it doesn't exist yet (first time opening session)
         // QR persists until session is closed
-        if (!$sesi->qr_code) {
+        if (! $sesi->qr_code) {
             $sesi->generateQrCode();
         }
 
@@ -247,7 +247,7 @@ class AbsensiController extends Controller
         $user = Auth::user();
 
         // Check if user is peserta
-        if (!$this->isPeserta($bimtek)) {
+        if (! $this->isPeserta($bimtek)) {
             abort(403, 'Anda bukan peserta bimtek ini.');
         }
 
@@ -277,7 +277,7 @@ class AbsensiController extends Controller
         $user = Auth::user();
 
         // Check if user is peserta
-        if (!$this->isPeserta($bimtek)) {
+        if (! $this->isPeserta($bimtek)) {
             abort(403, 'Anda bukan peserta bimtek ini.');
         }
 
@@ -314,7 +314,7 @@ class AbsensiController extends Controller
         }
 
         // Validate QR code
-        if (!$sesi->isQrCodeValid($validated['qr_code'])) {
+        if (! $sesi->isQrCodeValid($validated['qr_code'])) {
             return redirect()
                 ->back()
                 ->with('error', 'QR Code tidak valid atau sudah kadaluarsa. Silakan minta QR Code baru dari panitia.');
@@ -338,7 +338,7 @@ class AbsensiController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->isPeserta($bimtek)) {
+        if (! $this->isPeserta($bimtek)) {
             abort(403, 'Anda bukan peserta bimtek ini.');
         }
 
@@ -346,7 +346,7 @@ class AbsensiController extends Controller
             abort(404);
         }
 
-        if (!$bimtek->supportsOnlineAttendance()) {
+        if (! $bimtek->supportsOnlineAttendance()) {
             return redirect()
                 ->back()
                 ->with('error', 'Presensi online hanya tersedia untuk bimtek mode online atau hybrid.');
@@ -358,7 +358,7 @@ class AbsensiController extends Controller
                 ->with('error', 'Absensi hanya dapat dilakukan saat bimtek sedang berlangsung.');
         }
 
-        if (!$sesi->isOpen()) {
+        if (! $sesi->isOpen()) {
             return redirect()
                 ->back()
                 ->with('error', 'Sesi absensi masih ditutup. Silakan tunggu panitia membuka sesi.');
@@ -396,8 +396,6 @@ class AbsensiController extends Controller
             ->with('success', 'Kehadiran Anda berhasil dicatat melalui presensi online.');
     }
 
-
-
     /**
      * PIC/Panitia manually add attendance for a peserta.
      */
@@ -415,7 +413,7 @@ class AbsensiController extends Controller
 
         // Check if user is peserta of this bimtek
         $isPesertaBimtek = $bimtek->peserta()->where('users.id', $validated['user_id'])->exists();
-        if (!$isPesertaBimtek) {
+        if (! $isPesertaBimtek) {
             return redirect()
                 ->back()
                 ->with('error', 'User bukan peserta bimtek ini.');
@@ -476,7 +474,7 @@ class AbsensiController extends Controller
             'sesiAbsensis' => function ($q) {
                 $q->orderBy('created_at');
             },
-            'peserta'
+            'peserta',
         ]);
 
         $canManage = $this->canManage($bimtek);
@@ -484,7 +482,7 @@ class AbsensiController extends Controller
         // Pre-load all attendances to avoid N+1 query
         $sesiIds = $bimtek->sesiAbsensis->pluck('id');
         $pesertaIds = $bimtek->peserta->pluck('id');
-        
+
         $allAttendances = AbsensiPeserta::whereIn('user_id', $pesertaIds)
             ->whereIn('sesi_absensi_id', $sesiIds)
             ->get()
@@ -499,7 +497,7 @@ class AbsensiController extends Controller
                 'peserta' => $peserta,
                 'attendances' => $attendances,
                 'total_hadir' => count($attendances),
-                'persentase' => $bimtek->sesiAbsensis->count() > 0 
+                'persentase' => $bimtek->sesiAbsensis->count() > 0
                     ? round((count($attendances) / $bimtek->sesiAbsensis->count()) * 100, 1)
                     : 0,
             ];
@@ -524,7 +522,7 @@ class AbsensiController extends Controller
 
         // Check if PIC
         $isPic = $bimtek->pic_user_id === $user->id;
-        
+
         // Check if Panitia
         $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
 
@@ -548,11 +546,11 @@ class AbsensiController extends Controller
 
         // Check if PIC
         $isPic = $bimtek->pic_user_id === $user->id;
-        
+
         // Check if in pivot table (Panitia or Peserta)
         $hasAccess = $bimtek->users()->where('users.id', $user->id)->exists();
 
-        if (!$isPic && !$hasAccess) {
+        if (! $isPic && ! $hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
         }
     }
@@ -562,7 +560,7 @@ class AbsensiController extends Controller
      */
     private function authorizeManage(Bimtek $bimtek): void
     {
-        if (!$this->canManage($bimtek)) {
+        if (! $this->canManage($bimtek)) {
             abort(403, 'Hanya PIC atau Panitia yang dapat mengelola absensi.');
         }
     }

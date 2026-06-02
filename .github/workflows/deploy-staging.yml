@@ -1,0 +1,52 @@
+name: Deploy to Staging (template)
+
+on:
+  push:
+    branches:
+      - feature/revisi-bimtek
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to server (SSH)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT }}
+          script: |
+            cd ${{ secrets.STAGING_PATH }}
+            git fetch --all
+            git checkout feature/revisi-bimtek
+            git reset --hard origin/feature/revisi-bimtek
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            php artisan migrate --force
+            npm ci
+            npm run build
+            php artisan queue:restart
+            # restart supervisor or systemd as needed
+            # sudo supervisorctl restart laravel-worker:*
+            # sudo systemctl restart horizon
+
+    env:
+      COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+
+# NOTE: Set secrets in repository settings: STAGING_HOST, STAGING_USER, STAGING_SSH_KEY, STAGING_PATH, STAGING_SSH_PORT

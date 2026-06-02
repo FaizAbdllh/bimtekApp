@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('bimteks', function (Blueprint $table) {
-            if (!Schema::hasColumn('bimteks', 'invite_code')) {
+            if (! Schema::hasColumn('bimteks', 'invite_code')) {
                 $table->string('invite_code', 64)->nullable()->unique()->after('virtual_meeting_url');
             }
         });

@@ -5,7 +5,6 @@ namespace App\Mail;
 use App\Models\Bimtek;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
@@ -33,9 +32,9 @@ class PesertaCredentialsMail extends Mailable
     public function envelope(): Envelope
     {
         $subject = 'Kredensial Akun SI Bimtek BBPMP Sumbar';
-        
+
         if ($this->bimtek) {
-            $subject = 'Undangan Peserta Bimtek: ' . $this->bimtek->judul_final;
+            $subject = 'Undangan Peserta Bimtek: '.$this->bimtek->judul_final;
         }
 
         return new Envelope(
@@ -60,12 +59,12 @@ class PesertaCredentialsMail extends Mailable
      */
     public function attachments(): array
     {
-        if (!$this->bimtek) {
+        if (! $this->bimtek) {
             return [];
         }
 
         $path = $this->bimtek->file_surat_final_path ?: $this->bimtek->file_surat_draft_path;
-        if (!$path || !Storage::disk('public')->exists($path)) {
+        if (! $path || ! Storage::disk('public')->exists($path)) {
             return [];
         }
 

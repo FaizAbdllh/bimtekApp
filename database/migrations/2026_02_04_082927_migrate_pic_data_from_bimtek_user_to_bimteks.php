@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -21,7 +19,7 @@ return new class extends Migration
                     ->where('id', $pivot->bimtek_id)
                     ->update(['pic_user_id' => $pivot->user_id]);
             });
-        
+
         // Delete pic records from bimtek_user
         DB::table('bimtek_user')
             ->where('peran_kontekstual', 'pic')
@@ -46,7 +44,7 @@ return new class extends Migration
                     'updated_at' => now(),
                 ]);
             });
-        
+
         // Clear pic_user_id from bimteks
         DB::table('bimteks')->update(['pic_user_id' => null]);
     }

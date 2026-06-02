@@ -8,9 +8,10 @@ use App\Models\Bimtek;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Route;
 
 class ActivationController extends Controller
 {
@@ -20,7 +21,7 @@ class ActivationController extends Controller
         $auth = Auth::user();
         $isPic = $bimtek->pic_user_id === $auth->id;
         $isPanitia = $bimtek->panitia()->where('users.id', $auth->id)->exists();
-        if (!$isPic && !$isPanitia && !$auth->isAdminIt()) {
+        if (! $isPic && ! $isPanitia && ! $auth->isAdminIt()) {
             abort(403);
         }
 
@@ -31,7 +32,7 @@ class ActivationController extends Controller
 
         // Send email if available
         $sentEmail = false;
-        if (!empty($user->email)) {
+        if (! empty($user->email)) {
             try {
                 Mail::to($user->email)->queue(new ActivationTokenMail($user, $bimtek, $raw));
                 $sentEmail = true;
@@ -48,26 +49,32 @@ class ActivationController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Token aktivasi dibuat.' . ($sentEmail ? ' Token dikirim via email.' : " Token: $raw"));
+        return redirect()->back()->with('success', 'Token aktivasi dibuat.'.($sentEmail ? ' Token dikirim via email.' : " Token: $raw"));
     }
 
     public function showActivate(string $rawToken)
     {
         $token = ActivationToken::findByRawToken($rawToken);
-        if (!$token || $token->used_at) {
+        if (! $token || $token->used_at) {
             return view('activation.invalid');
         }
         if ($token->isExpired()) {
             return view('activation.expired');
         }
+
         return view('activation.activate', ['token' => $rawToken, 'user' => $token->user]);
     }
 
     public function activate(Request $request, string $rawToken)
     {
         $token = ActivationToken::findByRawToken($rawToken);
-        if (!$token || $token->used_at || $token->isExpired()) {
-            return redirect()->route('welcome')->with('error', 'Token tidak valid atau kadaluarsa.');
+        if (! $token || $token->used_at || $token->isExpired()) {
+            $msg = 'Token tidak valid atau kadaluarsa.';
+            if (Route::has('welcome')) {
+                return redirect()->route('welcome')->with('error', $msg);
+            }
+
+            return redirect('/')->with('error', $msg);
         }
 
         $user = $token->user;
@@ -77,7 +84,7 @@ class ActivationController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (!empty($validated['nip'])) {
+        if (! empty($validated['nip'])) {
             // If user has nip and it mismatches, block (optional)
             if ($user->nip && $user->nip !== $validated['nip']) {
                 return back()->withErrors(['nip' => 'NIP tidak cocok dengan data peserta.']);
@@ -85,12 +92,19 @@ class ActivationController extends Controller
             $user->nip = $validated['nip'];
         }
 
-        $user->password = Hash::make($validated['password']);
-        $user->save();
+        try {
+            DB::transaction(function () use ($user, $token, $validated) {
+                $user->password = Hash::make($validated['password']);
+                $user->save();
 
-        $token->markUsed();
+                $token->markUsed();
+            });
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat memproses aktivasi.');
+        }
 
         Auth::login($user);
+
         return redirect()->route('dashboard')->with('success', 'Akun berhasil diaktifkan.');
     }
 }

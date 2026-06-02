@@ -37,12 +37,12 @@ class SertifikatTemplateService
      */
     public static function extractFromDocx(string $docxPath): string
     {
-        if (!file_exists($docxPath)) {
+        if (! file_exists($docxPath)) {
             return '';
         }
 
         try {
-            $zip = new \ZipArchive();
+            $zip = new \ZipArchive;
             if ($zip->open($docxPath) !== true) {
                 return '';
             }
@@ -51,28 +51,29 @@ class SertifikatTemplateService
             $xml = $zip->getFromName('word/document.xml');
             $zip->close();
 
-            if (!$xml) {
+            if (! $xml) {
                 return '';
             }
 
             // Parse XML and extract text
-            $dom = new \DOMDocument();
+            $dom = new \DOMDocument;
             @$dom->loadXML($xml);
 
             // Extract all text from <w:t> elements (Word text elements)
             $xpath = new \DOMXPath($dom);
             $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
-            
+
             $textNodes = $xpath->query('//w:t');
             $text = '';
-            
+
             foreach ($textNodes as $node) {
                 $text .= $node->nodeValue;
             }
 
             return $text;
         } catch (\Exception $e) {
-            Log::error('Error extracting DOCX: ' . $e->getMessage());
+            Log::error('Error extracting DOCX: '.$e->getMessage());
+
             return '';
         }
     }
@@ -97,11 +98,11 @@ class SertifikatTemplateService
         $logoBase64 = '';
         $logoPath = public_path('images/logo-bbpmp.png');
         if (file_exists($logoPath)) {
-            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath));
         }
 
         $logoHtml = $logoBase64 !== ''
-            ? '<div class="logo-wrap"><img src="' . $logoBase64 . '" alt="Logo BBPMP"></div>'
+            ? '<div class="logo-wrap"><img src="'.$logoBase64.'" alt="Logo BBPMP"></div>'
             : '';
 
         return <<<HTML

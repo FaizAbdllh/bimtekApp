@@ -428,7 +428,7 @@
     {{-- Modal: Tambah Peserta & Import hanya untuk PIC/Panitia/Admin --}}
     {{-- Modal: Batch Generate Tokens --}}
     <x-modal name="generate-tokens" :show="false">
-        <form id="generate-tokens-form" action="{{ route('bimtek.activation-tokens.generate-batch', $bimtek) }}" method="POST" class="p-6">
+        <form id="generate-tokens-form" action="{{ Route::has('bimtek.activation-tokens.generate-batch') ? route('bimtek.activation-tokens.generate-batch', $bimtek) : url('') }}" method="POST" class="p-6">
             @csrf
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Batch Generate Activation Tokens</h3>
             <p class="text-sm text-gray-500 mb-4">Pilih peserta yang akan dibuatkan token. Token akan diunduh sebagai CSV (raw tokens hanya ditampilkan pada file CSV sekali saja).</p>

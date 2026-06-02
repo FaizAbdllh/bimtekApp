@@ -14,40 +14,40 @@ class CleanTestingDataSeeder extends Seeder
     public function run(): void
     {
         // Delete bimtek created from seeders (not from real user pengajuan)
-        $testingBimteks = Bimtek::whereHas('pengajuan', function($q) {
-            $q->whereIn('user_id', function($subQuery) {
+        $testingBimteks = Bimtek::whereHas('pengajuan', function ($q) {
+            $q->whereIn('user_id', function ($subQuery) {
                 $subQuery->select('id')
                     ->from('users')
                     ->whereIn('email', [
                         'pic@test.com',
                         'admin@test.com',
                         'kepala@test.com',
-                        'ppk@test.com'
+                        'ppk@test.com',
                     ]);
             });
         })->get();
 
         $bimtekCount = $testingBimteks->count();
-        
+
         foreach ($testingBimteks as $bimtek) {
             $this->command->info("Deleting bimtek: {$bimtek->judul_final} (PIC: {$bimtek->pic->name})");
             $bimtek->delete();
         }
 
         // Delete testing pengajuan
-        $testingPengajuans = Pengajuan::whereIn('user_id', function($subQuery) {
+        $testingPengajuans = Pengajuan::whereIn('user_id', function ($subQuery) {
             $subQuery->select('id')
                 ->from('users')
                 ->whereIn('email', [
                     'pic@test.com',
                     'admin@test.com',
                     'kepala@test.com',
-                    'ppk@test.com'
+                    'ppk@test.com',
                 ]);
         })->get();
 
         $pengajuanCount = $testingPengajuans->count();
-        
+
         foreach ($testingPengajuans as $pengajuan) {
             $this->command->info("Deleting pengajuan: {$pengajuan->judul_rencana} (Pengaju: {$pengajuan->user->name})");
             $pengajuan->delete();

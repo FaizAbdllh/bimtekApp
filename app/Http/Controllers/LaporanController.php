@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bimtek;
-use App\Models\Pengajuan;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -18,10 +17,10 @@ class LaporanController extends Controller
     public function index(): View
     {
         $user = Auth::user();
-        
+
         // Get bimtek list for dropdown
         $bimteks = collect();
-        
+
         if ($user->hasRole(['Admin IT', 'Kepala', 'PPK'])) {
             // Admin, Kepala, PPK bisa lihat semua bimtek
             $bimteks = Bimtek::orderBy('created_at', 'desc')->get();
@@ -71,8 +70,8 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.rekap-peserta', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        $filename = 'Rekap_Peserta_' . str_replace(' ', '_', $bimtek->judul_final) . '.pdf';
-        
+        $filename = 'Rekap_Peserta_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -102,7 +101,7 @@ class LaporanController extends Controller
                 'kehadiran' => [],
                 'total_hadir' => 0,
             ];
-            
+
             foreach ($sesiAbsensis as $sesi) {
                 $hadir = $sesi->absensis->contains('user_id', $p->id);
                 $rekapAbsensi[$p->id]['kehadiran'][$sesi->id] = $hadir;
@@ -123,8 +122,8 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.rekap-absensi', $data);
         $pdf->setPaper('a4', 'landscape');
 
-        $filename = 'Rekap_Absensi_' . str_replace(' ', '_', $bimtek->judul_final) . '.pdf';
-        
+        $filename = 'Rekap_Absensi_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -155,12 +154,12 @@ class LaporanController extends Controller
                 'total_nilai' => 0,
                 'jumlah_tugas_dikerjakan' => 0,
             ];
-            
+
             foreach ($tugasList as $tugas) {
                 $pengumpulan = $tugas->pengumpulanTugas->where('user_id', $p->id)->first();
                 $nilai = $pengumpulan?->nilai;
                 $rekapNilai[$p->id]['nilai'][$tugas->id] = $nilai;
-                
+
                 if ($pengumpulan) {
                     $rekapNilai[$p->id]['jumlah_tugas_dikerjakan']++;
                     if ($nilai !== null) {
@@ -168,11 +167,11 @@ class LaporanController extends Controller
                     }
                 }
             }
-            
+
             // Calculate average
-            $jumlahDinilai = collect($rekapNilai[$p->id]['nilai'])->filter(fn($v) => $v !== null)->count();
-            $rekapNilai[$p->id]['rata_rata'] = $jumlahDinilai > 0 
-                ? round($rekapNilai[$p->id]['total_nilai'] / $jumlahDinilai, 2) 
+            $jumlahDinilai = collect($rekapNilai[$p->id]['nilai'])->filter(fn ($v) => $v !== null)->count();
+            $rekapNilai[$p->id]['rata_rata'] = $jumlahDinilai > 0
+                ? round($rekapNilai[$p->id]['total_nilai'] / $jumlahDinilai, 2)
                 : null;
         }
 
@@ -186,8 +185,8 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.rekap-nilai', $data);
         $pdf->setPaper('a4', 'landscape');
 
-        $filename = 'Rekap_Nilai_' . str_replace(' ', '_', $bimtek->judul_final) . '.pdf';
-        
+        $filename = 'Rekap_Nilai_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -206,7 +205,7 @@ class LaporanController extends Controller
         $status = $request->status ?? 'semua';
 
         // Authorization - hanya Admin IT, Kepala, PPK
-        if (!$user->hasRole(['Admin IT', 'Kepala', 'PPK'])) {
+        if (! $user->hasRole(['Admin IT', 'Kepala', 'PPK'])) {
             abort(403, 'Anda tidak memiliki akses untuk laporan ini.');
         }
 
@@ -230,7 +229,7 @@ class LaporanController extends Controller
         $pdf->setPaper('a4', 'portrait');
 
         $filename = "Daftar_Bimtek_{$tahun}.pdf";
-        
+
         return $pdf->download($filename);
     }
 
@@ -268,7 +267,7 @@ class LaporanController extends Controller
         // Rata-rata kehadiran
         $avgKehadiran = 0;
         if ($totalSesi > 0 && $totalPeserta > 0) {
-            $totalKehadiran = $bimtek->sesiAbsensis->sum(fn($sesi) => $sesi->absensis->count());
+            $totalKehadiran = $bimtek->sesiAbsensis->sum(fn ($sesi) => $sesi->absensis->count());
             $avgKehadiran = round(($totalKehadiran / ($totalSesi * $totalPeserta)) * 100, 1);
         }
 
@@ -289,8 +288,8 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.laporan-kegiatan', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        $filename = 'Laporan_Kegiatan_' . str_replace(' ', '_', $bimtek->judul_final) . '.pdf';
-        
+        $filename = 'Laporan_Kegiatan_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -308,7 +307,7 @@ class LaporanController extends Controller
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
 
-        $filename = 'Peserta_' . str_replace(' ', '_', $bimtek->judul_final) . '_' . date('Ymd') . '.csv';
+        $filename = 'Peserta_'.str_replace(' ', '_', $bimtek->judul_final).'_'.date('Ymd').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -317,16 +316,16 @@ class LaporanController extends Controller
 
         $callback = function () use ($bimtek, $peserta) {
             $file = fopen('php://output', 'w');
-            
+
             // BOM for Excel UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             // Title
             fputcsv($file, ['DAFTAR PESERTA BIMTEK']);
             fputcsv($file, [$bimtek->judul_final]);
-            fputcsv($file, ['Tanggal: ' . ($bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->format('d/m/Y') . ' - ' . $bimtek->tanggal_selesai_final?->format('d/m/Y') : '-')]);
+            fputcsv($file, ['Tanggal: '.($bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->format('d/m/Y').' - '.$bimtek->tanggal_selesai_final?->format('d/m/Y') : '-')]);
             fputcsv($file, ['']);
-            
+
             // Header
             fputcsv($file, ['No', 'Nama', 'Email', 'NIP', 'Asal Instansi']);
 
@@ -363,7 +362,7 @@ class LaporanController extends Controller
         $peserta = $bimtek->peserta()->orderBy('name')->get();
         $sesiAbsensis = $bimtek->sesiAbsensis()->orderBy('created_at')->get();
 
-        $filename = 'Absensi_' . str_replace(' ', '_', $bimtek->judul_final) . '_' . date('Ymd') . '.csv';
+        $filename = 'Absensi_'.str_replace(' ', '_', $bimtek->judul_final).'_'.date('Ymd').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -372,15 +371,15 @@ class LaporanController extends Controller
 
         $callback = function () use ($bimtek, $peserta, $sesiAbsensis) {
             $file = fopen('php://output', 'w');
-            
+
             // BOM for Excel UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             // Title
             fputcsv($file, ['REKAP ABSENSI BIMTEK']);
             fputcsv($file, [$bimtek->judul_final]);
             fputcsv($file, ['']);
-            
+
             // Header
             $header = ['No', 'Nama', 'Email'];
             foreach ($sesiAbsensis as $sesi) {
@@ -393,20 +392,22 @@ class LaporanController extends Controller
             // Data
             $no = 1;
             $totalSesi = $sesiAbsensis->count();
-            
+
             foreach ($peserta as $p) {
                 $row = [$no++, $p->name, $p->email];
                 $totalHadir = 0;
-                
+
                 foreach ($sesiAbsensis as $sesi) {
                     $hadir = $sesi->absensis->contains('user_id', $p->id);
                     $row[] = $hadir ? 'Hadir' : '-';
-                    if ($hadir) $totalHadir++;
+                    if ($hadir) {
+                        $totalHadir++;
+                    }
                 }
-                
-                $row[] = $totalHadir . '/' . $totalSesi;
-                $row[] = $totalSesi > 0 ? round(($totalHadir / $totalSesi) * 100, 1) . '%' : '0%';
-                
+
+                $row[] = $totalHadir.'/'.$totalSesi;
+                $row[] = $totalSesi > 0 ? round(($totalHadir / $totalSesi) * 100, 1).'%' : '0%';
+
                 fputcsv($file, $row);
             }
 
@@ -432,7 +433,7 @@ class LaporanController extends Controller
         $hasAccess = $bimtek->pic_user_id === $user->id
             || $bimtek->users()->where('users.id', $user->id)->exists();
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
         }
     }

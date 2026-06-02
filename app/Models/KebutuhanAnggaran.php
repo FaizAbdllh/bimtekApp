@@ -111,12 +111,12 @@ class KebutuhanAnggaran extends Model
         static::saving(function ($model) {
             // Calculate total biaya
             $model->total_biaya = $model->volume_1 * $model->volume_2 * $model->harga_satuan;
-            
+
             // Calculate deviasi jika ada SBM reference
             if ($model->harga_satuan_sbm && $model->harga_satuan_sbm > 0) {
                 $deviasi = (($model->harga_satuan - $model->harga_satuan_sbm) / $model->harga_satuan_sbm) * 100;
                 $model->persentase_deviasi = round($deviasi, 2);
-                
+
                 // Set status validasi berdasarkan persentase deviasi
                 if (abs($deviasi) < 0.01) {
                     $model->status_validasi = 'sesuai_sbm';
@@ -147,7 +147,7 @@ class KebutuhanAnggaran extends Model
      */
     public function getStatusBadgeColorAttribute(): string
     {
-        return match($this->status_validasi) {
+        return match ($this->status_validasi) {
             'sesuai_sbm' => 'bg-green-100 text-green-800',
             'deviasi_minor' => 'bg-yellow-100 text-yellow-800',
             'deviasi_major' => 'bg-orange-100 text-orange-800',
@@ -162,7 +162,7 @@ class KebutuhanAnggaran extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status_validasi) {
+        return match ($this->status_validasi) {
             'sesuai_sbm' => 'Sesuai SBM',
             'deviasi_minor' => 'Deviasi Minor (<10%)',
             'deviasi_major' => 'Deviasi Major (10-20%)',

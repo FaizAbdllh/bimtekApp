@@ -39,7 +39,7 @@ class ActivationTokenAdminController extends Controller
             ];
         }
 
-        $filename = 'activation_tokens_' . $bimtek->id . '_' . date('Ymd_His') . '.csv';
+        $filename = 'activation_tokens_'.$bimtek->id.'_'.date('Ymd_His').'.csv';
 
         $response = new StreamedResponse(function () use ($rows) {
             $out = fopen('php://output', 'w');
@@ -51,7 +51,7 @@ class ActivationTokenAdminController extends Controller
         });
 
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
         return $response;
     }

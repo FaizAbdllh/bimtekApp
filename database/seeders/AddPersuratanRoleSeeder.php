@@ -15,7 +15,7 @@ class AddPersuratanRoleSeeder extends Seeder
     {
         // Insert role if not exists
         $exists = DB::table('roles')->where('nama_peran', 'Persuratan')->exists();
-        if (!$exists) {
+        if (! $exists) {
             DB::table('roles')->insert([
                 'id' => (string) Str::uuid(),
                 'nama_peran' => 'Persuratan',
