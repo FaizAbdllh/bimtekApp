@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PesertaController extends Controller
@@ -40,7 +41,23 @@ class PesertaController extends Controller
                 ->get();
         }
 
-        return view('peserta.index', compact('bimtek', 'canManage', 'availableUsers'));
+        // =====================================================================
+        // PERBAIKAN: Hitung peserta "Menunggu Aktivasi" secara efisien
+        // =====================================================================
+        // 1. Ambil semua ID user yang SUDAH sukses aktivasi di bimtek ini
+        $activatedUserIds = \App\Models\ActivationToken::where('bimtek_id', $bimtek->id)
+            ->whereNotNull('used_at')
+            ->pluck('user_id')
+            ->toArray();
+
+        // 2. Ambil semua ID peserta yang terdaftar di bimtek ini
+        $totalPesertaIds = $bimtek->peserta->pluck('id')->toArray();
+
+        // 3. Hitung selisihnya (Total Peserta dikurangi yang Sudah Aktivasi)
+        $pesertaPendingCount = count(array_diff($totalPesertaIds, $activatedUserIds));
+
+        // Tambahkan 'pesertaPendingCount' ke dalam compact() agar terlempar ke Blade
+        return view('peserta.index', compact('bimtek', 'canManage', 'availableUsers', 'pesertaPendingCount'));
     }
 
     /**
@@ -89,7 +106,7 @@ class PesertaController extends Controller
             $user = User::find($userId);
 
             if ($bimtek->butuh_verifikasi_dokumen) {
-                // Send email for document verification
+                // Send email for document verification (Existing User: Direct to Upload Form)
                 try {
                     Mail::to($user->email)->send(new PesertaBimtekInvitedMail(
                         $bimtek,
@@ -204,13 +221,21 @@ class PesertaController extends Controller
             );
         }
 
-        // Send document verification invitation if required
+        // =====================================================================
+        // FIX: Jika user baru & butuh verifikasi, arahkan tombol email ke Aktivasi Form
+        // =====================================================================
         if ($bimtek->butuh_verifikasi_dokumen) {
             try {
+                // Parameter ke-2 diisi angka 7 (hari), parameter ke-3 diisi ID panitia yang sedang login
+                [$tokenModel, $rawToken] = \App\Models\ActivationToken::generateFor($user, 7, Auth::id());
+                
+                // Rakit URL menuju halaman manual activation form
+                $uploadUrl = route('activation.form') . '?email=' . urlencode($user->email) . '&token=' . $rawToken;
+
                 Mail::to($user->email)->send(new PesertaBimtekInvitedMail(
                     $bimtek,
                     $user,
-                    route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
+                    $uploadUrl
                 ));
             } catch (\Exception $e) {
                 Log::error('Failed to send invitation email for document verification: '.$e->getMessage());
@@ -503,8 +528,27 @@ class PesertaController extends Controller
                         'password' => $password.' (email gagal)',
                     ];
                 }
+
+            // =====================================================================
+            // FIX IMPORT: Jika user baru hasil CSV & butuh verifikasi berkas, kirim token aktivasi
+            // =====================================================================
+            if ($bimtek->butuh_verifikasi_dokumen) {
+                try {
+                    // Sesuaikan parameter agar menerima int (7 hari) dan ID panitia
+                    [$tokenModel, $rawToken] = \App\Models\ActivationToken::generateFor($user, 7, Auth::id());
+                    $uploadUrl = route('activation.form') . '?email=' . urlencode($user->email) . '&token=' . $rawToken;
+
+                    Mail::to($user->email)->send(new PesertaBimtekInvitedMail(
+                        $bimtek,
+                        $user,
+                        $uploadUrl
+                    ));
+                } catch (\Exception $e) {
+                    Log::error("Failed to send invitation email to {$email}: ".$e->getMessage());
+                }
+            }
             } else {
-                // Existing user: Send notification based on verification requirement
+                // Existing user: Send notification based on verification requirement (Direct upload URL)
                 try {
                     if ($bimtek->butuh_verifikasi_dokumen) {
                         Mail::to($user->email)->send(new PesertaBimtekInvitedMail(

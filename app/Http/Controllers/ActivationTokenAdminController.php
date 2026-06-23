@@ -18,6 +18,28 @@ class ActivationTokenAdminController extends Controller
             'days' => 'nullable|integer|min:1|max:365',
         ]);
 
+        // =====================================================================
+        // PROTEKSI SERVER: Validasi Kelayakan Berkas Masuk Mandiri (Surat Tugas & SPPD)
+        // =====================================================================
+        if ($bimtek->butuh_verifikasi_dokumen) {
+            $jenisWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
+            $jumlahWajib = is_array($jenisWajib) ? count($jenisWajib) : 2;
+
+            foreach ($request->input('peserta_ids') as $userId) {
+                $approvedCount = \App\Models\DokumenPersyaratanPeserta::where('user_id', $userId)
+                    ->where('bimtek_id', $bimtek->id)
+                    ->where('status', 'Approved')
+                    ->count();
+
+                if ($approvedCount < $jumlahWajib) {
+                    $userTerlanggar = User::find($userId);
+                    $namaPeserta = $userTerlanggar ? $userTerlanggar->name : 'Peserta';
+                    
+                    return redirect()->back()->with('error', "Gagal memproses batch token! Berkas milik \"{$namaPeserta}\" belum lengkap atau belum disetujui.");
+                }
+            }
+        }
+
         $days = $request->input('days', 7);
         $rows = [];
 

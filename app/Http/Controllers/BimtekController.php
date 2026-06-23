@@ -154,7 +154,7 @@ class BimtekController extends Controller
 
     public function exportActivationTokens(Bimtek $bimtek)
     {
-        $this->authorize('manage', $bimtek);
+        $this->authorizePicPanitia($bimtek);
 
         $tokens = \App\Models\ActivationToken::where('bimtek_id', $bimtek->id)
             ->with('user')
@@ -646,47 +646,93 @@ class BimtekController extends Controller
      * Add user to bimtek.
      */
     public function addPeserta(Request $request, Bimtek $bimtek): RedirectResponse
-    {
-        $this->authorizePicPanitia($bimtek);
+        {
+            $this->authorizePicPanitia($bimtek);
 
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'peran_kontekstual' => 'required|in:pic,panitia,pemateri,peserta',
-        ]);
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'peran_kontekstual' => 'required|in:pic,panitia,pemateri,peserta',
+            ]);
 
-        // Check if user already in bimtek
-        if ($bimtek->users()->where('user_id', $validated['user_id'])->exists()) {
-            return back()->with('error', 'User sudah terdaftar di bimtek ini.');
-        }
-
-        // If adding as Panitia, enforce cap based on jumlah_peserta
-        if (($validated['peran_kontekstual'] ?? '') === 'panitia') {
-            $jumlahPeserta = $bimtek->pengajuan?->jumlah_peserta ?? null;
-            if (empty($jumlahPeserta)) {
-                return back()->with('error', 'Mohon isi Estimasi Jumlah Peserta di Pengajuan terlebih dahulu sebelum menambahkan Panitia.');
+            // Check if user already in bimtek
+            if ($bimtek->users()->where('user_id', $validated['user_id'])->exists()) {
+                return back()->with('error', 'User sudah terdaftar di bimtek ini.');
             }
-            $maxPanitia = max(1, (int) ceil($jumlahPeserta * 0.10));
-            $currentPanitia = $bimtek->panitia()->count();
-            if ($currentPanitia >= $maxPanitia) {
-                return back()->with('error', "Jumlah Panitia sudah mencapai batas maksimum ({$maxPanitia}) berdasarkan estimasi peserta.");
+
+            // If adding as Panitia, enforce cap based on jumlah_peserta
+            if (($validated['peran_kontekstual'] ?? '') === 'panitia') {
+                $jumlahPeserta = $bimtek->pengajuan?->jumlah_peserta ?? null;
+                if (empty($jumlahPeserta)) {
+                    return back()->with('error', 'Mohon isi Estimasi Jumlah Peserta di Pengajuan terlebih dahulu sebelum menambahkan Panitia.');
+                }
+                $maxPanitia = max(1, (int) ceil($jumlahPeserta * 0.10));
+                $currentPanitia = $bimtek->panitia()->count();
+                if ($currentPanitia >= $maxPanitia) {
+                    return back()->with('error', "Jumlah Panitia sudah mencapai batas maksimum ({$maxPanitia}) berdasarkan estimasi peserta.");
+                }
             }
+
+            // Racik data pivot
+            $pivotData = [
+                'id' => (string) Str::uuid(),
+                'peran_kontekstual' => $validated['peran_kontekstual'],
+            ];
+
+            // =====================================================================
+            // SINKRONISASI WORKFLOW: Set status berkas jika didaftarkan sebagai peserta lama
+            // =====================================================================
+            if ($validated['peran_kontekstual'] === 'peserta' && $bimtek->butuh_verifikasi_dokumen) {
+                $pivotData['status_verifikasi'] = 'invited';
+                $pivotData['notified_at'] = now();
+            }
+
+            // Eksekusi attach ke database
+            $bimtek->users()->attach($validated['user_id'], $pivotData);
+
+            $user = User::find($validated['user_id']);
+
+            // =====================================================================
+            // SINKRONISASI EMAIL: Kirim email notifikasi resmi sesuai aturan DIPA
+            // =====================================================================
+            if ($validated['peran_kontekstual'] === 'peserta') {
+                if ($bimtek->butuh_verifikasi_dokumen) {
+                    try {
+                        // Karena ini user lama (sudah punya akun), langsung arahkan ke link upload form
+                        Mail::to($user->email)->send(new \App\Mail\PesertaBimtekInvitedMail(
+                            $bimtek,
+                            $user,
+                            route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
+                        ));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Gagal mengirim email undangan dari BimtekController: '.$e->getMessage());
+                    }
+                } else {
+                    try {
+                        Mail::to($user->email)->send(new \App\Mail\PesertaAddedToBimtekMail(
+                            $bimtek,
+                            $user,
+                            route('login')
+                        ));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Gagal mengirim email notifikasi dari BimtekController: '.$e->getMessage());
+                    }
+                }
+            }
+
+            $peranLabel = [
+                'pic' => 'PIC',
+                'panitia' => 'Panitia',
+                'pemateri' => 'Pemateri',
+                'peserta' => 'Peserta',
+            ];
+
+            $successMessage = "{$user->name} berhasil ditambahkan sebagai {$peranLabel[$validated['peran_kontekstual']]}.";
+            if ($validated['peran_kontekstual'] === 'peserta' && $bimtek->butuh_verifikasi_dokumen) {
+                $successMessage .= ' Email undangan verifikasi dokumen telah dikirim.';
+            }
+
+            return back()->with('success', $successMessage);
         }
-
-        $bimtek->users()->attach($validated['user_id'], [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => $validated['peran_kontekstual'],
-        ]);
-
-        $user = User::find($validated['user_id']);
-        $peranLabel = [
-            'pic' => 'PIC',
-            'panitia' => 'Panitia',
-            'pemateri' => 'Pemateri',
-            'peserta' => 'Peserta',
-        ];
-
-        return back()->with('success', "{$user->name} berhasil ditambahkan sebagai {$peranLabel[$validated['peran_kontekstual']]}.");
-    }
 
     /**
      * Remove user from bimtek.

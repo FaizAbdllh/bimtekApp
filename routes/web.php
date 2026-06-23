@@ -27,13 +27,10 @@ Route::get('/', function () {
 Route::get('/bimtek/{bimtek}/daftar', [PublicRegistrationController::class, 'show'])->name('bimtek.daftar.show');
 Route::post('/bimtek/{bimtek}/daftar', [PublicRegistrationController::class, 'register'])->name('bimtek.daftar.register');
 
-// Activation token routes
-Route::post('/bimtek/{bimtek}/peserta/{user}/generate-token', [ActivationController::class, 'generate'])
-    ->middleware('auth')
-    ->name('peserta.generate-token');
-
-Route::get('/activate/{token}', [ActivationController::class, 'showActivate'])->name('activation.show');
-Route::post('/activate/{token}', [ActivationController::class, 'activate'])->name('activation.activate');
+// Manual activation flow
+Route::get('/aktivasi', [ActivationController::class, 'showManualActivationForm'])->name('activation.form');
+Route::post('/aktivasi', [ActivationController::class, 'verifyManualToken'])->name('activation.verify');
+Route::post('/aktivasi/set-password', [ActivationController::class, 'setPassword'])->name('activation.set-password');
 
 // Dashboard - accessible by all authenticated users
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -54,7 +51,7 @@ Route::middleware('auth')->group(function () {
 // Admin IT routes
 Route::middleware(['auth', 'role:Admin IT'])->prefix('admin')->name('admin.')->group(function () {
     // User management
-    Route::resource('users', UserController::class);
+    bintekm_route: Route::resource('users', UserController::class);
     Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
 
     Route::get('log-sistem', [LogSistemController::class, 'index'])->name('log-sistem.index');
@@ -147,63 +144,63 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/dokumen/{dokumen}/preview', [\App\Http\Controllers\VerifikasiDokumenController::class, 'preview'])->name('verifikasi-dokumen.preview');
     Route::get('/dokumen/{dokumen}/download', [\App\Http\Controllers\VerifikasiDokumenController::class, 'download'])->name('verifikasi-dokumen.download');
 
-    // Materi routes
+    // Materi routes (Pembersihan: middleware verified.peserta dihapus)
     Route::get('/{bimtek}/materi', [MateriController::class, 'index'])->name('materi.index');
     Route::get('/{bimtek}/materi/create', [MateriController::class, 'create'])->name('materi.create');
     Route::post('/{bimtek}/materi', [MateriController::class, 'store'])->name('materi.store');
     Route::get('/{bimtek}/materi/{materi}/edit', [MateriController::class, 'edit'])->name('materi.edit');
     Route::put('/{bimtek}/materi/{materi}', [MateriController::class, 'update'])->name('materi.update');
     Route::delete('/{bimtek}/materi/{materi}', [MateriController::class, 'destroy'])->name('materi.destroy');
-    Route::get('/{bimtek}/materi/{materi}/preview', [MateriController::class, 'preview'])->name('materi.preview')->middleware('verified.peserta');
-    Route::get('/{bimtek}/materi/{materi}/download', [MateriController::class, 'download'])->name('materi.download')->middleware('verified.peserta');
+    Route::get('/{bimtek}/materi/{materi}/preview', [MateriController::class, 'preview'])->name('materi.preview');
+    Route::get('/{bimtek}/materi/{materi}/download', [MateriController::class, 'download'])->name('materi.download');
 
-    // Tugas routes (protected by verification middleware)
+    // Tugas routes (Pembersihan: middleware verified.peserta dihapus)
     Route::get('/{bimtek}/tugas', [TugasController::class, 'index'])->name('tugas.index');
     Route::get('/{bimtek}/tugas/create', [TugasController::class, 'create'])->name('tugas.create');
     Route::post('/{bimtek}/tugas', [TugasController::class, 'store'])->name('tugas.store');
-    Route::get('/{bimtek}/tugas/{tugas}', [TugasController::class, 'show'])->name('tugas.show')->middleware('verified.peserta');
+    Route::get('/{bimtek}/tugas/{tugas}', [TugasController::class, 'show'])->name('tugas.show');
     Route::get('/{bimtek}/tugas/{tugas}/edit', [TugasController::class, 'edit'])->name('tugas.edit');
     Route::put('/{bimtek}/tugas/{tugas}', [TugasController::class, 'update'])->name('tugas.update');
     Route::delete('/{bimtek}/tugas/{tugas}', [TugasController::class, 'destroy'])->name('tugas.destroy');
 
-    // Tugas file routes
-    Route::get('/{bimtek}/tugas/{tugas}/preview-instruksi', [TugasController::class, 'previewInstruksi'])->name('tugas.preview-instruksi')->middleware('verified.peserta');
-    Route::get('/{bimtek}/tugas/{tugas}/download-instruksi', [TugasController::class, 'downloadInstruksi'])->name('tugas.download-instruksi')->middleware('verified.peserta');
+    // Tugas file routes (Pembersihan: middleware verified.peserta dihapus)
+    Route::get('/{bimtek}/tugas/{tugas}/preview-instruksi', [TugasController::class, 'previewInstruksi'])->name('tugas.preview-instruksi');
+    Route::get('/{bimtek}/tugas/{tugas}/download-instruksi', [TugasController::class, 'downloadInstruksi'])->name('tugas.download-instruksi');
 
-    // Pengumpulan tugas routes (protected by verification middleware)
-    Route::post('/{bimtek}/tugas/{tugas}/submit', [TugasController::class, 'submit'])->name('tugas.submit')->middleware('verified.peserta');
+    // Pengumpulan tugas routes (Pembersihan: middleware verified.peserta dihapus)
+    Route::post('/{bimtek}/tugas/{tugas}/submit', [TugasController::class, 'submit'])->name('tugas.submit');
     Route::get('/{bimtek}/tugas/{tugas}/pengumpulan/{pengumpulan}/preview', [TugasController::class, 'previewJawaban'])->name('tugas.preview-jawaban');
     Route::get('/{bimtek}/tugas/{tugas}/pengumpulan/{pengumpulan}/download', [TugasController::class, 'downloadJawaban'])->name('tugas.download-jawaban');
     Route::post('/{bimtek}/tugas/{tugas}/pengumpulan/{pengumpulan}/grade', [TugasController::class, 'grade'])->name('tugas.grade');
 
-    // Absensi routes (protected by verification middleware)
+    // Absensi routes (Pembersihan: middleware verified.peserta dihapus)
     Route::get('/{bimtek}/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
     Route::get('/{bimtek}/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
     Route::post('/{bimtek}/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
     Route::get('/{bimtek}/absensi/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
-    Route::get('/{bimtek}/absensi/{sesi}', [AbsensiController::class, 'show'])->name('absensi.show')->middleware('verified.peserta');
+    Route::get('/{bimtek}/absensi/{sesi}', [AbsensiController::class, 'show'])->name('absensi.show');
     Route::get('/{bimtek}/absensi/{sesi}/edit', [AbsensiController::class, 'edit'])->name('absensi.edit');
     Route::put('/{bimtek}/absensi/{sesi}', [AbsensiController::class, 'update'])->name('absensi.update');
     Route::delete('/{bimtek}/absensi/{sesi}', [AbsensiController::class, 'destroy'])->name('absensi.destroy');
     Route::patch('/{bimtek}/absensi/{sesi}/toggle-status', [AbsensiController::class, 'toggleStatus'])->name('absensi.toggle-status');
     Route::post('/{bimtek}/absensi/{sesi}/tambah-kehadiran', [AbsensiController::class, 'tambahKehadiran'])->name('absensi.tambah-kehadiran');
-    Route::delete('/{bimtek}/absensi/{sesi}/kehadiran/{absensi}', [AbsensiController::class, 'hapusKehadiran'])->name('absensi.hapus-kehadiran');
-    // QR Code routes
+    Route::delete('/{bimtek}/absensi/{sesi}/kehadiran/{absensi}', [AbsensiController::class, 'hapusKehadiran'])->name('absensi.hadis-kehadiran');
+    
+    // QR Code routes (Pembersihan: middleware verified.peserta dihapus)
     Route::get('/{bimtek}/absensi/{sesi}/qr', [AbsensiController::class, 'showQr'])->name('absensi.show-qr');
-    Route::get('/{bimtek}/absensi/{sesi}/scan', [AbsensiController::class, 'scanInterface'])->name('absensi.scan-interface')->middleware('verified.peserta');
-    Route::post('/{bimtek}/absensi/{sesi}/scan', [AbsensiController::class, 'scanQr'])->name('absensi.scan-qr')->middleware('verified.peserta');
-    Route::post('/{bimtek}/absensi/{sesi}/hadir-online', [AbsensiController::class, 'hadirOnline'])->name('absensi.hadir-online')->middleware('verified.peserta');
+    Route::get('/{bimtek}/absensi/{sesi}/scan', [AbsensiController::class, 'scanInterface'])->name('absensi.scan-interface');
+    Route::post('/{bimtek}/absensi/{sesi}/scan', [AbsensiController::class, 'scanQr'])->name('absensi.scan-qr');
+    Route::post('/{bimtek}/absensi/{sesi}/hadir-online', [AbsensiController::class, 'hadirOnline'])->name('absensi.hadir-online');
 
-    // Sertifikat routes (protected by verification middleware)
+    // Sertifikat routes (Pembersihan: middleware verified.peserta dihapus)
     Route::get('/{bimtek}/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat.index');
     Route::post('/{bimtek}/sertifikat/generate', [SertifikatController::class, 'generate'])->name('sertifikat.generate');
-    Route::get('/{bimtek}/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'preview'])->name('sertifikat.preview')->middleware('verified.peserta');
-    Route::get('/{bimtek}/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download')->middleware('verified.peserta');
+    Route::get('/{bimtek}/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'preview'])->name('sertifikat.preview');
+    Route::get('/{bimtek}/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
     Route::delete('/{bimtek}/sertifikat/{sertifikat}', [SertifikatController::class, 'destroy'])->name('sertifikat.destroy');
 
     // Peserta routes
     Route::get('/{bimtek}/peserta', [PesertaController::class, 'index'])->name('peserta.index');
-    // Backward-compatible alias used by registration redirect
     Route::get('/{bimtek}/peserta/list', [PesertaController::class, 'index'])->name('show.peserta');
     Route::post('/{bimtek}/peserta', [PesertaController::class, 'store'])->name('peserta.store');
     Route::post('/{bimtek}/peserta/new', [PesertaController::class, 'storeNew'])->name('peserta.store-new');
@@ -212,29 +209,28 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::patch('/{bimtek}/peserta/{user}/change-role', [PesertaController::class, 'changeRole'])->name('peserta.change-role');
     Route::post('/{bimtek}/peserta/import', [PesertaController::class, 'import'])->name('peserta.import');
     Route::get('/{bimtek}/peserta/export', [PesertaController::class, 'export'])->name('peserta.export');
-    // Generate invite code for sharing registration link (PIC/Panitia only)
+    
     Route::post('/{bimtek}/generate-invite-code', [\App\Http\Controllers\BimtekController::class, 'generateInviteCode'])
         ->middleware('auth')
-        ->name('bimtek.generate-invite');
-    // Export activation tokens for this bimtek (CSV)
+        ->name('generate-invite');
+    
     Route::get('/{bimtek}/activation-tokens/export', [\App\Http\Controllers\BimtekController::class, 'exportActivationTokens'])
         ->middleware('auth')
-        ->name('bimtek.activation-tokens.export');
-    // Batch generate activation tokens and download CSV
+        ->name('activation-tokens.export');
+        
     Route::post('/{bimtek}/activation-tokens/generate-batch', [ActivationTokenAdminController::class, 'generateBatch'])
         ->middleware('auth')
-        ->name('bimtek.activation-tokens.generate-batch');
-    // Revoke a token
+        ->name('activation-tokens.generate-batch');
+        
     Route::post('/{bimtek}/activation-tokens/{activationToken}/revoke', [ActivationTokenAdminController::class, 'revoke'])
         ->middleware('auth')
-        ->name('bimtek.activation-tokens.revoke');
+        ->name('activation-tokens.revoke');
 });
 
 // Download template (tidak perlu bimtek)
 Route::middleware(['auth'])->get('/peserta/download-template', [PesertaController::class, 'downloadTemplate'])->name('bimtek.peserta.download-template');
 
 // Laporan routes
-// Admin IT/Kepala/PPK dapat akses lintas bimtek, Pegawai Internal dibatasi ke bimtek yang terlibat
 Route::middleware(['auth', 'role:Admin IT,Kepala,PPK,Pegawai Internal'])->prefix('laporan')->name('laporan.')->group(function () {
     Route::get('/', [LaporanController::class, 'index'])->name('index');
     Route::post('/rekap-peserta', [LaporanController::class, 'rekapPeserta'])->name('rekap-peserta');

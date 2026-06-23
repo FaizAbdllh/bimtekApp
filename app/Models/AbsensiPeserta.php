@@ -21,6 +21,8 @@ class AbsensiPeserta extends Model
 
     /**
      * Get the sesi absensi that owns the absensi.
+     *
+     * @return BelongsTo<SesiAbsensi, AbsensiPeserta>
      */
     public function sesiAbsensi(): BelongsTo
     {
@@ -29,6 +31,8 @@ class AbsensiPeserta extends Model
 
     /**
      * Get the user (peserta) who attended.
+     *
+     * @return BelongsTo<User, AbsensiPeserta>
      */
     public function user(): BelongsTo
     {
@@ -37,6 +41,8 @@ class AbsensiPeserta extends Model
 
     /**
      * Alias for user - the peserta.
+     *
+     * @return BelongsTo<User, AbsensiPeserta>
      */
     public function peserta(): BelongsTo
     {

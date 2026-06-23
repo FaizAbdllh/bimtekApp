@@ -9,15 +9,20 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * @property User $user
+ * @property Bimtek $bimtek
+ * @property string $token
+ */
 class ActivationTokenMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $user;
+    public User $user;
 
-    public $bimtek;
+    public Bimtek $bimtek;
 
-    public $token;
+    public string $token;
 
     public function __construct(User $user, Bimtek $bimtek, string $rawToken)
     {
@@ -26,7 +31,7 @@ class ActivationTokenMail extends Mailable implements ShouldQueue
         $this->token = $rawToken;
     }
 
-    public function build()
+    public function build(): Mailable
     {
         return $this->subject('Token Aktivasi Peserta Bimtek')
             ->view('emails.activation-token');

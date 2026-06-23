@@ -117,7 +117,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                            @switch($user->role->nama_peran)
+                                            @switch($user->role?->nama_peran)
                                                 @case('Admin IT')
                                                     bg-red-100 text-red-800
                                                     @break
@@ -137,7 +137,7 @@
                                                     bg-gray-100 text-gray-800
                                             @endswitch
                                         ">
-                                            {{ $user->role->nama_peran }}
+                                            {{ $user->role?->nama_peran ?? '-' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

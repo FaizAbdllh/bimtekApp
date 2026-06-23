@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 
 class PublicRegistrationController extends Controller
 {
-    public function show(\Illuminate\Http\Request $request, Bimtek $bimtek)
+    public function show(Request $request, Bimtek $bimtek)
     {
         $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
 
@@ -29,28 +29,24 @@ class PublicRegistrationController extends Controller
 
     public function register(Request $request, Bimtek $bimtek)
     {
-        $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
-
+        // PERBAIKAN: Mengubah email menjadi required sesuai dengan standar keamanan gerbang baru
         $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'email' => 'required|email|max:255', 
             'nip' => 'nullable|string|max:50',
             'asal_instansi' => 'nullable|string|max:255',
         ];
 
+        // PERBAIKAN: Validasi berkas unggahan secara dinamis jika Bimtek memerlukan dokumen kedinasan
+        $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
         if ($bimtek->butuh_verifikasi_dokumen) {
             foreach ($jenisDokumenWajib as $jenis) {
-                $rules["dokumen.{$jenis}"] = 'required|file|mimes:pdf,jpg,jpeg,png|max:2048';
+                $rules["dokumen.$jenis"] = 'required|file|mimes:pdf,jpg,jpeg,png|max:2048';
             }
         }
 
-        $validated = $request->validate($rules, [
-            'dokumen.*.required' => 'Dokumen wajib diunggah.',
-            'dokumen.*.mimes' => 'File harus PDF/JPG/PNG.',
-            'dokumen.*.max' => 'Ukuran file maksimal 2MB.',
-        ]);
+        $validated = $request->validate($rules);
 
-        // If bimtek has invite_code set, require it in input (either hidden or form)
         if ($bimtek->invite_code) {
             $code = $request->input('invite_code') ?? $request->query('code');
             if ($code !== $bimtek->invite_code) {
@@ -58,7 +54,7 @@ class PublicRegistrationController extends Controller
             }
         }
 
-        // Find or create user
+        // Cari atau buat user baru
         $user = null;
         if (! empty($validated['email'])) {
             $user = User::where('email', $validated['email'])->first();
@@ -68,69 +64,67 @@ class PublicRegistrationController extends Controller
         }
 
         if (! $user) {
-            // Create user with placeholder email if none provided
-            $email = $validated['email'] ?? ('no-email+'.Str::uuid().'@example.local');
-            $password = Str::random(12);
-            $pesertaRole = Role::where('nama_peran', 'Peserta Eksternal')->first();
-
             $user = User::create([
                 'name' => $validated['name'],
-                'email' => $email,
-                'password' => Hash::make($password),
+                'email' => $validated['email'],
+                'password' => Hash::make(Str::random(12)),
                 'nip' => $validated['nip'] ?? null,
                 'asal_instansi' => $validated['asal_instansi'] ?? null,
-                'role_id' => $pesertaRole?->id,
+                'role_id' => Role::where('nama_peran', 'Peserta Eksternal')->value('id'),
             ]);
         }
 
-        // Attach to bimtek if not already
-        if (! $bimtek->users()->where('users.id', $user->id)->exists()) {
-            $pivotData = [
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'] ?? $user->email,
+            'nip' => $validated['nip'] ?? $user->nip,
+            'asal_instansi' => $validated['asal_instansi'] ?? $user->asal_instansi,
+        ]);
+
+        // Hubungkan peserta ke kegiatan Bimtek melalui tabel pivot
+        $bimtek->users()->syncWithoutDetaching([
+            $user->id => [
                 'id' => (string) Str::uuid(),
                 'peran_kontekstual' => 'peserta',
-            ];
-            if ($bimtek->butuh_verifikasi_dokumen) {
-                $pivotData['status_verifikasi'] = 'invited';
-                $pivotData['notified_at'] = now();
-            }
-            $bimtek->users()->attach($user->id, $pivotData);
-        }
+                'status_verifikasi' => 'pending',
+                'notified_at' => now(),
+            ],
+        ]);
 
-        // Store uploaded documents if any
-        if ($request->hasFile('dokumen')) {
+        // =====================================================================
+        // PERBAIKAN UTAMA: Pemrosesan & Penyimpanan Berkas Surat Tugas & SPPD
+        // =====================================================================
+        if ($bimtek->butuh_verifikasi_dokumen && $request->hasFile('dokumen')) {
             foreach ($request->file('dokumen') as $jenis => $file) {
-                if (! $file) {
-                    continue;
-                }
-                $fileName = time().'_'.Str::slug($jenis).'_'.$user->id.'.'.$file->getClientOriginalExtension();
-                $filePath = $file->storeAs('dokumen_persyaratan', $fileName, 'public');
+                // Simpan fisik file ke storage
+                $path = $file->store('dokumen_peserta', 'public');
+                $originalName = $file->getClientOriginalName();
 
-                DokumenPersyaratanPeserta::create([
-                    'bimtek_id' => $bimtek->id,
-                    'user_id' => $user->id,
-                    'jenis_dokumen' => $jenis,
-                    'file_path' => $filePath,
-                    'file_name' => $file->getClientOriginalName(),
-                    'status' => 'pending',
-                    'uploaded_at' => now(),
+                // Menggunakan firstOrNew untuk mengamankan baris data & mencegah duplikasi
+                $dokumenLog = DokumenPersyaratanPeserta::firstOrNew([
+                    'user_id'       => $user->id,
+                    'bimtek_id'     => $bimtek->id,
+                    'jenis_dokumen' => $jenis, // Menyimpan teks 'surat_tugas' atau 'sppd'
                 ]);
+
+                // Jika data benar-benar baru, buatkan UUID manual untuk Primary Key string Anda
+                if (!$dokumenLog->exists) {
+                    $dokumenLog->id = (string) Str::uuid();
+                }
+
+                // Isi sisa kolom sesuai dengan skema teks Anda
+                $dokumenLog->file_path   = $path;
+                $dokumenLog->file_name   = $originalName;
+                $dokumenLog->status      = 'Pending';
+                $dokumenLog->uploaded_at = now();
+                $dokumenLog->save();
             }
-
-            // Update pivot status to pending
-            \Illuminate\Support\Facades\DB::table('bimtek_user')
-                ->where('bimtek_id', $bimtek->id)
-                ->where('user_id', $user->id)
-                ->update(['status_verifikasi' => 'pending']);
         }
 
-        // Log the user in
-        Auth::login($user);
-
-        if ($bimtek->butuh_verifikasi_dokumen) {
-            return redirect()->route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
-                ->with('success', 'Registrasi berhasil. Silakan unggah dokumen persyaratan.');
-        }
-
-        return redirect()->route('bimtek.show.peserta', $bimtek)->with('success', 'Registrasi berhasil.');
+        return view('public.registration-success', [
+            'bimtek' => $bimtek,
+            'email' => $user->email,
+            'message' => 'Registrasi berhasil. Silakan tunggu token dari panitia.',
+        ]);
     }
 }

@@ -1,0 +1,3205 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Console\\Commands\\CreateDefaultTemplate\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Console/Commands/CreateDefaultTemplate.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TemplateSertifikat\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Console/Commands/DebugTemplateDownload.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TemplateSertifikat\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/DebugTemplateDownload.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TemplateSertifikat\:\:\$nama_template\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/DebugTemplateDownload.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Console/Commands/DebugTemplateDownload.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\DebugTemplateDownload\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Console/Commands/DebugTemplateDownload.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$peserta\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_mulai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_selesai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\TemplateSertifikat\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\TemplateSertifikat\:\:first\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TestCertificatePdf\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Console/Commands/TestCertificatePdf.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$lokasi\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_mulai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_selesai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:first\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\TemplateSertifikat\:\:count\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\TemplateSertifikat\:\:first\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TestSertifikatSystem\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Console/Commands/TestSertifikatSystem.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\AbsensiPeserta\:\:\$sesi_absensi_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 12
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$peserta\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$sesiAbsensis\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$status_pelaksanaan\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$absensiPesertas\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 11
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 8
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$qr_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 12
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\AbsensiPeserta\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\AbsensiPeserta\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 5
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\AbsensiPeserta\:\:whereIn\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\SesiAbsensi\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:edit\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:rekap\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:scanInterface\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:scanInterface\(\) should return Illuminate\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\AbsensiController\:\:showQr\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function uasort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function uasort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/AbsensiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$used_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActivationController\:\:activate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActivationController\:\:generate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActivationController\:\:showActivate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActivationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$revoked_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$revoked_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:find\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActivationTokenAdminController\:\:generateBatch\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActivationTokenAdminController\:\:revoke\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActivationTokenAdminController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$dari_tanggal\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$level\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$sampai_tanggal\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$search\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\LogSistem\:\:count\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\LogSistem\:\:selectRaw\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\LogSistem\:\:truncate\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:orderBy\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LogSistemController\:\:clearAll\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LogSistemController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LogSistemController\:\:export\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LogSistemController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LogSistemController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/LogSistemController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$search\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Factory\:\:id\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Role\:\:orderBy\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\UserController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\UserController\:\:edit\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\UserController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\UserController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$bimtek\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$jenis_dokumen_wajib\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$judul_rencana\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$status_pengajuan\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$tanggal_mulai_rencana\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$tanggal_selesai_rencana\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$tempat_kegiatan\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$catatan\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$search\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Factory\:\:user\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ApprovalController\:\:indexKepala\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ApprovalController\:\:indexPpk\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ApprovalController\:\:showKepala\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ApprovalController\:\:showPpk\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ApprovalController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Factory\:\:id\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Guard\:\:logout\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\AuthenticatedSessionController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/ConfirmablePasswordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\ConfirmablePasswordController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Auth/ConfirmablePasswordController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/NewPasswordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\NewPasswordController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Auth/NewPasswordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\PasswordResetLinkController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Auth/PasswordResetLinkController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$asal_instansi\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Role\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\RegisteredUserController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Auth/RegisteredUserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$anggaran_disetujui\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_draft_path\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_final_path\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$invite_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pengajuan\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$status_pelaksanaan\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$syarat_kehadiran_persen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$syarat_tugas_persen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$syarat_tugas_wajib\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$users\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 17
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$search\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\BimtekController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isKepala\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPersuratan\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPpk\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:download\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\ActivationToken\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:find\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:whereNotIn\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:downloadDraft\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:downloadFinal\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:edit\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:exportActivationTokens\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:generateInviteCode\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:logRejectedAction\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:peserta\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:previewDraft\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:previewFinal\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BimtekController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Offset ''anggaran_disetujui''\|''syarat_kehadiran…''\|''syarat_tugas_persen''\|''syarat_tugas_wajib'' on array\{anggaran_disetujui\: ''Anggaran Disetujui'', syarat_kehadiran_persen\: ''Syarat Kehadiran'', syarat_tugas_persen\: ''Nilai Minimal Tugas'', syarat_tugas_wajib\: ''Wajib Kumpul Tugas''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>jumlah_peserta" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/BimtekController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:count\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:sum\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:whereNotNull\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Pengajuan\:\:count\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Pengajuan\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 6
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Pengajuan\:\:whereIn\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:count\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getAdminItData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getDashboardData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getKepalaData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getPegawaiInternalData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getPersuratanData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getPesertaEksternalData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getPpkData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:getRtData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Http\\Controllers\\DashboardController\:\:getDashboardData\(\) expects App\\Models\\User, Illuminate\\Contracts\\Auth\\Authenticatable\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bimtek\>\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bimtek\>\:\:\$materis\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bimtek\>\:\:\$pic\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bimtek\>\:\:\$sertifikats\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bimtek\>\:\:\$sesiAbsensis\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bimtek\>\:\:\$tugas\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:findOrFail\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:orderBy\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Bimtek\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:daftarBimtek\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:exportAbsensiExcel\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:exportPesertaExcel\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:laporanKegiatan\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:rekapAbsensi\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:rekapNilai\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LaporanController\:\:rekapPeserta\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/LaporanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pengajuan\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Materi\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Materi\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Materi\:\:\$judul\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 7
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isKepala\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPpk\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:download\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:url\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Materi\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\MateriController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\MateriController\:\:download\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\MateriController\:\:edit\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\MateriController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\MateriController\:\:preview\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/MateriController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Requests\\StorePengajuanRequest\:\:\$anggaran\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Requests\\StorePengajuanRequest\:\:\$fasilitas\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Requests\\UpdatePengajuanRequest\:\:\$anggaran\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Requests\\UpdatePengajuanRequest\:\:\$fasilitas\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$bimtek\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$kepala_approved_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$status_pengajuan\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$jenis\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$search\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isKepala\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPegawaiInternal\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPpk\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isRt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:load\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Pengajuan\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\SbmMaster\:\:active\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PengajuanController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PengajuanController\:\:edit\(\) should return Illuminate\\Http\\RedirectResponse\|Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PengajuanController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PengajuanController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PengajuanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isKepala\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPpk\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Role\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:find\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:whereNotIn\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PesertaController\:\:downloadTemplate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PesertaController\:\:export\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PesertaController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-array\<string, string\> on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Offset 1 on non\-empty\-array\<string, string\> on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Offset 2 on non\-empty\-array\<string, string\> on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Offset 3 on non\-empty\-array\<string, string\> on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/PesertaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:edit\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$invite_code\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\DokumenPersyaratanPeserta\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Role\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PublicRegistrationController\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PublicRegistrationController\:\:show\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/PublicRegistrationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$fasilitasLogistiks\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$status_pengajuan\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$catatan_rt\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$search\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Http\\Request\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Pengajuan\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\RtController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\RtController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/RtController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$has_sertifikat\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 14
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$peserta\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$sertifikats\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$sesiAbsensis\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_mulai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_selesai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tugas\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Sertifikat\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Sertifikat\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Sertifikat\:\:\$nomor_sertifikat\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Sertifikat\:\:\$tanggal_terbit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Sertifikat\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Sertifikat\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 7
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\AbsensiPeserta\:\:whereIn\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\PengumpulanTugas\:\:whereIn\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Sertifikat\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Sertifikat\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SertifikatController\:\:generateSertifikatFile\(\) has parameter \$pesertaId with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SertifikatController\:\:getEligibilityData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SertifikatController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SertifikatController\:\:preview\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SertifikatController\:\:renderTemplateWithData\(\) has parameter \$peserta with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function uasort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function uasort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/SertifikatController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$has_tugas\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pengajuan\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$peserta\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$status_pelaksanaan\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tugas\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PengumpulanTugas\:\:\$file_jawaban_path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PengumpulanTugas\:\:\$tugas_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PengumpulanTugas\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PengumpulanTugas\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Tugas\:\:\$bimtek_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Tugas\:\:\$file_instruksi_path\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Tugas\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Tugas\:\:\$judul\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Tugas\:\:\$pengumpulanTugas\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 14
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isKepala\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isPpk\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:download\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:url\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\PengumpulanTugas\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\PengumpulanTugas\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Tugas\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:create\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:downloadInstruksi\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:downloadJawaban\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:edit\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:previewInstruksi\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:previewJawaban\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TugasController\:\:show\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TugasController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 10
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pic_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DokumenPersyaratanPeserta\:\:\$bimtek\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DokumenPersyaratanPeserta\:\:\$file_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DokumenPersyaratanPeserta\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DokumenPersyaratanPeserta\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$dokumenPersyaratan\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 15
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable\:\:isAdminIt\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:download\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem\:\:mimeType\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\DokumenPersyaratanPeserta\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\DokumenPersyaratanPeserta\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\User\:\:find\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VerifikasiDokumenController\:\:download\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VerifikasiDokumenController\:\:index\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VerifikasiDokumenController\:\:preview\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VerifikasiDokumenController\:\:uploadForm\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/VerifikasiDokumenController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$butuh_verifikasi_dokumen\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/CheckVerifiedPeserta.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/CheckVerifiedPeserta.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Mail/DokumenVerifiedRejectedMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_draft_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mail/PesertaAddedToBimtekMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_final_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mail/PesertaAddedToBimtekMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Mail/PesertaAddedToBimtekMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_draft_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mail/PesertaBimtekInvitedMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_final_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mail/PesertaBimtekInvitedMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Mail/PesertaBimtekInvitedMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_draft_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mail/PesertaCredentialsMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$file_surat_final_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mail/PesertaCredentialsMail.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Mail/PesertaCredentialsMail.php
+
+		-
+			message: '#^Class App\\Models\\AbsensiPeserta uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AbsensiPeserta.php
+
+		-
+			message: '#^Method App\\Models\\AbsensiPeserta\:\:peserta\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\AbsensiPeserta\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\AbsensiPeserta\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/AbsensiPeserta.php
+
+		-
+			message: '#^Method App\\Models\\AbsensiPeserta\:\:sesiAbsensi\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\SesiAbsensi, App\\Models\\AbsensiPeserta\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\SesiAbsensi, \$this\(App\\Models\\AbsensiPeserta\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/AbsensiPeserta.php
+
+		-
+			message: '#^Method App\\Models\\AbsensiPeserta\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\AbsensiPeserta\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\AbsensiPeserta\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/AbsensiPeserta.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$revoked_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ActivationToken\:\:\$used_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\ActivationToken\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\ActivationToken\:\:where\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Method App\\Models\\ActivationToken\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ActivationToken.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$daftar_pemateri\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$invite_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$mode_pelaksanaan_code\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$pengajuan\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Class App\\Models\\Bimtek uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:dokumenPersyaratan\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\DokumenPersyaratanPeserta, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\DokumenPersyaratanPeserta, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:draftUploader\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:finalUploader\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:getDaftarPemateriArrayAttribute\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:getNarasumberAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:getTanggalMulaiFinalAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:getTanggalSelesaiFinalAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:materiPembelajaran\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Materi, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Materi\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:materis\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Materi, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Materi, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:panduan\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Materi, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Materi\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:panitia\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, App\\Models\\Bimtek, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Bimtek\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:pengajuan\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Pengajuan, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Pengajuan, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:peserta\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, App\\Models\\Bimtek, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Bimtek\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:pesertaPendingVerifikasi\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, App\\Models\\Bimtek, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Bimtek\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:pesertaVerified\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, App\\Models\\Bimtek, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Bimtek\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:pic\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:sertifikats\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Sertifikat, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Sertifikat, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:sesiAbsensis\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\SesiAbsensi, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\SesiAbsensi, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:tugas\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Tugas, App\\Models\\Bimtek\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Tugas, \$this\(App\\Models\\Bimtek\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Method App\\Models\\Bimtek\:\:users\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, App\\Models\\Bimtek, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Bimtek\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>mode_pelaksanaan" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Models/Bimtek.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DokumenPersyaratanPeserta\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/DokumenPersyaratanPeserta.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DokumenPersyaratanPeserta\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/DokumenPersyaratanPeserta.php
+
+		-
+			message: '#^Method App\\Models\\DokumenPersyaratanPeserta\:\:bimtek\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DokumenPersyaratanPeserta.php
+
+		-
+			message: '#^Method App\\Models\\DokumenPersyaratanPeserta\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DokumenPersyaratanPeserta.php
+
+		-
+			message: '#^Method App\\Models\\DokumenPersyaratanPeserta\:\:verifier\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DokumenPersyaratanPeserta.php
+
+		-
+			message: '#^Property App\\Models\\DokumenPersyaratanPeserta\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/DokumenPersyaratanPeserta.php
+
+		-
+			message: '#^Class App\\Models\\FasilitasLogistik uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FasilitasLogistik.php
+
+		-
+			message: '#^Method App\\Models\\FasilitasLogistik\:\:pengajuan\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FasilitasLogistik.php
+
+		-
+			message: '#^Property App\\Models\\FasilitasLogistik\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/FasilitasLogistik.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\KebutuhanAnggaran\:\:\$satuan_1\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\KebutuhanAnggaran\:\:\$satuan_2\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\KebutuhanAnggaran\:\:\$status_validasi\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Class App\\Models\\KebutuhanAnggaran uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:approver\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:getSatuanPrimaryAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:getSatuanSecondaryAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:pengajuan\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:sbmMaster\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:setSatuanPrimaryAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:setSatuanPrimaryAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:setSatuanSecondaryAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Method App\\Models\\KebutuhanAnggaran\:\:setSatuanSecondaryAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Property App\\Models\\KebutuhanAnggaran\:\:\$appends type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Property App\\Models\\KebutuhanAnggaran\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/KebutuhanAnggaran.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\Factory\:\:id\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Models/LogSistem.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\LogSistem\:\:create\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: app/Models/LogSistem.php
+
+		-
+			message: '#^Class App\\Models\\LogSistem uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LogSistem.php
+
+		-
+			message: '#^Method App\\Models\\LogSistem\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LogSistem.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Materi\:\:\$tipe\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/Materi.php
+
+		-
+			message: '#^Class App\\Models\\Materi uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Materi.php
+
+		-
+			message: '#^Method App\\Models\\Materi\:\:bimtek\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Materi.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Pengajuan\:\:\$jenis_kegiatan\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Class App\\Models\\Pengajuan uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Method App\\Models\\Pengajuan\:\:bimtek\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Method App\\Models\\Pengajuan\:\:fasilitasLogistiks\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Method App\\Models\\Pengajuan\:\:kebutuhanAnggarans\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Method App\\Models\\Pengajuan\:\:pic\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Method App\\Models\\Pengajuan\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Property App\\Models\\Pengajuan\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Pengajuan.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PengumpulanTugas\:\:\$nilai\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/PengumpulanTugas.php
+
+		-
+			message: '#^Class App\\Models\\PengumpulanTugas uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PengumpulanTugas.php
+
+		-
+			message: '#^Method App\\Models\\PengumpulanTugas\:\:penilai\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PengumpulanTugas.php
+
+		-
+			message: '#^Method App\\Models\\PengumpulanTugas\:\:peserta\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PengumpulanTugas.php
+
+		-
+			message: '#^Method App\\Models\\PengumpulanTugas\:\:tugas\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PengumpulanTugas.php
+
+		-
+			message: '#^Method App\\Models\\PengumpulanTugas\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PengumpulanTugas.php
+
+		-
+			message: '#^Class App\\Models\\Role uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Role.php
+
+		-
+			message: '#^Method App\\Models\\Role\:\:users\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Role.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SbmMaster\:\:\$harga_satuan\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SbmMaster\:\:\$nama_item\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Class App\\Models\\SbmMaster uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:kebutuhanAnggarans\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeActive\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeActive\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeKategori\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeKategori\(\) has parameter \$kategori with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeKategori\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeTahunBerlaku\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeTahunBerlaku\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Method App\\Models\\SbmMaster\:\:scopeTahunBerlaku\(\) has parameter \$tahun with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Property App\\Models\\SbmMaster\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/SbmMaster.php
+
+		-
+			message: '#^Class App\\Models\\Sertifikat uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sertifikat.php
+
+		-
+			message: '#^Method App\\Models\\Sertifikat\:\:bimtek\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sertifikat.php
+
+		-
+			message: '#^Method App\\Models\\Sertifikat\:\:peserta\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sertifikat.php
+
+		-
+			message: '#^Method App\\Models\\Sertifikat\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sertifikat.php
+
+		-
+			message: '#^Property App\\Models\\Sertifikat\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Sertifikat.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$qr_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SesiAbsensi\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Class App\\Models\\SesiAbsensi uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Method App\\Models\\SesiAbsensi\:\:absensiPesertas\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Method App\\Models\\SesiAbsensi\:\:absensis\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Method App\\Models\\SesiAbsensi\:\:bimtek\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Method App\\Models\\SesiAbsensi\:\:openedBy\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Property App\\Models\\SesiAbsensi\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/SesiAbsensi.php
+
+		-
+			message: '#^Class App\\Models\\TemplateSertifikat uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TemplateSertifikat.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Tugas\:\:\$deadline\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Tugas.php
+
+		-
+			message: '#^Class App\\Models\\Tugas uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Tugas.php
+
+		-
+			message: '#^Method App\\Models\\Tugas\:\:bimtek\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Tugas.php
+
+		-
+			message: '#^Method App\\Models\\Tugas\:\:pengumpulanTugas\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Tugas.php
+
+		-
+			message: '#^Property App\\Models\\Tugas\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Tugas.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:absensiPesertas\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:bimteks\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:bimteksSebagaiPanitia\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:bimteksSebagaiPeserta\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:bimteksSebagaiPic\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:dokumenPersyaratan\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:hasRole\(\) has parameter \$roleNames with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:logSistems\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:pengajuans\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:pengumpulanTugas\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:role\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:sertifikats\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 11
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$judul_final\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/SertifikatTemplateService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_mulai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/SertifikatTemplateService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Bimtek\:\:\$tanggal_selesai_aktual\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/SertifikatTemplateService.php
+
+		-
+			message: '#^Method App\\Services\\SertifikatTemplateService\:\:getAvailablePlaceholders\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/SertifikatTemplateService.php
+
+		-
+			message: '#^Method App\\Services\\SertifikatTemplateService\:\:renderAsHtml\(\) has parameter \$peserta with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/SertifikatTemplateService.php
+
+		-
+			message: '#^Method App\\View\\Components\\AppLayout\:\:render\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/View/Components/AppLayout.php
+
+		-
+			message: '#^Method App\\View\\Components\\GuestLayout\:\:render\(\) should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\View\.$#'
+			identifier: return.type
+			count: 1
+			path: app/View/Components/GuestLayout.php

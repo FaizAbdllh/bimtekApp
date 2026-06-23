@@ -13,6 +13,22 @@ class Bimtek extends Model
 {
     use HasFactory, HasUuids;
 
+    /**
+     * Model dynamic properties (DB columns / accessors) used throughout the app.
+     *
+     * @property string $id
+     * @property string|null $judul_final
+     * @property string|null $file_surat_draft_path
+     * @property string|null $file_surat_final_path
+     * @property array|null $daftar_pemateri
+     * @property string|null $mode_pelaksanaan
+     * @property string|null $mode_pelaksanaan_code
+     * @property mixed $pengajuan
+     * @property string|null $invite_code
+     * @property bool|null $butuh_verifikasi_dokumen
+     * @property string|null $status_pelaksanaan
+     */
+
     protected $table = 'bimteks';
 
     protected $fillable = [
@@ -44,6 +60,7 @@ class Bimtek extends Model
         'invite_code',
     ];
 
+    /** @var array<string,mixed> */
     protected $casts = [
         'mode_pelaksanaan' => 'string',
         'tanggal_mulai_aktual' => 'date',
@@ -69,6 +86,9 @@ class Bimtek extends Model
     /**
      * Get the pengajuan that owns the bimtek.
      */
+    /**
+     * @return BelongsTo<Pengajuan, Bimtek>
+     */
     public function pengajuan(): BelongsTo
     {
         return $this->belongsTo(Pengajuan::class);
@@ -76,6 +96,9 @@ class Bimtek extends Model
 
     /**
      * Get all users (Panitia, Peserta) for this bimtek.
+     */
+    /**
+     * @return BelongsToMany<User, Bimtek>
      */
     public function users(): BelongsToMany
     {
@@ -88,6 +111,9 @@ class Bimtek extends Model
      * Get PIC (Penanggung Jawab) for this bimtek.
      * PIC is the owner of the bimtek, typically the pengaju.
      */
+    /**
+     * @return BelongsTo<User, Bimtek>
+     */
     public function pic(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pic_user_id');
@@ -95,6 +121,9 @@ class Bimtek extends Model
 
     /**
      * Get the user who uploaded the surat draft (PIC/Panitia).
+     */
+    /**
+     * @return BelongsTo<User, Bimtek>
      */
     public function draftUploader(): BelongsTo
     {
@@ -104,6 +133,9 @@ class Bimtek extends Model
     /**
      * Get the user who uploaded the surat final (Persuratan).
      */
+    /**
+     * @return BelongsTo<User, Bimtek>
+     */
     public function finalUploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'file_surat_final_uploaded_by');
@@ -111,6 +143,9 @@ class Bimtek extends Model
 
     /**
      * Get Panitia for this bimtek.
+     */
+    /**
+     * @return BelongsToMany<User, Bimtek>
      */
     public function panitia(): BelongsToMany
     {
@@ -123,6 +158,9 @@ class Bimtek extends Model
     /**
      * Get Peserta for this bimtek.
      */
+    /**
+     * @return BelongsToMany<User, Bimtek>
+     */
     public function peserta(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'bimtek_user')
@@ -134,6 +172,9 @@ class Bimtek extends Model
     /**
      * Get all dokumen persyaratan for this bimtek.
      */
+    /**
+     * @return HasMany<DokumenPersyaratanPeserta, Bimtek>
+     */
     public function dokumenPersyaratan(): HasMany
     {
         return $this->hasMany(DokumenPersyaratanPeserta::class);
@@ -141,6 +182,9 @@ class Bimtek extends Model
 
     /**
      * Get peserta yang perlu verifikasi dokumen.
+     */
+    /**
+     * @return BelongsToMany<User, Bimtek>
      */
     public function pesertaPendingVerifikasi(): BelongsToMany
     {
@@ -153,6 +197,9 @@ class Bimtek extends Model
 
     /**
      * Get peserta yang sudah verified.
+     */
+    /**
+     * @return BelongsToMany<User, Bimtek>
      */
     public function pesertaVerified(): BelongsToMany
     {
@@ -176,6 +223,9 @@ class Bimtek extends Model
     /**
      * Get all materis for this bimtek.
      */
+    /**
+     * @return HasMany<Materi, Bimtek>
+     */
     public function materis(): HasMany
     {
         return $this->hasMany(Materi::class);
@@ -183,6 +233,9 @@ class Bimtek extends Model
 
     /**
      * Get materi type materi only.
+     */
+    /**
+     * @return HasMany<Materi, Bimtek>
      */
     public function materiPembelajaran(): HasMany
     {
@@ -192,6 +245,9 @@ class Bimtek extends Model
     /**
      * Get materi type panduan only.
      */
+    /**
+     * @return HasMany<Materi, Bimtek>
+     */
     public function panduan(): HasMany
     {
         return $this->hasMany(Materi::class)->where('tipe', 'panduan');
@@ -199,6 +255,9 @@ class Bimtek extends Model
 
     /**
      * Get all tugas for this bimtek.
+     */
+    /**
+     * @return HasMany<Tugas, Bimtek>
      */
     public function tugas(): HasMany
     {
@@ -208,6 +267,9 @@ class Bimtek extends Model
     /**
      * Get all sesi absensi for this bimtek.
      */
+    /**
+     * @return HasMany<SesiAbsensi, Bimtek>
+     */
     public function sesiAbsensis(): HasMany
     {
         return $this->hasMany(SesiAbsensi::class);
@@ -215,6 +277,9 @@ class Bimtek extends Model
 
     /**
      * Get all sertifikats for this bimtek.
+     */
+    /**
+     * @return HasMany<Sertifikat, Bimtek>
      */
     public function sertifikats(): HasMany
     {
