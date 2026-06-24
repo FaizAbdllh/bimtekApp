@@ -271,6 +271,6 @@ class SbmMasterSeeder extends Seeder
             );
         }
 
-        $this->command->info('SBM Master data seeded successfully!');
+        $this->command->info('Tahap 1B: Master SBM data dari GitHub berhasil dipulihkan!');
     }
 }

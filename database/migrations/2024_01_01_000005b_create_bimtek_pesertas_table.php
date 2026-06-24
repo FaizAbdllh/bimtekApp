@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bimtek_user', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+        Schema::create('bimtek_pesertas', function (Blueprint $table) {
+            // Relasi Utama
             $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
-            $table->enum('peran_kontekstual', ['pic', 'panitia', 'peserta'])->notNull();
+
+            // Atribut Spesifik Kepesertaan (Hasil Konsolidasi Patch)
+            $table->enum('status_verifikasi', ['invited', 'pending', 'verified', 'rejected'])->nullable();
+            $table->timestamp('notified_at')->nullable();
+            
             $table->timestamps();
 
-            // Satu user hanya bisa punya satu peran per bimtek
-            $table->unique(['bimtek_id', 'user_id']);
+            // PENGUNCIAN: Composite Primary Key
+            $table->primary(['bimtek_id', 'user_id']);
         });
     }
 
@@ -28,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bimtek_user');
+        Schema::dropIfExists('bimtek_pesertas');
     }
 };

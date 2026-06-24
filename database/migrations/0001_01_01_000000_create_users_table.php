@@ -12,9 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
+            // Primary Key menggunakan UUID
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->unique();
+            
+            // --- FITUR AKTIVASI AKUN (Konsolidasi dari activation_tokens) ---
+            $table->string('token_hash', 64)->nullable()->index();
+            $table->timestamp('expires_at')->nullable()->index();
+            $table->timestamp('used_at')->nullable()->index();
+            $table->boolean('is_active')->default(false)->index();
+            $table->uuid('created_by')->nullable(); // Menghubungkan ke UUID panitia pembuat token
+            // ----------------------------------------------------------------
+            
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
@@ -29,6 +39,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
+            // Default Laravel sudah tepat menggunakan foreignUuid untuk membaca ID tabel user di atas
             $table->foreignUuid('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();

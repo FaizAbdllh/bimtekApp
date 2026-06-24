@@ -11,18 +11,29 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 1. Membuat Tabel Fasilitas Logistik yang Sudah Sempurna
         Schema::create('fasilitas_logistiks', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('pengajuan_id')->constrained('pengajuans')->onDelete('cascade');
+            
+            // JANGKAR BARU: Menembak langsung ke UUID Bimtek, bukan pengajuan lagi
+            $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
+            
             $table->string('nama_fasilitas');
             $table->integer('jumlah')->default(1);
+            
+            // Konsolidasi dari file penambal satuan tahun 2025
+            $table->string('satuan')->nullable()->comment('Contoh: Kotak, Rim, Dos, Orang');
+            
+            // Konsolidasi dari file penambal Kelompok 3 (Rumah Tangga)
+            $table->boolean('is_dipenuhi')->default(false);
+            
             $table->enum('status', ['diminta', 'tersedia', 'tidak_tersedia'])->default('diminta');
-            $table->text('catatan_rt')->nullable(); // Catatan dari Koordinator RT
+            
             $table->timestamps();
         });
 
-        // Tambahkan kolom catatan_logistik ke tabel pengajuans
-        Schema::table('pengajuans', function (Blueprint $table) {
+        // 2. Menitipkan kolom catatan_logistik ke tabel bimteks (Bukan pengajuans lagi)
+        Schema::table('bimteks', function (Blueprint $table) {
             $table->text('catatan_logistik')->nullable()->after('catatan_rt');
         });
     }
@@ -32,7 +43,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('pengajuans', function (Blueprint $table) {
+        // Drop kolom di tabel bimteks terlebih dahulu
+        Schema::table('bimteks', function (Blueprint $table) {
             $table->dropColumn('catatan_logistik');
         });
 

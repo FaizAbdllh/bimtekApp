@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('materis', function (Blueprint $table) {
+        Schema::create('syarat_dokumens', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
-            $table->string('judul');
             
-            // Perbaikan: Menghapus ->notNull() karena default Laravel sudah NOT NULL
-            $table->string('file_path');
-            $table->enum('tipe', ['materi', 'panduan'])->comment('Membedakan materi dan panduan');
+            // Menembak ke tabel master Bimtek
+            $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
+            
+            $table->string('nama_dokumen')->comment('Contoh: Surat Tugas, KTP, Pakta Integritas');
+            $table->text('deskripsi_syarat')->nullable()->comment('Keterangan tambahan atau link template dokumen jika ada');
+            $table->boolean('is_wajib')->default(true)->comment('Apakah dokumen ini wajib atau opsional');
             
             $table->timestamps();
         });
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('materis');
+        Schema::dropIfExists('syarat_dokumens');
     }
 };

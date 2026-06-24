@@ -24,5 +24,7 @@ class RoleSeeder extends Seeder
         foreach ($roles as $role) {
             Role::firstOrCreate($role);
         }
+
+        $this->command->info('Tahap 1A: Master Roles berhasil disuntikkan.');
     }
 }

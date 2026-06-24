@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,13 +12,10 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasUuids, Notifiable;
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var list<string>
      */
     protected $fillable = [
         'name',
@@ -32,8 +28,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
      */
     protected $hidden = [
         'password',
@@ -42,8 +36,6 @@ class User extends Authenticatable
 
     /**
      * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
      */
     protected function casts(): array
     {
@@ -54,7 +46,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the role of the user.
+     * Get the global role of the user.
      */
     public function role(): BelongsTo
     {
@@ -62,197 +54,98 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all pengajuans created by this user.
+     * 1. RELASI PIC: Menampilkan semua bimtek di mana user ini ditunjuk sebagai PIC utama.
+     * (Logika baru: PIC tertanam langsung di tabel induk bimteks)
      */
-    public function pengajuans(): HasMany
+    public function bimteksSebagaiPic(): HasMany
     {
-        return $this->hasMany(Pengajuan::class);
+        return $this->hasMany(Bimtek::class, 'pic_id'); // Pastikan kolom di tabel bimteks bernama pic_id atau user_id
     }
 
     /**
-     * Get all bimteks this user is involved in.
-     */
-    public function bimteks(): BelongsToMany
-    {
-        return $this->belongsToMany(Bimtek::class, 'bimtek_user')
-            ->withPivot('peran_kontekstual', 'fungsi_panitia')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get bimteks where user is PIC.
-     */
-    public function bimteksSebagaiPic(): BelongsToMany
-    {
-        return $this->belongsToMany(Bimtek::class, 'bimtek_user')
-            ->withPivot('peran_kontekstual', 'fungsi_panitia')
-            ->wherePivot('peran_kontekstual', 'pic')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get bimteks where user is Panitia.
+     * 2. RELASI PANITIA: Menghubungkan user ke Bimtek melalui tabel jembatan baru `bimtek_panitias`
      */
     public function bimteksSebagaiPanitia(): BelongsToMany
     {
-        return $this->belongsToMany(Bimtek::class, 'bimtek_user')
-            ->withPivot('peran_kontekstual', 'fungsi_panitia')
-            ->wherePivot('peran_kontekstual', 'panitia')
-            ->withTimestamps();
+        return $this->belongsToMany(Bimtek::class, 'bimtek_panitias', 'user_id', 'bimtek_id')
+                    ->withPivot('fungsi_panitia') // Sesuai kolom di migrasi bimtek_panitias
+                    ->withTimestamps();
     }
 
     /**
-     * Get bimteks where user is Peserta.
+     * 3. RELASI PESERTA: Menghubungkan user ke Bimtek melalui tabel jembatan baru `bimtek_pesertas`
      */
     public function bimteksSebagaiPeserta(): BelongsToMany
     {
-        return $this->belongsToMany(Bimtek::class, 'bimtek_user')
-            ->withPivot('peran_kontekstual', 'fungsi_panitia')
-            ->wherePivot('peran_kontekstual', 'peserta')
-            ->withTimestamps();
+        return $this->belongsToMany(Bimtek::class, 'bimtek_pesertas', 'user_id', 'bimtek_id')
+                    ->withPivot('status_verifikasi') // Kolom berkah tersembunyi yang kita bahas tadi!
+                    ->withTimestamps();
     }
 
     /**
-     * Get all pengumpulan tugas by this user.
+     * Relasi Transaksional Turunan (Menyesuaikan tabel anak bertipe Composite Key)
      */
     public function pengumpulanTugas(): HasMany
     {
-        return $this->hasMany(PengumpulanTugas::class);
+        return $this->hasMany(PengumpulanTugas::class, 'user_id');
     }
 
-    /**
-     * Get all absensi by this user.
-     */
     public function absensiPesertas(): HasMany
     {
-        return $this->hasMany(AbsensiPeserta::class);
+        return $this->hasMany(AbsensiPeserta::class, 'user_id');
     }
 
-    /**
-     * Get all sertifikats for this user.
-     */
     public function sertifikats(): HasMany
     {
-        return $this->hasMany(Sertifikat::class);
+        return $this->hasMany(Sertifikat::class, 'user_id');
     }
 
-    /**
-     * Get all log sistem by this user.
-     */
     public function logSistems(): HasMany
     {
-        return $this->hasMany(LogSistem::class);
+        return $this->hasMany(LogSistem::class, 'user_id');
     }
 
-    /**
-     * Get all dokumen persyaratan uploaded by this user.
-     */
     public function dokumenPersyaratan(): HasMany
     {
-        return $this->hasMany(DokumenPersyaratanPeserta::class);
+        return $this->hasMany(DokumenPersyaratanPeserta::class, 'user_id');
     }
 
     /**
-     * Check if user has a specific role.
+     * Global Role Check Helpers
      */
     public function hasRole(string|array $roleNames): bool
     {
-        if (! $this->role) {
+        if (!$this->role) {
             return false;
         }
 
         $roles = is_array($roleNames) ? $roleNames : [$roleNames];
-
         return in_array($this->role->nama_peran, $roles);
     }
 
-    /**
-     * Check if user is Admin IT.
-     */
-    public function isAdminIt(): bool
-    {
-        return $this->hasRole('Admin IT');
-    }
+    public function isAdminIt(): bool { return $this->hasRole('Admin IT'); }
+    public function isKepala(): bool { return $this->hasRole('Kepala'); }
+    public function isPpk(): bool { return $this->hasRole('PPK'); }
+    public function isRt(): bool { return $this->hasRole('Koordinator RT'); }
+    public function isPersuratan(): bool { return $this->hasRole('Persuratan'); }
+    public function isPegawaiInternal(): bool { return $this->hasRole('Pegawai Internal'); }
+    public function isPesertaEksternal(): bool { return $this->hasRole('Peserta Eksternal'); }
 
     /**
-     * Check if user is Kepala.
-     */
-    public function isKepala(): bool
-    {
-        return $this->hasRole('Kepala');
-    }
-
-    /**
-     * Check if user is PPK.
-     */
-    public function isPpk(): bool
-    {
-        return $this->hasRole('PPK');
-    }
-
-    /**
-     * Check if user is RT (Koordinator Rumah Tangga).
-     */
-    public function isRt(): bool
-    {
-        return $this->hasRole('Koordinator RT');
-    }
-
-    /**
-     * Check if user is Persuratan.
-     */
-    public function isPersuratan(): bool
-    {
-        return $this->hasRole('Persuratan');
-    }
-
-    /**
-     * Check if user is Pegawai Internal.
-     */
-    public function isPegawaiInternal(): bool
-    {
-        return $this->hasRole('Pegawai Internal');
-    }
-
-    /**
-     * Check if user is Peserta Eksternal.
-     */
-    public function isPesertaEksternal(): bool
-    {
-        return $this->hasRole('Peserta Eksternal');
-    }
-
-    /**
-     * Get user's contextual role in a specific bimtek.
-     */
-    public function getPeranKontekstual(Bimtek $bimtek): ?string
-    {
-        $pivot = $this->bimteks()->where('bimtek_id', $bimtek->id)->first();
-
-        return $pivot ? $pivot->pivot->peran_kontekstual : null;
-    }
-
-    /**
-     * Check if user is PIC in a specific bimtek.
+     * Contextual Role Check Helpers (Menyesuaikan Arsitektur Terpisah)
      */
     public function isPicDiBimtek(Bimtek $bimtek): bool
     {
-        return $this->getPeranKontekstual($bimtek) === 'pic';
+        return $this->bimteksSebagaiPic()->where('id', $bimtek->id)->exists();
     }
 
-    /**
-     * Check if user is Panitia in a specific bimtek.
-     */
     public function isPanitiaDiBimtek(Bimtek $bimtek): bool
     {
-        return $this->getPeranKontekstual($bimtek) === 'panitia';
+        return $this->bimteksSebagaiPanitia()->where('bimtek_id', $bimtek->id)->exists();
     }
 
-    /**
-     * Check if user is Peserta in a specific bimtek.
-     */
     public function isPesertaDiBimtek(Bimtek $bimtek): bool
     {
-        return $this->getPeranKontekstual($bimtek) === 'peserta';
+        return $this->bimteksSebagaiPeserta()->where('bimtek_id', $bimtek->id)->exists();
     }
 }

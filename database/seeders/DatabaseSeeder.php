@@ -17,13 +17,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles first
+        // 1. Seed roles first (Pondasi Utama)
         $this->call(RoleSeeder::class);
 
-        // Seed SBM master reference data
+        // 2. Seed SBM master reference data
         $this->call(SbmMasterSeeder::class);
 
+        // 3. Seed sample/default anchor users
         $this->seedUsers();
+
+        // 4. Tahap 2: Seed data akun pegawai riil BBPMP Sumbar
+        $this->call(CreateRealUsersSeeder::class);
     }
 
     /**
