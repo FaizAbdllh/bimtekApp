@@ -59,7 +59,7 @@ class User extends Authenticatable
      */
     public function bimteksSebagaiPic(): HasMany
     {
-        return $this->hasMany(Bimtek::class, 'pic_id'); // Pastikan kolom di tabel bimteks bernama pic_id atau user_id
+        return $this->hasMany(Bimtek::class, 'pic_user_id'); // Pastikan kolom di tabel bimteks bernama pic_id atau user_id
     }
 
     /**

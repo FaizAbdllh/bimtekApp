@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class BimtekController extends Controller
@@ -20,39 +21,41 @@ class BimtekController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $query = Bimtek::with(['pengajuan.user', 'pic', 'peserta']);
+        // Mengapus pengajuan.user karena data pengaju kini melekat langsung di relasi pic
+        $query = Bimtek::with(['pic', 'peserta', 'panitia']);
 
-        // Admin IT, Kepala, PPK bisa lihat semua bimtek
-        // User lain hanya lihat bimtek yang dia terlibat
+        // Admin IT, Kepala, PPK bisa melihat semua riwayat bimtek
         if (! $user->isAdminIt() && ! $user->isKepala() && ! $user->isPpk()) {
-            // User lihat bimtek yang:
-            // 1. Dia terlibat sebagai PIC/Panitia/Peserta/Pemateri, ATAU
-            // 2. Dia adalah pengaju dari bimtek tersebut
+            // Pegawai/Peserta hanya melihat kelas di mana dia terlibat secara kontekstual
             $query->where(function ($q) use ($user) {
-                $q->whereHas('users', function ($subQ) use ($user) {
-                    $subQ->where('user_id', $user->id);
-                })->orWhereHas('pengajuan', function ($subQ) use ($user) {
-                    $subQ->where('user_id', $user->id);
-                });
+                $q->where('pic_user_id', $user->id)
+                  ->orWhereHas('panitia', function ($subQ) use ($user) {
+                      $subQ->where('user_id', $user->id);
+                  })
+                  ->orWhereHas('peserta', function ($subQ) use ($user) {
+                      $subQ->where('user_id', $user->id);
+                  });
             });
         }
 
-        // Filter berdasarkan status
+        // Filter berdasarkan status alur (State Machine)
         if ($request->filled('status')) {
-            $query->where('status_pelaksanaan', $request->status);
+            $query->where('status', $request->status);
         }
 
-        // Pencarian
+        // Pencarian judul atau lokasi
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul_final', 'like', "%{$search}%")
+                    ->orWhere('judul_rencana', 'like', "%{$search}%")
                     ->orWhere('lokasi_aktual', 'like', "%{$search}%");
             });
         }
 
         $bimteks = $query->latest()->paginate(10)->withQueryString();
 
+        // Opsi disesuaikan dengan transisi status pelaksanaan pasca-approval
         $statusOptions = [
             'persiapan' => 'Persiapan',
             'berlangsung' => 'Berlangsung',
@@ -69,79 +72,63 @@ class BimtekController extends Controller
     public function show(Bimtek $bimtek): View
     {
         $this->authorizeAccess($bimtek);
-
         $user = Auth::user();
 
-        // Check if user is peserta - redirect to simplified view
-        $isPeserta = $bimtek->peserta()->where('users.id', $user->id)->exists();
+        // Cek keterlibatan user di kelas ini melalui jembatan bimtek_pesertas
+        $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
 
         if ($isPeserta && ! $user->isAdminIt()) {
-            // Load only necessary data for peserta view
             $bimtek->load([
-                'materis' => function ($q) {
-                    $q->latest()->take(5);
-                },
-                'tugas' => function ($q) {
-                    $q->orderBy('deadline')->take(5);
-                },
-                'sesiAbsensis' => function ($q) {
-                    $q->latest()->take(5);
-                },
-                'sertifikats' => function ($q) use ($user) {
-                    $q->where('user_id', $user->id)->latest()->take(5);
-                },
+                'materis' => fn($q) => $q->latest()->take(5),
+                'tugas' => fn($q) => $q->orderBy('deadline')->take(5),
+                'sesiAbsensis' => fn($q) => $q->latest()->take(5),
+                'sertifikats' => fn($q) => $q->where('user_id', $user->id)->latest()->take(5),
             ]);
 
-            // Get verification status for this peserta
-            $pivot = $bimtek->users()
-                ->where('users.id', $user->id)
-                ->where('bimtek_user.peran_kontekstual', 'peserta')
-                ->first();
-
+            // Ambil status berkas kelulusan langsung dari tabel bridge peserta
+            $pivot = $bimtek->peserta()->where('user_id', $user->id)->first();
             $statusVerifikasi = $pivot?->pivot->status_verifikasi ?? 'invited';
-            $isVerified = $statusVerifikasi === 'verified';
+            $isVerified = $statusVerifikasi === 'verified' || $statusVerifikasi === 'diverifikasi';
 
             return view('bimtek.show-peserta', compact('bimtek', 'isVerified', 'statusVerifikasi'));
         }
 
-        // Full view for PIC, Panitia, Admin, etc.
+        // Full view manajemen untuk PIC, Panitia Struktural, dan Manajemen Terkait
         $bimtek->load([
-            'pengajuan.user',
-            'pengajuan.fasilitasLogistiks',
             'pic',
             'panitia',
-            // 'pemateri', // dihapus karena bukan relasi
             'peserta',
             'materis',
             'tugas.pengumpulanTugas',
             'sesiAbsensis',
             'sertifikats.user',
+            'fasilitasLogistiks'
         ]);
 
-        // Get available users untuk modal assign
-        $existingUserIds = $bimtek->users->pluck('id')->toArray();
+        // Mengumpulkan daftar ID user yang sudah tergabung agar tidak muncul ganda di modal input
+        $existingUserIds = array_merge(
+            $bimtek->panitia->pluck('id')->toArray(),
+            $bimtek->peserta->pluck('id')->toArray(),
+            [$bimtek->pic_user_id]
+        );
+
         $availableUsers = User::whereNotIn('id', $existingUserIds)
             ->whereHas('role', function ($q) {
-                // Hanya Pegawai Internal yang boleh dijadikan panitia
                 $q->where('nama_peran', 'Pegawai Internal');
             })
             ->orderBy('name')
             ->get();
 
-        // Check if user can manage (PIC or Panitia)
-        $canManage = $bimtek->pic_user_id === $user->id ||
-                     $bimtek->panitia()->where('users.id', $user->id)->exists();
-
-        // Check if user is PIC (for assigning panitia)
+        $canManage = $bimtek->pic_user_id === $user->id || $bimtek->panitia()->where('user_id', $user->id)->exists();
         $isPic = $bimtek->pic_user_id === $user->id;
 
         return view('bimtek.show', compact('bimtek', 'availableUsers', 'canManage', 'isPic', 'isPeserta'));
     }
 
     /**
-     * Generate invite code for a bimtek (PIC or Panitia only).
+     * Generate invite code for a bimtek.
      */
-    public function generateInviteCode(Bimtek $bimtek)
+    public function generateInviteCode(Bimtek $bimtek): RedirectResponse
     {
         $this->authorizePicPanitia($bimtek);
         if (! $bimtek->invite_code) {
@@ -149,40 +136,7 @@ class BimtekController extends Controller
             $bimtek->save();
         }
 
-        return redirect()->route('bimtek.show', $bimtek)->with('success', 'Kode undangan berhasil dibuat. Silakan sisipkan link pada surat undangan.');
-    }
-
-    public function exportActivationTokens(Bimtek $bimtek)
-    {
-        $this->authorizePicPanitia($bimtek);
-
-        $tokens = \App\Models\ActivationToken::where('bimtek_id', $bimtek->id)
-            ->with('user')
-            ->get();
-
-        $filename = 'activation_tokens_bimtek_'.$bimtek->id.'.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=$filename",
-        ];
-
-        $callback = function () use ($tokens) {
-            $out = fopen('php://output', 'w');
-            fputcsv($out, ['user_id', 'email', 'token_hash', 'created_at', 'used_at']);
-            foreach ($tokens as $t) {
-                fputcsv($out, [
-                    $t->user_id,
-                    $t->user?->email,
-                    $t->token_hash,
-                    $t->created_at,
-                    $t->used_at,
-                ]);
-            }
-            fclose($out);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return redirect()->route('bimtek.show', $bimtek)->with('success', 'Kode undangan berhasil dibuat. Silakan bagikan kode kepada para calon peserta.');
     }
 
     /**
@@ -191,8 +145,7 @@ class BimtekController extends Controller
     public function edit(Bimtek $bimtek): View
     {
         $this->authorizePicPanitia($bimtek);
-
-        $bimtek->load(['pengajuan.user', 'pic', 'panitia']);
+        $bimtek->load(['pic', 'panitia']);
 
         $statusOptions = [
             'persiapan' => 'Persiapan',
@@ -223,7 +176,7 @@ class BimtekController extends Controller
             'tanggal_mulai_aktual' => 'nullable|date',
             'tanggal_selesai_aktual' => 'nullable|date|after_or_equal:tanggal_mulai_aktual',
             'deskripsi_jadwal' => 'nullable|string',
-            'status_pelaksanaan' => 'nullable|in:persiapan,berlangsung,selesai,dibatalkan',
+            'status' => 'nullable|in:persiapan,berlangsung,selesai,dibatalkan', // Diubah dari status_pelaksanaan menjadi status
             'anggaran_disetujui' => 'nullable|numeric|min:0',
             'syarat_kehadiran_persen' => 'nullable|integer|min:0|max:100',
             'syarat_tugas_persen' => 'nullable|integer|min:0|max:100',
@@ -239,136 +192,65 @@ class BimtekController extends Controller
         $validated['has_tugas'] = $request->boolean('has_tugas');
         $validated['has_sertifikat'] = $request->boolean('has_sertifikat');
 
-        // Status pelaksanaan wajib melalui endpoint workflow agar transisi tervalidasi.
-        if (($validated['status_pelaksanaan'] ?? $bimtek->status_pelaksanaan) !== $bimtek->status_pelaksanaan) {
-            $this->logRejectedAction(
-                $bimtek,
-                'Perubahan status pelaksanaan melalui form edit ditolak.',
-                [
-                    'status_lama' => $bimtek->status_pelaksanaan,
-                    'status_diminta' => $validated['status_pelaksanaan'] ?? null,
-                ]
-            );
-
+        // Mencegah bypass status ilegal lewat form input standar
+        if (isset($validated['status']) && $validated['status'] !== $bimtek->status) {
             return back()->with('error', 'Perubahan status pelaksanaan hanya dapat dilakukan melalui tombol Kelola Status Bimtek.');
         }
 
-        $majorFields = [
-            'anggaran_disetujui',
-            'syarat_kehadiran_persen',
-            'syarat_tugas_persen',
-            'syarat_tugas_wajib',
-        ];
-
-        $majorFieldLabels = [
-            'anggaran_disetujui' => 'Anggaran Disetujui',
-            'syarat_kehadiran_persen' => 'Syarat Kehadiran',
-            'syarat_tugas_persen' => 'Nilai Minimal Tugas',
-            'syarat_tugas_wajib' => 'Wajib Kumpul Tugas',
-        ];
-
+        // Penyaringan modifikasi field major tata kelola anggaran asli DIPA
+        $majorFields = ['anggaran_disetujui', 'syarat_kehadiran_persen', 'syarat_tugas_persen', 'syarat_tugas_wajib'];
         $changedMajorFields = [];
         foreach ($majorFields as $field) {
             if ($this->normalizeComparisonValue($bimtek->{$field}) !== $this->normalizeComparisonValue($validated[$field] ?? null)) {
-                $changedMajorFields[] = $majorFieldLabels[$field] ?? $field;
+                $changedMajorFields[] = $field;
             }
         }
 
         if (! empty($changedMajorFields)) {
-            $this->logRejectedAction(
-                $bimtek,
-                'Perubahan field major secara langsung ditolak.',
-                ['field_major' => implode(', ', $changedMajorFields)]
-            );
-
-            return back()->with('error', 'Perubahan major tidak dapat dilakukan langsung: '.implode(', ', $changedMajorFields).'. Gunakan fitur Revisi agar kembali ke alur persetujuan Kepala dan PPK.');
+            return back()->with('error', 'Perubahan data keuangan major tidak dapat dilakukan langsung. Gunakan fitur Revisi agar kembali ke alur persetujuan Kepala/PPK.');
         }
 
-        unset($validated['status_pelaksanaan']);
+        unset($validated['status']);
+        
+        // Bersihkan data array narasumber
         $validated['daftar_pemateri'] = collect($request->input('daftar_pemateri', []))
-            ->filter(function ($pemateri) {
-                return ! empty($pemateri['nama']);
-            })
+            ->filter(fn($p) => ! empty($p['nama']))
             ->values()
-            ->map(function ($pemateri) {
-                return [
-                    'nama' => $pemateri['nama'],
-                    'asal_instansi' => $pemateri['asal_instansi'] ?? null,
-                ];
-            })
+            ->map(fn($p) => ['nama' => $p['nama'], 'asal_instansi' => $p['asal_instansi'] ?? null])
             ->all();
+
         $bimtek->update($validated);
 
-        return redirect()
-            ->route('bimtek.show', $bimtek)
-            ->with('success', 'Data bimtek berhasil diperbarui.');
+        return redirect()->route('bimtek.show', $bimtek)->with('success', 'Data bimtek berhasil diperbarui.');
     }
 
     /**
-     * Update daftar pemateri bimtek.
-     */
-    public function updatePemateri(Request $request, Bimtek $bimtek): RedirectResponse
-    {
-        $this->authorizePicPanitia($bimtek);
-
-        $statusLockResponse = $this->ensurePersiapanForDataChanges($bimtek);
-        if ($statusLockResponse) {
-            return $statusLockResponse;
-        }
-
-        $request->validate([
-            'daftar_pemateri' => 'nullable|array',
-            'daftar_pemateri.*.nama' => 'nullable|string|max:255',
-            'daftar_pemateri.*.asal_instansi' => 'nullable|string|max:255',
-        ]);
-
-        $pemateri = collect($request->input('daftar_pemateri', []))
-            ->filter(function ($pemateri) {
-                return ! empty($pemateri['nama']);
-            })
-            ->values()
-            ->map(function ($pemateri) {
-                return [
-                    'nama' => $pemateri['nama'],
-                    'asal_instansi' => $pemateri['asal_instansi'] ?? null,
-                ];
-            })
-            ->all();
-
-        $bimtek->update(['daftar_pemateri' => $pemateri]);
-
-        return back()->with('success', 'Daftar pemateri berhasil diperbarui.');
-    }
-
-    /**
-     * Request revision of the approved pengajuan by PIC.
+     * Request revision - Melakukan transisi status langsung pada baris data Bimtek itu sendiri
      */
     public function requestRevisi(Bimtek $bimtek): RedirectResponse
     {
         $this->authorizePicOnly($bimtek);
 
-        if (! $bimtek->pengajuan) {
-            return back()->with('error', 'Pengajuan tidak ditemukan untuk bimtek ini.');
-        }
-
-        if ($bimtek->pengajuan->status_pengajuan !== 'disetujui_final') {
+        if ($bimtek->status !== 'disetujui_final') {
             return back()->with('error', 'Revisi hanya dapat diajukan setelah pengajuan disetujui final.');
         }
 
-        $bimtek->pengajuan->update([
-            'status_pengajuan' => 'perlu_revisi',
+        // Menurunkan state alur kembali ke revisi agar form pengajuan terbuka untuk PIC
+        $bimtek->update([
+            'status' => 'perlu_revisi',
             'catatan_kepala' => null,
             'catatan_ppk' => null,
             'kepala_approved_at' => null,
+            'ppk_approved_at' => null
         ]);
 
         return redirect()
-            ->route('pengajuan.edit', $bimtek->pengajuan)
-            ->with('success', 'Pengajuan dikembalikan untuk direvisi. Silakan perbarui data dan ajukan ulang.');
+            ->route('pengajuan.edit', $bimtek->id)
+            ->with('success', 'Status diturunkan ke Perlu Revisi. Silakan perbarui rancangan anggaran biaya Anda.');
     }
 
     /**
-     * Assign Panitia to bimtek.
+     * Assign Panitia to bimtek (Menembak tabel bridge riil `bimtek_panitias`).
      */
     public function assignPanitia(Request $request, Bimtek $bimtek): RedirectResponse
     {
@@ -384,506 +266,239 @@ class BimtekController extends Controller
             'fungsi_panitia' => 'required|string|max:100',
         ]);
 
-        $user = User::with('role')->findOrFail($validated['user_id']);
+        $user = User::findOrFail($validated['user_id']);
 
         if (! $user->isPegawaiInternal()) {
-            return back()->with('error', 'Hanya user dengan role Pegawai Internal yang dapat ditambahkan sebagai panitia.');
+            return back()->with('error', 'Hanya pegawai internal BBPMP yang dapat ditugaskan sebagai panitia.');
         }
 
-        // Check if user already assigned as Panitia
         if ($bimtek->panitia()->where('user_id', $validated['user_id'])->exists()) {
-            return back()->with('error', 'User sudah menjadi Panitia di bimtek ini.');
+            return back()->with('error', 'Pegawai tersebut sudah terdaftar sebagai panitia di kelas ini.');
         }
 
-        // Enforce panitia cap: max 10% dari jumlah peserta yang diajukan (minimal 1)
-        $jumlahPeserta = $bimtek->pengajuan?->jumlah_peserta ?? null;
-        if (empty($jumlahPeserta)) {
-            return back()->with('error', 'Mohon isi Estimasi Jumlah Peserta di Pengajuan terlebih dahulu sebelum menambahkan Panitia.');
+        // Batasan jumlah panitia maks 10% sesuai regulasi DIPA BBPMP Sumbar
+        $jumlahPeserta = $bimtek->jumlah_peserta ?? 0;
+        if ($jumlahPeserta <= 0) {
+            return back()->with('error', 'Mohon tentukan perkiraan target jumlah peserta terlebih dahulu.');
         }
 
         $maxPanitia = max(1, (int) ceil($jumlahPeserta * 0.10));
-        $currentPanitia = $bimtek->panitia()->count();
-        if ($currentPanitia >= $maxPanitia) {
-            return back()->with('error', "Jumlah Panitia sudah mencapai batas maksimum ({$maxPanitia}) berdasarkan estimasi peserta.");
+        if ($bimtek->panitia()->count() >= $maxPanitia) {
+            return back()->with('error', "Kuota kepanitiaan penuh! Maksimum panitia untuk kegiatan ini adalah {$maxPanitia} orang.");
         }
 
-        // Remove from other roles if exists, then add as Panitia
-        $bimtek->users()->detach($validated['user_id']);
-        $bimtek->users()->attach($validated['user_id'], [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'panitia',
+        // Jaring pengaman: Cabut dari peserta jika ada, lalu masukkan ke panitia
+        $bimtek->peserta()->detach($validated['user_id']);
+        $bimtek->panitia()->attach($validated['user_id'], [
             'fungsi_panitia' => $validated['fungsi_panitia'],
         ]);
 
-        return back()->with('success', "{$user->name} berhasil ditambahkan sebagai Panitia ({$validated['fungsi_panitia']}).");
+        return back()->with('success', "{$user->name} sukses didelegasikan sebagai Panitia.");
     }
 
     /**
-     * Update status pelaksanaan.
+     * Update status pelaksanaan (State Machine Transitions).
      */
     public function updateStatus(Request $request, Bimtek $bimtek): RedirectResponse
     {
         $this->authorizePicPanitia($bimtek);
 
         $validated = $request->validate([
-            'status_pelaksanaan' => 'required|in:persiapan,berlangsung,selesai,dibatalkan',
+            'status' => 'required|in:persiapan,berlangsung,selesai,dibatalkan',
         ]);
 
-        $oldStatus = $bimtek->status_pelaksanaan;
+        $oldStatus = $bimtek->status;
+        $newStatus = $validated['status'];
 
+        if ($newStatus === $oldStatus) {
+            return back()->with('success', 'Status tidak berubah.');
+        }
+
+        // Peta jalur pergerakan status pelaksanaan pasca approval selesai
         $allowedTransitions = [
+            'disetujui_final' => ['persiapan', 'dibatalkan'],
             'persiapan' => ['berlangsung', 'dibatalkan'],
             'berlangsung' => ['persiapan', 'selesai'],
             'selesai' => [],
             'dibatalkan' => [],
         ];
 
-        $newStatus = $validated['status_pelaksanaan'];
-        if ($newStatus === $oldStatus) {
-            return back()->with('success', 'Status bimtek tidak berubah.');
-        }
-
         if (! in_array($newStatus, $allowedTransitions[$oldStatus] ?? [], true)) {
-            $this->logRejectedAction(
-                $bimtek,
-                'Transisi status tidak valid ditolak.',
-                [
-                    'status_lama' => $oldStatus,
-                    'status_diminta' => $newStatus,
-                ]
-            );
-
-            return back()->with('error', 'Transisi status tidak valid dari '.$oldStatus.' ke '.$newStatus.'.');
+            return back()->with('error', "Transisi status ilegal dari [{$oldStatus}] ke [{$newStatus}].");
         }
 
-        // Batalkan bimtek dibatasi ke PIC untuk kontrol governance yang lebih ketat.
         if ($newStatus === 'dibatalkan' && $bimtek->pic_user_id !== Auth::id()) {
-            $this->logRejectedAction(
-                $bimtek,
-                'Aksi batalkan bimtek ditolak karena bukan PIC.',
-                [
-                    'status_lama' => $oldStatus,
-                    'status_diminta' => $newStatus,
-                ]
-            );
-
-            return back()->with('error', 'Hanya PIC yang dapat membatalkan bimtek.');
+            return back()->with('error', 'Hanya PIC utama yang memiliki wewenang membatalkan kegiatan.');
         }
 
-        $bimtek->update($validated);
+        $bimtek->update(['status' => $newStatus]);
 
-        $statusLabels = [
-            'persiapan' => 'Persiapan',
-            'berlangsung' => 'Berlangsung',
-            'selesai' => 'Selesai',
-            'dibatalkan' => 'Dibatalkan',
-        ];
+        LogSistem::info("Status Bimtek ID {$bimtek->id} diubah dari {$oldStatus} ke {$newStatus}", Auth::id());
 
-        // Log perubahan status bimtek
-        $user = Auth::user();
-        $pesan = sprintf(
-            'Status bimtek "%s" (ID: %d) diubah dari "%s" menjadi "%s" oleh %s',
-            $bimtek->judul_final ?? '-',
-            $bimtek->id,
-            $statusLabels[$oldStatus] ?? $oldStatus,
-            $statusLabels[$validated['status_pelaksanaan']] ?? $validated['status_pelaksanaan'],
-            $user ? ($user->name.' ('.$user->email.')') : 'Sistem'
-        );
-        LogSistem::info($pesan, $user ? $user->id : null);
-
-        return back()->with('success', "Status bimtek berhasil diubah menjadi {$statusLabels[$validated['status_pelaksanaan']]}.");
+        return back()->with('success', "Status sukses diperbarui ke tahap {$newStatus}.");
     }
 
     /**
-     * Upload surat draft (oleh PIC/Panitia).
+     * Upload Surat Undangan (Single Workflow - Mengisi kolom tunggal `file_surat_undangan_path`)
      */
     public function uploadDraft(Request $request, Bimtek $bimtek): RedirectResponse
     {
         $this->authorizePicPanitia($bimtek);
 
-        $statusLockResponse = $this->ensurePersiapanForDataChanges($bimtek);
-        if ($statusLockResponse) {
-            return $statusLockResponse;
+        $request->validate(['surat_draft' => 'required|file|mimes:pdf|max:5120']);
+
+        if ($bimtek->file_surat_undangan_path) {
+            Storage::disk('public')->delete($bimtek->file_surat_undangan_path);
         }
 
-        $user = Auth::user();
-        $validated = $request->validate([
-            'surat_draft' => 'required|file|mimes:pdf|max:5120',
-        ]);
-
-        // Delete old draft if exists
-        if ($bimtek->file_surat_draft_path) {
-            Storage::disk('public')->delete($bimtek->file_surat_draft_path);
-        }
-
-        $path = $request->file('surat_draft')->store('surat-draft', 'public');
+        $path = $request->file('surat_draft')->store('surat-undangan', 'public');
         $bimtek->update([
-            'file_surat_draft_path' => $path,
-            'file_surat_draft_uploaded_by' => $user ? $user->id : null,
-            'file_surat_draft_uploaded_at' => now(),
+            'file_surat_undangan_path' => $path,
+            'file_surat_undangan_uploaded_by' => Auth::id(),
+            'file_surat_undangan_uploaded_at' => now(),
         ]);
 
-        return back()->with('success', 'Draft surat undangan berhasil diupload.');
+        return back()->with('success', 'Surat undangan resmi berhasil diterbitkan ke sistem.');
     }
 
-    /**
-     * Upload surat final (oleh Persuratan).
-     */
-    public function uploadFinal(Request $request, Bimtek $bimtek): RedirectResponse
+    // Mapping rute upload lama agar menembak ke kolom tunggal baru yang sama tanpa merusak form view
+    public function uploadFinal(Request $request, Bimtek $bimtek): RedirectResponse 
     {
-        // Only Persuratan can upload final
-        if (! Auth::user()->isPersuratan()) {
-            abort(403, 'Hanya Bagian Persuratan yang dapat mengunggah surat final.');
-        }
-
-        $user = Auth::user();
-        $validated = $request->validate([
-            'surat_final' => 'required|file|mimes:pdf|max:5120',
-        ]);
-
-        // Delete old final if exists
-        if ($bimtek->file_surat_final_path) {
-            Storage::disk('public')->delete($bimtek->file_surat_final_path);
-        }
-
-        $path = $request->file('surat_final')->store('surat-final', 'public');
-        $bimtek->update([
-            'file_surat_final_path' => $path,
-            'file_surat_final_uploaded_by' => $user ? $user->id : null,
-            'file_surat_final_uploaded_at' => now(),
-        ]);
-
-        return back()->with('success', 'Surat undangan final berhasil diupload oleh Bagian Persuratan.');
+        return $this->uploadDraft($request, $bimtek);
     }
 
     /**
-     * Preview surat draft (inline PDF view).
+     * Preview & Download Dokumen Surat Undangan Tunggal
      */
     public function previewDraft(Bimtek $bimtek)
     {
         $this->authorizeAccess($bimtek);
 
-        if (! $bimtek->file_surat_draft_path || ! Storage::disk('public')->exists($bimtek->file_surat_draft_path)) {
-            return back()->with('error', 'File surat draft tidak ditemukan.');
+        if (! $bimtek->file_surat_undangan_path || ! Storage::disk('public')->exists($bimtek->file_surat_undangan_path)) {
+            return back()->with('error', 'Berkas berkas fisik surat undangan belum diunggah.');
         }
 
-        return response()->file(Storage::disk('public')->path($bimtek->file_surat_draft_path), [
+        return response()->file(Storage::disk('public')->path($bimtek->file_surat_undangan_path), [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="Surat Undangan Draft - '.$bimtek->judul_final.'.pdf"',
+            'Content-Disposition' => 'inline; filename="Surat Undangan - '.$bimtek->judul_final.'.pdf"',
         ]);
     }
 
-    /**
-     * Download surat draft.
-     */
     public function downloadDraft(Bimtek $bimtek)
     {
         $this->authorizeAccess($bimtek);
 
-        if (! $bimtek->file_surat_draft_path || ! Storage::disk('public')->exists($bimtek->file_surat_draft_path)) {
-            return back()->with('error', 'File surat draft tidak ditemukan.');
+        if (! $bimtek->file_surat_undangan_path || ! Storage::disk('public')->exists($bimtek->file_surat_undangan_path)) {
+            return back()->with('error', 'Berkas fisik tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download(
-            $bimtek->file_surat_draft_path,
-            'Surat Undangan Draft - '.$bimtek->judul_final.'.pdf'
-        );
+        return Storage::disk('public')->download($bimtek->file_surat_undangan_path, "Surat Undangan - {$bimtek->judul_final}.pdf");
     }
 
-    /**
-     * Preview surat final (inline PDF view).
-     */
-    public function previewFinal(Bimtek $bimtek)
-    {
-        $this->authorizeAccess($bimtek);
-
-        if (! $bimtek->file_surat_final_path || ! Storage::disk('public')->exists($bimtek->file_surat_final_path)) {
-            return back()->with('error', 'File surat final belum tersedia.');
-        }
-
-        return response()->file(Storage::disk('public')->path($bimtek->file_surat_final_path), [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="Surat Undangan Final - '.$bimtek->judul_final.'.pdf"',
-        ]);
-    }
+    // Pemetaan fungsi preview lama agar aman terbaca oleh view bawaan
+    public function previewFinal(Bimtek $bimtek) { return $this->previewDraft($bimtek); }
+    public function downloadFinal(Bimtek $bimtek) { return $this->downloadDraft($bimtek); }
 
     /**
-     * Download surat final.
-     */
-    public function downloadFinal(Bimtek $bimtek)
-    {
-        $this->authorizeAccess($bimtek);
-
-        if (! $bimtek->file_surat_final_path || ! Storage::disk('public')->exists($bimtek->file_surat_final_path)) {
-            return back()->with('error', 'File surat final belum tersedia.');
-        }
-
-        return Storage::disk('public')->download(
-            $bimtek->file_surat_final_path,
-            'Surat Undangan Final - '.$bimtek->judul_final.'.pdf'
-        );
-    }
-
-    /**
-     * Manage peserta for bimtek.
-     */
-    public function peserta(Bimtek $bimtek): View
-    {
-        $this->authorizePicPanitia($bimtek);
-
-        $bimtek->load(['peserta', 'pemateri', 'panitia', 'pic']);
-
-        // Get available users (exclude those already in bimtek)
-        $existingUserIds = $bimtek->users->pluck('id')->toArray();
-        $availableUsers = User::whereNotIn('id', $existingUserIds)
-            ->orderBy('name')
-            ->get();
-
-        return view('bimtek.peserta', compact('bimtek', 'availableUsers'));
-    }
-
-    /**
-     * Add user to bimtek.
+     * Add Peserta (Menyuntikkan baris data langsung ke tabel bridge `bimtek_pesertas`)
      */
     public function addPeserta(Request $request, Bimtek $bimtek): RedirectResponse
-        {
-            $this->authorizePicPanitia($bimtek);
-
-            $validated = $request->validate([
-                'user_id' => 'required|exists:users,id',
-                'peran_kontekstual' => 'required|in:pic,panitia,pemateri,peserta',
-            ]);
-
-            // Check if user already in bimtek
-            if ($bimtek->users()->where('user_id', $validated['user_id'])->exists()) {
-                return back()->with('error', 'User sudah terdaftar di bimtek ini.');
-            }
-
-            // If adding as Panitia, enforce cap based on jumlah_peserta
-            if (($validated['peran_kontekstual'] ?? '') === 'panitia') {
-                $jumlahPeserta = $bimtek->pengajuan?->jumlah_peserta ?? null;
-                if (empty($jumlahPeserta)) {
-                    return back()->with('error', 'Mohon isi Estimasi Jumlah Peserta di Pengajuan terlebih dahulu sebelum menambahkan Panitia.');
-                }
-                $maxPanitia = max(1, (int) ceil($jumlahPeserta * 0.10));
-                $currentPanitia = $bimtek->panitia()->count();
-                if ($currentPanitia >= $maxPanitia) {
-                    return back()->with('error', "Jumlah Panitia sudah mencapai batas maksimum ({$maxPanitia}) berdasarkan estimasi peserta.");
-                }
-            }
-
-            // Racik data pivot
-            $pivotData = [
-                'id' => (string) Str::uuid(),
-                'peran_kontekstual' => $validated['peran_kontekstual'],
-            ];
-
-            // =====================================================================
-            // SINKRONISASI WORKFLOW: Set status berkas jika didaftarkan sebagai peserta lama
-            // =====================================================================
-            if ($validated['peran_kontekstual'] === 'peserta' && $bimtek->butuh_verifikasi_dokumen) {
-                $pivotData['status_verifikasi'] = 'invited';
-                $pivotData['notified_at'] = now();
-            }
-
-            // Eksekusi attach ke database
-            $bimtek->users()->attach($validated['user_id'], $pivotData);
-
-            $user = User::find($validated['user_id']);
-
-            // =====================================================================
-            // SINKRONISASI EMAIL: Kirim email notifikasi resmi sesuai aturan DIPA
-            // =====================================================================
-            if ($validated['peran_kontekstual'] === 'peserta') {
-                if ($bimtek->butuh_verifikasi_dokumen) {
-                    try {
-                        // Karena ini user lama (sudah punya akun), langsung arahkan ke link upload form
-                        Mail::to($user->email)->send(new \App\Mail\PesertaBimtekInvitedMail(
-                            $bimtek,
-                            $user,
-                            route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
-                        ));
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Gagal mengirim email undangan dari BimtekController: '.$e->getMessage());
-                    }
-                } else {
-                    try {
-                        Mail::to($user->email)->send(new \App\Mail\PesertaAddedToBimtekMail(
-                            $bimtek,
-                            $user,
-                            route('login')
-                        ));
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Gagal mengirim email notifikasi dari BimtekController: '.$e->getMessage());
-                    }
-                }
-            }
-
-            $peranLabel = [
-                'pic' => 'PIC',
-                'panitia' => 'Panitia',
-                'pemateri' => 'Pemateri',
-                'peserta' => 'Peserta',
-            ];
-
-            $successMessage = "{$user->name} berhasil ditambahkan sebagai {$peranLabel[$validated['peran_kontekstual']]}.";
-            if ($validated['peran_kontekstual'] === 'peserta' && $bimtek->butuh_verifikasi_dokumen) {
-                $successMessage .= ' Email undangan verifikasi dokumen telah dikirim.';
-            }
-
-            return back()->with('success', $successMessage);
-        }
-
-    /**
-     * Remove user from bimtek.
-     */
-    public function removePeserta(Bimtek $bimtek, User $user): RedirectResponse
-    {
-        $this->authorizePicPanitia($bimtek);
-
-        $bimtek->users()->detach($user->id);
-
-        return back()->with('success', "{$user->name} berhasil dihapus dari bimtek.");
-    }
-
-    /**
-     * Update user role in bimtek.
-     */
-    public function updatePeran(Request $request, Bimtek $bimtek, User $user): RedirectResponse
     {
         $this->authorizePicPanitia($bimtek);
 
         $validated = $request->validate([
-            'peran_kontekstual' => 'required|in:pic,panitia,pemateri,peserta',
+            'user_id' => 'required|exists:users,id',
+            'peran_kontekstual' => 'required|in:pic,panitia,peserta',
         ]);
 
-        $bimtek->users()->updateExistingPivot($user->id, [
-            'peran_kontekstual' => $validated['peran_kontekstual'],
-        ]);
+        // Jika form frontend meminta pendaftaran panitia, bypass jalurnya ke fungsi assignPanitia
+        if ($validated['peran_kontekstual'] === 'panitia') {
+            $request->merge(['fungsi_panitia' => 'Anggota Tim Pelaksana']);
+            return $this->assignPanitia($request, $bimtek);
+        }
 
-        return back()->with('success', "Peran {$user->name} berhasil diubah.");
+        if ($bimtek->peserta()->where('user_id', $validated['user_id'])->exists()) {
+            return back()->with('error', 'User sudah terdaftar sebagai peserta di kelas ini.');
+        }
+
+        $pivotData = [
+            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+        ];
+
+        $bimtek->peserta()->attach($validated['user_id'], $pivotData);
+        $user = User::find($validated['user_id']);
+
+        // Logika pengiriman email notifikasi otomatis
+        try {
+            Mail::to($user->email)->send(new \App\Mail\PesertaAddedToBimtekMail($bimtek, $user, route('login')));
+        } catch (\Exception $e) {
+            // Mencegah crash jika mail server lokal belum di-setup di file .env
+        }
+
+        return back()->with('success', "{$user->name} berhasil didaftarkan sebagai peserta kegiatan.");
+    }
+
+    public function removePeserta(Bimtek $bimtek, User $user): RedirectResponse
+    {
+        $this->authorizePicPanitia($bimtek);
+        $bimtek->peserta()->detach($user->id);
+        $bimtek->panitia()->detach($user->id);
+
+        return back()->with('success', "Aktor berhasil dikeluarkan dari kegiatan.");
     }
 
     /**
-     * Check if user has access to view bimtek.
+     * Access Gate Protections (Refaktorisasi Basis Relasi Terpisah)
      */
     protected function authorizeAccess(Bimtek $bimtek): void
     {
         $user = Auth::user();
-
-        // Admin IT, Kepala, PPK, dan Persuratan dapat melihat semua bimtek
         if ($user->isAdminIt() || $user->isKepala() || $user->isPpk() || $user->isPersuratan()) {
             return;
         }
 
-        // Check if user is involved in bimtek
-        if (! $bimtek->users()->where('user_id', $user->id)->exists()) {
-            // Check if user is the pengajuan owner
-            if ($bimtek->pengajuan && $bimtek->pengajuan->user_id === $user->id) {
-                return;
-            }
-            abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
+        $isPic = $bimtek->pic_user_id === $user->id;
+        $isPanitia = $bimtek->panitia()->where('user_id', $user->id)->exists();
+        $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
+
+        if (! $isPic && ! $isPanitia && ! $isPeserta) {
+            abort(403, 'Anda tidak diizinkan masuk ke halaman kelas bimtek ini.');
         }
     }
 
-    /**
-     * Check if user is PIC or Panitia.
-     */
     protected function authorizePicPanitia(Bimtek $bimtek): void
     {
         $user = Auth::user();
-
-        // Admin IT tidak boleh mengelola (read-only access)
         if ($user->isAdminIt()) {
-            $this->logRejectedAction($bimtek, 'Akses kelola bimtek ditolak untuk Admin IT.');
-            abort(403, 'Admin IT hanya memiliki akses read-only. Tidak dapat mengelola bimtek.');
+            abort(403, 'Akses ditolak! Akun Admin IT hanya memiliki hak read-only pada modul kelas.');
         }
 
-        // Check if user is PIC or Panitia
         $isPic = $bimtek->pic_user_id === $user->id;
-        $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
+        $isPanitia = $bimtek->panitia()->where('user_id', $user->id)->exists();
 
         if (! $isPic && ! $isPanitia) {
-            $this->logRejectedAction($bimtek, 'Akses kelola bimtek ditolak karena bukan PIC/Panitia.');
-            abort(403, 'Hanya PIC atau Panitia yang dapat mengelola bimtek ini.');
+            abort(403, 'Wewenang khusus ini terbatas hanya untuk PIC Kegiatan atau Panitia Struktural.');
         }
     }
 
-    /**
-     * Check if user is PIC only (for assigning panitia).
-     */
     protected function authorizePicOnly(Bimtek $bimtek): void
     {
-        $user = Auth::user();
-
-        // Admin IT tidak boleh mengelola (read-only access)
-        if ($user->isAdminIt()) {
-            $this->logRejectedAction($bimtek, 'Akses kelola panitia ditolak untuk Admin IT.');
-            abort(403, 'Admin IT hanya memiliki akses read-only. Tidak dapat mengelola bimtek.');
-        }
-
-        // Check if user is PIC
-        $isPic = $bimtek->pic_user_id === $user->id;
-
-        if (! $isPic) {
-            $this->logRejectedAction($bimtek, 'Aksi khusus PIC ditolak karena user bukan PIC.');
-            abort(403, 'Hanya PIC yang dapat menambahkan Panitia.');
+        if ($bimtek->pic_user_id !== Auth::id()) {
+            abort(403, 'Aksi penunjukan hak akses tingkat tinggi ini hanya dapat dieksekusi oleh PIC Utama.');
         }
     }
 
-    /**
-     * Normalize values before strict comparison for governance checks.
-     */
-    protected function normalizeComparisonValue(mixed $value): string
-    {
-        if (is_bool($value)) {
-            return $value ? '1' : '0';
-        }
-
-        if ($value === null || $value === '') {
-            return '';
-        }
-
-        return (string) $value;
-    }
-
-    /**
-     * Lock non-status data changes when bimtek is not in persiapan stage.
-     */
     protected function ensurePersiapanForDataChanges(Bimtek $bimtek): ?RedirectResponse
     {
-        if ($bimtek->status_pelaksanaan !== 'persiapan') {
-            $this->logRejectedAction(
-                $bimtek,
-                'Perubahan data ditolak karena status bukan Persiapan.',
-                ['status_aktual' => $bimtek->status_pelaksanaan]
-            );
-
-            return back()->with('error', 'Perubahan data bimtek hanya diizinkan saat status Persiapan.');
+        if ($bimtek->status !== 'persiapan' && $bimtek->status !== 'disetujui_final') {
+            return back()->with('error', 'Perubahan modifikasi logistik dan data internal hanya diizinkan saat status Persiapan.');
         }
-
         return null;
     }
 
-    /**
-     * Record governance-related rejected actions for audit trail.
-     */
-    protected function logRejectedAction(Bimtek $bimtek, string $message, array $context = []): void
+    protected function normalizeComparisonValue(mixed $value): string
     {
-        $user = Auth::user();
-
-        $base = sprintf(
-            '%s Bimtek "%s" (ID: %d). User: %s',
-            $message,
-            $bimtek->judul_final ?? '-',
-            $bimtek->id,
-            $user ? ($user->name.' ('.$user->email.')') : 'Tidak diketahui'
-        );
-
-        if (! empty($context)) {
-            $base .= ' | Context: '.json_encode($context);
-        }
-
-        LogSistem::warning($base, $user?->id);
+        if (is_bool($value)) return $value ? '1' : '0';
+        return ($value === null || $value === '') ? '' : (string) $value;
     }
 }

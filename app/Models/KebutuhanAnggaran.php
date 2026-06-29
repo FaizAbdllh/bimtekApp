@@ -14,7 +14,7 @@ class KebutuhanAnggaran extends Model
     protected $table = 'kebutuhan_anggarans';
 
     protected $fillable = [
-        'pengajuan_id',
+        'bimtek_id', // Mengarah langsung ke tabel induk kegiatan baru
         'sbm_master_id',
         'nama_item',
         'volume_1',
@@ -46,78 +46,39 @@ class KebutuhanAnggaran extends Model
     ];
 
     /**
-     * Get the pengajuan that owns the kebutuhan anggaran.
+     * Relasi ke tabel induk Bimtek
      */
-    public function pengajuan(): BelongsTo
+    public function bimtek(): BelongsTo
     {
-        return $this->belongsTo(Pengajuan::class);
+        return $this->belongsTo(Bimtek::class, 'bimtek_id');
     }
 
-    /**
-     * Accessor untuk satuan_primary (alias dari satuan_1)
-     */
-    public function getSatuanPrimaryAttribute()
-    {
-        return $this->satuan_1;
-    }
-
-    /**
-     * Mutator untuk satuan_primary
-     */
-    public function setSatuanPrimaryAttribute($value)
-    {
-        $this->satuan_1 = $value;
-    }
-
-    /**
-     * Accessor untuk satuan_secondary (alias dari satuan_2)
-     */
-    public function getSatuanSecondaryAttribute()
-    {
-        return $this->satuan_2;
-    }
-
-    /**
-     * Mutator untuk satuan_secondary
-     */
-    public function setSatuanSecondaryAttribute($value)
-    {
-        $this->satuan_2 = $value;
-    }
-
-    /**
-     * Get the SBM master reference.
-     */
     public function sbmMaster(): BelongsTo
     {
         return $this->belongsTo(SbmMaster::class);
     }
 
-    /**
-     * Get the approver user.
-     */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**
-     * Calculate total biaya automatically.
+     * Otomatisasi kalkulasi total biaya & deviasi SBM
      */
     public static function boot()
     {
         parent::boot();
 
         static::saving(function ($model) {
-            // Calculate total biaya
+            // Kalkulasi total biaya secara dinamis
             $model->total_biaya = $model->volume_1 * $model->volume_2 * $model->harga_satuan;
 
-            // Calculate deviasi jika ada SBM reference
+            // Kalkulasi deviasi terhadap pagu atas SBM Master 2026
             if ($model->harga_satuan_sbm && $model->harga_satuan_sbm > 0) {
                 $deviasi = (($model->harga_satuan - $model->harga_satuan_sbm) / $model->harga_satuan_sbm) * 100;
                 $model->persentase_deviasi = round($deviasi, 2);
 
-                // Set status validasi berdasarkan persentase deviasi
                 if (abs($deviasi) < 0.01) {
                     $model->status_validasi = 'sesuai_sbm';
                 } elseif (abs($deviasi) < 10) {
@@ -134,17 +95,16 @@ class KebutuhanAnggaran extends Model
         });
     }
 
-    /**
-     * Check if needs approval.
-     */
     public function needsApproval(): bool
     {
         return in_array($this->status_validasi, ['deviasi_major', 'deviasi_signifikan']);
     }
 
-    /**
-     * Get status badge color.
-     */
+    public function getSatuanPrimaryAttribute() { return $this->satuan_1; }
+    public function setSatuanPrimaryAttribute($value) { $this->satuan_1 = $value; }
+    public function getSatuanSecondaryAttribute() { return $this->satuan_2; }
+    public function setSatuanSecondaryAttribute($value) { $this->satuan_2 = $value; }
+
     public function getStatusBadgeColorAttribute(): string
     {
         return match ($this->status_validasi) {
@@ -152,14 +112,10 @@ class KebutuhanAnggaran extends Model
             'deviasi_minor' => 'bg-yellow-100 text-yellow-800',
             'deviasi_major' => 'bg-orange-100 text-orange-800',
             'deviasi_signifikan' => 'bg-red-100 text-red-800',
-            'non_sbm' => 'bg-gray-100 text-gray-800',
             default => 'bg-gray-100 text-gray-800',
         };
     }
 
-    /**
-     * Get status label.
-     */
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status_validasi) {

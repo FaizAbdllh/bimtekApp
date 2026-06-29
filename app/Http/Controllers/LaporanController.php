@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bimtek;
 use App\Models\User;
+use App\Models\AbsensiPeserta;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,24 +13,26 @@ use Illuminate\View\View;
 class LaporanController extends Controller
 {
     /**
-     * Display laporan index page.
+     * Tampilkan halaman utama dasbor penarikan laporan.
      */
     public function index(): View
     {
         $user = Auth::user();
-
-        // Get bimtek list for dropdown
         $bimteks = collect();
 
-        if ($user->hasRole(['Admin IT', 'Kepala', 'PPK'])) {
-            // Admin, Kepala, PPK bisa lihat semua bimtek
+        // REFAKTORISASI: Menyelaraskan hak pengecekan peran menggunakan metode eksplisit
+        if ($user->isAdminIt() || $user->isKepala() || $user->isPpk()) {
+            // Manajemen puncak & Admin IT berhak menarik laporan dari seluruh kegiatan DIPA
             $bimteks = Bimtek::orderBy('created_at', 'desc')->get();
         } else {
-            // User lain hanya bisa lihat bimtek yang mereka terlibat (pivot) atau sebagai PIC langsung
+            // Pegawai internal hanya berhak menarik laporan kelas di mana dia menjadi PIC atau Panitia Pokja
             $bimteks = Bimtek::where(function ($query) use ($user) {
                 $query->where('pic_user_id', $user->id)
-                    ->orWhereHas('users', function ($subQuery) use ($user) {
-                        $subQuery->where('users.id', $user->id);
+                    ->orWhereHas('panitia', function ($subQuery) use ($user) {
+                        $subQuery->where('user_id', $user->id);
+                    })
+                    ->orWhereHas('peserta', function ($subQuery) use ($user) {
+                        $subQuery->where('user_id', $user->id);
                     });
             })->orderBy('created_at', 'desc')->get();
         }
@@ -38,7 +41,7 @@ class LaporanController extends Controller
     }
 
     /**
-     * Generate laporan rekap peserta (PDF).
+     * Produksi Dokumen PDF Rekapitulasi Biodata Seluruh Aktor Kelas.
      */
     public function rekapPeserta(Request $request)
     {
@@ -46,17 +49,16 @@ class LaporanController extends Controller
             'bimtek_id' => 'required|exists:bimteks,id',
         ]);
 
-        $bimtek = Bimtek::with(['users' => function ($query) {
-            $query->orderBy('name');
-        }, 'pengajuan'])->findOrFail($request->bimtek_id);
+        // REFAKTORISASI: Mencabut eager-loading tabel pengajuans & users lama
+        $bimtek = Bimtek::with(['pic'])->findOrFail($request->bimtek_id);
 
-        // Authorization
         $this->authorizeBimtekAccess($bimtek);
 
+        // Membagi pengelompokkan data aktor secara terpisah dan rapi
         $peserta = $bimtek->peserta()->orderBy('name')->get();
         $panitia = $bimtek->panitia()->orderBy('name')->get();
         $pemateri = collect($bimtek->daftar_pemateri_array ?? []);
-        $pic = $bimtek->pic; // Direct relation, not collection
+        $pic = $bimtek->pic; 
 
         $data = [
             'bimtek' => $bimtek,
@@ -70,13 +72,12 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.rekap-peserta', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        $filename = 'Rekap_Peserta_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
-
+        $filename = 'Rekap_Peserta_'.str_replace(' ', '_', $bimtek->judul_final ?? $bimtek->judul_rencana).'.pdf';
         return $pdf->download($filename);
     }
 
     /**
-     * Generate laporan rekap absensi (PDF).
+     * Produksi Dokumen PDF Matriks Rekapitulasi Presensi Kehadiran Peserta.
      */
     public function rekapAbsensi(Request $request)
     {
@@ -84,16 +85,16 @@ class LaporanController extends Controller
             'bimtek_id' => 'required|exists:bimteks,id',
         ]);
 
-        $bimtek = Bimtek::with(['sesiAbsensis.absensis.user', 'peserta'])
+        // REFAKTORISASI: Mengubah rute pemanggilan relasi absensi dari absensis menjadi absensiPesertas
+        $bimtek = Bimtek::with(['sesiAbsensis.absensiPesertas', 'peserta'])
             ->findOrFail($request->bimtek_id);
 
-        // Authorization
         $this->authorizeBimtekAccess($bimtek);
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
         $sesiAbsensis = $bimtek->sesiAbsensis()->orderBy('created_at')->get();
 
-        // Build attendance matrix
+        // Membangun kalkulasi matriks kehadiran baris demi baris
         $rekapAbsensi = [];
         foreach ($peserta as $p) {
             $rekapAbsensi[$p->id] = [
@@ -103,7 +104,8 @@ class LaporanController extends Controller
             ];
 
             foreach ($sesiAbsensis as $sesi) {
-                $hadir = $sesi->absensis->contains('user_id', $p->id);
+                // REFAKTORISASI: Mencocokkan data koleksi objek model absensiPesertas baru
+                $hadir = $sesi->absensiPesertas->contains('user_id', $p->id);
                 $rekapAbsensi[$p->id]['kehadiran'][$sesi->id] = $hadir;
                 if ($hadir) {
                     $rekapAbsensi[$p->id]['total_hadir']++;
@@ -119,16 +121,16 @@ class LaporanController extends Controller
             'tanggal_cetak' => now()->format('d F Y'),
         ];
 
+        // Format lanskap sangat cocok untuk dokumen berbentuk tabel kolom memanjang ke samping
         $pdf = Pdf::loadView('laporan.pdf.rekap-absensi', $data);
         $pdf->setPaper('a4', 'landscape');
 
-        $filename = 'Rekap_Absensi_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
-
+        $filename = 'Rekap_Absensi_'.str_replace(' ', '_', $bimtek->judul_final ?? $bimtek->judul_rencana).'.pdf';
         return $pdf->download($filename);
     }
 
     /**
-     * Generate laporan rekap nilai tugas (PDF).
+     * Produksi Dokumen PDF Rekapitulasi Nilai Tugas & Indeks Kelulusan Belajar.
      */
     public function rekapNilai(Request $request)
     {
@@ -136,16 +138,14 @@ class LaporanController extends Controller
             'bimtek_id' => 'required|exists:bimteks,id',
         ]);
 
-        $bimtek = Bimtek::with(['tugas.pengumpulanTugas.user', 'peserta'])
+        $bimtek = Bimtek::with(['tugas.pengumpulanTugas', 'peserta'])
             ->findOrFail($request->bimtek_id);
 
-        // Authorization
         $this->authorizeBimtekAccess($bimtek);
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
         $tugasList = $bimtek->tugas()->orderBy('created_at')->get();
 
-        // Build nilai matrix
         $rekapNilai = [];
         foreach ($peserta as $p) {
             $rekapNilai[$p->id] = [
@@ -168,7 +168,6 @@ class LaporanController extends Controller
                 }
             }
 
-            // Calculate average
             $jumlahDinilai = collect($rekapNilai[$p->id]['nilai'])->filter(fn ($v) => $v !== null)->count();
             $rekapNilai[$p->id]['rata_rata'] = $jumlahDinilai > 0
                 ? round($rekapNilai[$p->id]['total_nilai'] / $jumlahDinilai, 2)
@@ -185,13 +184,12 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.rekap-nilai', $data);
         $pdf->setPaper('a4', 'landscape');
 
-        $filename = 'Rekap_Nilai_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
-
+        $filename = 'Rekap_Nilai_'.str_replace(' ', '_', $bimtek->judul_final ?? $bimtek->judul_rencana).'.pdf';
         return $pdf->download($filename);
     }
 
     /**
-     * Generate laporan daftar bimtek (PDF).
+     * Produksi Dokumen PDF Rekapitulasi Laporan Tahunan Seluruh Kegiatan Bimtek BBPMP.
      */
     public function daftarBimtek(Request $request)
     {
@@ -204,16 +202,15 @@ class LaporanController extends Controller
         $tahun = $request->tahun ?? now()->year;
         $status = $request->status ?? 'semua';
 
-        // Authorization - hanya Admin IT, Kepala, PPK
-        if (! $user->hasRole(['Admin IT', 'Kepala', 'PPK'])) {
-            abort(403, 'Anda tidak memiliki akses untuk laporan ini.');
+        if (! ($user->isAdminIt() || $user->isKepala() || $user->isPpk())) {
+            abort(403, 'Anda tidak memiliki hak akses otoritas untuk mengunduh laporan tahunan ini.');
         }
 
-        $query = Bimtek::with(['pengajuan', 'pic', 'peserta'])
-            ->whereYear('created_at', $tahun);
+        // REFAKTORISASI: Mengalihkan target kolom pencarian status dari status_pelaksanaan menjadi status
+        $query = Bimtek::with(['pic', 'peserta'])->whereYear('created_at', $tahun);
 
         if ($status !== 'semua') {
-            $query->where('status_pelaksanaan', $status);
+            $query->where('status', $status);
         }
 
         $bimteks = $query->orderBy('created_at', 'desc')->get();
@@ -229,12 +226,11 @@ class LaporanController extends Controller
         $pdf->setPaper('a4', 'portrait');
 
         $filename = "Daftar_Bimtek_{$tahun}.pdf";
-
         return $pdf->download($filename);
     }
 
     /**
-     * Generate laporan kegiatan bimtek lengkap (PDF).
+     * Produksi Dokumen PDF Lembar Laporan Akuntabilitas Kinerja Lengkap Berbasis Kegiatan.
      */
     public function laporanKegiatan(Request $request)
     {
@@ -242,32 +238,29 @@ class LaporanController extends Controller
             'bimtek_id' => 'required|exists:bimteks,id',
         ]);
 
+        // REFAKTORISASI: Penyesuaian nama relasi logistik terpadu & jembatan presensi terpisah
         $bimtek = Bimtek::with([
-            'pengajuan.fasilitasLogistiks',
-            'users',
+            'fasilitasLogistiks',
             'materis',
             'tugas',
-            'sesiAbsensis.absensis',
+            'sesiAbsensis.absensiPesertas',
             'sertifikats',
         ])->findOrFail($request->bimtek_id);
 
-        // Authorization
         $this->authorizeBimtekAccess($bimtek);
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
         $panitia = $bimtek->panitia()->orderBy('name')->get();
 
-        // Hitung statistik
         $totalPeserta = $peserta->count();
         $totalMateri = $bimtek->materis->count();
         $totalTugas = $bimtek->tugas->count();
         $totalSesi = $bimtek->sesiAbsensis->count();
         $totalSertifikat = $bimtek->sertifikats->count();
 
-        // Rata-rata kehadiran
         $avgKehadiran = 0;
         if ($totalSesi > 0 && $totalPeserta > 0) {
-            $totalKehadiran = $bimtek->sesiAbsensis->sum(fn ($sesi) => $sesi->absensis->count());
+            $totalKehadiran = $bimtek->sesiAbsensis->sum(fn ($sesi) => $sesi->absensiPesertas->count());
             $avgKehadiran = round(($totalKehadiran / ($totalSesi * $totalPeserta)) * 100, 1);
         }
 
@@ -275,7 +268,7 @@ class LaporanController extends Controller
             'bimtek' => $bimtek,
             'peserta' => $peserta,
             'panitia' => $panitia,
-            'pic' => $bimtek->pic, // Direct relation
+            'pic' => $bimtek->pic,
             'totalPeserta' => $totalPeserta,
             'totalMateri' => $totalMateri,
             'totalTugas' => $totalTugas,
@@ -288,13 +281,12 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.pdf.laporan-kegiatan', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        $filename = 'Laporan_Kegiatan_'.str_replace(' ', '_', $bimtek->judul_final).'.pdf';
-
+        $filename = 'Laporan_Kegiatan_'.str_replace(' ', '_', $bimtek->judul_final ?? $bimtek->judul_rencana).'.pdf';
         return $pdf->download($filename);
     }
 
     /**
-     * Export rekap peserta to Excel/CSV.
+     * Ekspor Lembar Kerja CSV Excel Daftar Nama Peserta.
      */
     public function exportPesertaExcel(Request $request)
     {
@@ -306,8 +298,7 @@ class LaporanController extends Controller
         $this->authorizeBimtekAccess($bimtek);
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
-
-        $filename = 'Peserta_'.str_replace(' ', '_', $bimtek->judul_final).'_'.date('Ymd').'.csv';
+        $filename = 'Peserta_'.str_replace(' ', '_', $bimtek->judul_final ?? $bimtek->judul_rencana).'_'.date('Ymd').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -316,20 +307,15 @@ class LaporanController extends Controller
 
         $callback = function () use ($bimtek, $peserta) {
             $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM for Excel
 
-            // BOM for Excel UTF-8
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-            // Title
             fputcsv($file, ['DAFTAR PESERTA BIMTEK']);
-            fputcsv($file, [$bimtek->judul_final]);
-            fputcsv($file, ['Tanggal: '.($bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->format('d/m/Y').' - '.$bimtek->tanggal_selesai_final?->format('d/m/Y') : '-')]);
+            fputcsv($file, [$bimtek->judul_final ?? $bimtek->judul_rencana]);
+            fputcsv($file, ['Tanggal: '.($bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->format('d/m/Y') : '-')]);
             fputcsv($file, ['']);
 
-            // Header
             fputcsv($file, ['No', 'Nama', 'Email', 'NIP', 'Asal Instansi']);
 
-            // Data
             $no = 1;
             foreach ($peserta as $p) {
                 fputcsv($file, [
@@ -340,7 +326,6 @@ class LaporanController extends Controller
                     $p->asal_instansi ?? '-',
                 ]);
             }
-
             fclose($file);
         };
 
@@ -348,7 +333,7 @@ class LaporanController extends Controller
     }
 
     /**
-     * Export rekap absensi to Excel/CSV.
+     * Ekspor Lembar Kerja CSV Excel Matriks Kehadiran Presensi Lengkap.
      */
     public function exportAbsensiExcel(Request $request)
     {
@@ -356,13 +341,13 @@ class LaporanController extends Controller
             'bimtek_id' => 'required|exists:bimteks,id',
         ]);
 
-        $bimtek = Bimtek::with(['sesiAbsensis.absensis'])->findOrFail($request->bimtek_id);
+        $bimtek = Bimtek::with(['sesiAbsensis.absensiPesertas'])->findOrFail($request->bimtek_id);
         $this->authorizeBimtekAccess($bimtek);
 
         $peserta = $bimtek->peserta()->orderBy('name')->get();
         $sesiAbsensis = $bimtek->sesiAbsensis()->orderBy('created_at')->get();
 
-        $filename = 'Absensi_'.str_replace(' ', '_', $bimtek->judul_final).'_'.date('Ymd').'.csv';
+        $filename = 'Absensi_'.str_replace(' ', '_', $bimtek->judul_final ?? $bimtek->judul_rencana).'_'.date('Ymd').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -371,16 +356,12 @@ class LaporanController extends Controller
 
         $callback = function () use ($bimtek, $peserta, $sesiAbsensis) {
             $file = fopen('php://output', 'w');
-
-            // BOM for Excel UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // Title
             fputcsv($file, ['REKAP ABSENSI BIMTEK']);
-            fputcsv($file, [$bimtek->judul_final]);
+            fputcsv($file, [$bimtek->judul_final ?? $bimtek->judul_rencana]);
             fputcsv($file, ['']);
 
-            // Header
             $header = ['No', 'Nama', 'Email'];
             foreach ($sesiAbsensis as $sesi) {
                 $header[] = $sesi->nama_sesi;
@@ -389,7 +370,6 @@ class LaporanController extends Controller
             $header[] = 'Persentase';
             fputcsv($file, $header);
 
-            // Data
             $no = 1;
             $totalSesi = $sesiAbsensis->count();
 
@@ -398,7 +378,7 @@ class LaporanController extends Controller
                 $totalHadir = 0;
 
                 foreach ($sesiAbsensis as $sesi) {
-                    $hadir = $sesi->absensis->contains('user_id', $p->id);
+                    $hadir = $sesi->absensiPesertas->contains('user_id', $p->id);
                     $row[] = $hadir ? 'Hadir' : '-';
                     if ($hadir) {
                         $totalHadir++;
@@ -410,7 +390,6 @@ class LaporanController extends Controller
 
                 fputcsv($file, $row);
             }
-
             fclose($file);
         };
 
@@ -418,23 +397,22 @@ class LaporanController extends Controller
     }
 
     /**
-     * Check if user has access to bimtek.
+     * Gerbang Perlindungan Otoritas Penarikan Laporan Internal.
      */
     private function authorizeBimtekAccess(Bimtek $bimtek): void
     {
         $user = Auth::user();
 
-        // Admin, Kepala, PPK bisa akses semua
-        if ($user->hasRole(['Admin IT', 'Kepala', 'PPK'])) {
+        if ($user->isAdminIt() || $user->isKepala() || $user->isPpk()) {
             return;
         }
 
-        // User lain harus terlibat di bimtek (pivot) atau sebagai PIC langsung
         $hasAccess = $bimtek->pic_user_id === $user->id
-            || $bimtek->users()->where('users.id', $user->id)->exists();
+            || $bimtek->panitia()->where('user_id', $user->id)->exists()
+            || $bimtek->peserta()->where('user_id', $user->id)->exists();
 
         if (! $hasAccess) {
-            abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
+            abort(403, 'Akses ditolak. Anda tidak berhak menarik laporan dari kelas ini.');
         }
     }
 }

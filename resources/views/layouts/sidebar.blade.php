@@ -108,14 +108,10 @@
 
             {{-- Menu Bimtek - Untuk yang terlibat dalam bimtek --}}
             @php
-                // Cek apakah user terlibat dalam bimtek (sebagai PIC, Panitia, Pemateri - BUKAN Peserta)
+                // Cek keterlibatan berdasarkan kolom pic_user_id riil atau keanggotaan di tabel bimtek_panitias
                 $terlibatDiBimtek = \App\Models\Bimtek::where('pic_user_id', $user->id)
-                    ->orWhereHas('users', function($q) use ($user) {
-                        $q->where('user_id', $user->id)
-                          ->whereIn('peran_kontekstual', ['pic', 'panitia', 'pemateri']);
-                    })
-                    ->orWhereHas('pengajuan', function($q) use ($user) {
-                        $q->where('user_id', $user->id);
+                    ->orWhereHas('panitia', function($q) use ($user) {
+                        $q->where('users.id', $user->id);
                     })
                     ->exists();
             @endphp

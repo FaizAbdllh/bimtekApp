@@ -84,19 +84,20 @@
                                 <p class="font-medium text-gray-900 truncate">{{ $pengajuan->judul_rencana }}</p>
                                 <p class="text-sm text-gray-500">{{ $pengajuan->created_at->format('d/m/Y') }}</p>
                             </div>
+                            {{-- REFAKTORISASI: Mengubah status_pengajuan menjadi status tunggal baru --}}
                             <span class="flex-shrink-0 px-2 py-1 text-xs font-semibold rounded-full 
-                                @if($pengajuan->status_pengajuan == 'disetujui_final') bg-green-100 text-green-800
-                                @elseif($pengajuan->status_pengajuan == 'ditolak') bg-red-100 text-red-800
-                                @elseif($pengajuan->status_pengajuan == 'perlu_revisi') bg-orange-100 text-orange-800
-                                @elseif($pengajuan->status_pengajuan == 'draft') bg-gray-100 text-gray-800
+                                @if($pengajuan->status == 'disetujui_final') bg-green-100 text-green-800
+                                @elseif($pengajuan->status == 'ditolak') bg-red-100 text-red-800
+                                @elseif($pengajuan->status == 'perlu_revisi') bg-orange-100 text-orange-800
+                                @elseif($pengajuan->status == 'draft_pic') bg-gray-100 text-gray-800
                                 @else bg-yellow-100 text-yellow-800 @endif">
-                                {{ ucfirst(str_replace('_', ' ', $pengajuan->status_pengajuan)) }}
+                                {{ $pengajuan->status == 'draft_pic' ? 'Draft' : ucfirst(str_replace('_', ' ', $pengajuan->status)) }}
                             </span>
                         </div>
                     @endforeach
                 </div>
             @else
-                <p class="text-gray-500">Belum ada pengajuan.</p>
+                <p class="text-gray-500 py-4 text-center">Belum ada riwayat pengajuan kegiatan.</p>
             @endif
         </div>
     </div>
@@ -111,21 +112,24 @@
                         <div class="p-3 bg-gray-50 rounded-lg">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="font-medium text-gray-900">{{ $bimtek->judul_final }}</p>
-                                    <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($bimtek->tanggal_mulai_aktual)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($bimtek->tanggal_selesai_aktual)->format('d/m/Y') }}</p>
+                                    <p class="font-medium text-gray-900">{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ $bimtek->tanggal_mulai_aktual ? \Carbon\Carbon::parse($bimtek->tanggal_mulai_aktual)->format('d/m/Y') : '-' }} - 
+                                        {{ $bimtek->tanggal_selesai_aktual ? \Carbon\Carbon::parse($bimtek->tanggal_selesai_aktual)->format('d/m/Y') : '-' }}
+                                    </p>
                                 </div>
+                                {{-- REFAKTORISASI: Menentukan peran kontekstual secara dinamis dari skema tabel terpisah baru --}}
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                    @if($bimtek->pivot->peran_kontekstual == 'pic') bg-blue-100 text-blue-800
-                                    @elseif($bimtek->pivot->peran_kontekstual == 'panitia') bg-purple-100 text-purple-800
-                                    @else bg-green-100 text-green-800 @endif">
-                                    {{ ucfirst($bimtek->pivot->peran_kontekstual) }}
+                                    @if($bimtek->pic_user_id === auth()->id()) bg-blue-100 text-blue-800
+                                    @else bg-purple-100 text-purple-800 @endif">
+                                    {{ $bimtek->pic_user_id === auth()->id() ? 'PIC' : ($bimtek->pivot->fungsi_panitia ?? 'Panitia') }}
                                 </span>
                             </div>
                         </div>
                     @endforeach
                 </div>
             @else
-                <p class="text-gray-500">Tidak ada bimtek aktif.</p>
+                <p class="text-gray-500 py-4 text-center">Tidak ada bimtek aktif yang sedang Anda ikuti.</p>
             @endif
         </div>
     </div>

@@ -81,10 +81,10 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Kegiatan</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC Pengaju</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis & Verifikasi</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Rencana</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Alur</th>
                                 <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
@@ -93,10 +93,12 @@
                                 <tr class="hover:bg-gray-50/80 transition-colors">
                                     <td class="px-6 py-4">
                                         <div class="text-sm font-medium text-gray-900">{{ $pengajuan->judul_rencana }}</div>
-                                        <div class="text-sm text-gray-500 mt-1">{{ $pengajuan->tempat_kegiatan }}</div>
+                                        {{-- REFAKTORISASI: Mengubah tempat_kegiatan menjadi tempat_kegiatan_rencana --}}
+                                        <div class="text-sm text-gray-500 mt-1">{{ $pengajuan->tempat_kegiatan_rencana ?? '-' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 font-medium">{{ $pengajuan->user->name }}</div>
+                                        {{-- REFAKTORISASI: Mengubah relasi user menjadi pic --}}
+                                        <div class="text-sm text-gray-900 font-medium">{{ $pengajuan->pic->name ?? '-' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex flex-col gap-2">
@@ -120,8 +122,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @php
+                                            // REFAKTORISASI: Memperbarui peta status dengan memetakan 'draft' lama menjadi 'draft_pic'
                                             $statusColors = [
-                                                'draft' => 'bg-gray-100 text-gray-800',
+                                                'draft_pic' => 'bg-gray-100 text-gray-800',
                                                 'diajukan' => 'bg-yellow-100 text-yellow-800',
                                                 'disetujui_kepala' => 'bg-blue-100 text-blue-800',
                                                 'disetujui_ppk' => 'bg-indigo-100 text-indigo-800',
@@ -130,7 +133,7 @@
                                                 'perlu_revisi' => 'bg-orange-100 text-orange-800',
                                             ];
                                             $statusLabels = [
-                                                'draft' => 'Draft',
+                                                'draft_pic' => 'Draft',
                                                 'diajukan' => 'Diajukan',
                                                 'disetujui_kepala' => 'Disetujui Kepala',
                                                 'disetujui_ppk' => 'Disetujui PPK',
@@ -139,25 +142,27 @@
                                                 'perlu_revisi' => 'Perlu Revisi',
                                             ];
                                         @endphp
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$pengajuan->status_pengajuan] ?? 'bg-gray-100 text-gray-800' }}">
-                                            {{ $statusLabels[$pengajuan->status_pengajuan] ?? $pengajuan->status_pengajuan }}
+                                        {{-- REFAKTORISASI: Mengubah properti status_pengajuan menjadi status --}}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$pengajuan->status] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $statusLabels[$pengajuan->status] ?? $pengajuan->status }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end space-x-3">
-                                            <a href="{{ route('pengajuan.show', $pengajuan) }}" class="text-primary-600 hover:text-primary-900" title="Lihat Detail">
+                                            <a href="{{ route('pengajuan.show', $pengajuan->id) }}" class="text-primary-600 hover:text-primary-900" title="Lihat Detail">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
                                             </a>
-                                            @if((Auth::id() === $pengajuan->user_id || Auth::user()->isAdminIt()) && in_array($pengajuan->status_pengajuan, ['draft', 'diajukan', 'perlu_revisi']))
-                                            <a href="{{ route('pengajuan.edit', $pengajuan) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                                            {{-- REFAKTORISASI: Menyelaraskan user_id menjadi pic_user_id, status_pengajuan menjadi status, serta key 'draft_pic' --}}
+                                            @if((Auth::id() === $pengajuan->pic_user_id || Auth::user()->isAdminIt()) && in_array($pengajuan->status, ['draft_pic', 'diajukan', 'perlu_revisi']))
+                                            <a href="{{ route('pengajuan.edit', $pengajuan->id) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
                                             </a>
-                                            <form action="{{ route('pengajuan.destroy', $pengajuan) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengajuan ini?')">
+                                            <form action="{{ route('pengajuan.destroy', $pengajuan->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengajuan ini?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">

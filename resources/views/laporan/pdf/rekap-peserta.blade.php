@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Rekap Peserta - {{ $bimtek->judul_final }}</title>
+    <title>Rekap Peserta - {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</title>
     <style>
         @page {
             margin: 2cm 1.5cm;
@@ -107,33 +107,54 @@
     </style>
 </head>
 <body>
+    @php
+        // REFAKTORISASI NARASUMBER: Mengurai data array JSON daftar_pemateri dari database baru
+        $pemateriList = '-';
+        if (is_array($bimtek->daftar_pemateri) && count($bimtek->daftar_pemateri) > 0) {
+            $names = [];
+            foreach($bimtek->daftar_pemateri as $pm) {
+                if(!empty($pm['nama'])) {
+                    $names[] = $pm['nama'];
+                }
+            }
+            if(count($names) > 0) {
+                $pemateriList = implode(', ', $names);
+            }
+        }
+    @endphp
+
     <div class="header">
         <h1>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h1>
         <h2>BALAI BESAR PENJAMINAN MUTU PENDIDIKAN SUMATERA BARAT</h2>
     </div>
 
     <div class="title">
-        <h3>REKAP DAFTAR PESERTA</h3>
-        <p>{{ $bimtek->judul_final }}</p>
+        <h3>REKAP DAFTAR PESERTA BIMTEK</h3>
+        {{-- REFAKTORISASI: Fallback judul usulan kegiatan perencanaan jika judul_final belum diisi --}}
+        <p>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</p>
     </div>
 
     <table class="info-table">
         <tr>
             <td>Tanggal Pelaksanaan</td>
-            <td>: {{ $bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->locale('id')->isoFormat('D MMMM Y') : '-' }} - {{ $bimtek->tanggal_selesai_final ? $bimtek->tanggal_selesai_final->locale('id')->isoFormat('D MMMM Y') : '-' }}</td>
+            {{-- REFAKTORISASI WAKTU: Mengalihkan dari kolom _final lama ke kolom aktual baru dengan fallback --}}
+            <td>: 
+                {{ $bimtek->tanggal_mulai_aktual ? $bimtek->tanggal_mulai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_mulai_rencana ? $bimtek->tanggal_mulai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }} 
+                - 
+                {{ $bimtek->tanggal_selesai_aktual ? $bimtek->tanggal_selesai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_selesai_rencana ? $bimtek->tanggal_selesai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }}
+            </td>
         </tr>
         <tr>
-            <td>Tempat</td>
-            <td>: {{ $bimtek->lokasi_final ?? '-' }}</td>
+            <td>Tempat / Lokasi</td>
+            {{-- REFAKTORISASI LOKASI: Mengalihkan ke properti lokasi_aktual baru --}}
+            <td>: {{ $bimtek->lokasi_aktual ?? $bimtek->tempat_kegiatan_rencana ?? '-' }}</td>
         </tr>
         <tr>
             <td>Narasumber</td>
-            <td>: {{ is_array($bimtek->narasumber ?? null)
-                ? ($bimtek->narasumber['name'] ?? $bimtek->narasumber['nama'] ?? '-')
-                : (($bimtek->narasumber->name ?? $bimtek->narasumber->nama ?? $bimtek->narasumber ?? '-') ?? '-') }}</td>
+            <td>: {{ $pemateriList }}</td>
         </tr>
         <tr>
-            <td>Jumlah Peserta</td>
+            <td>Jumlah Peserta Terdaftar</td>
             <td>: {{ $peserta->count() }} orang</td>
         </tr>
     </table>
@@ -153,7 +174,7 @@
             @forelse($peserta as $index => $p)
             <tr>
                 <td class="center">{{ $index + 1 }}</td>
-                <td>{{ $p->name }}</td>
+                <td><strong>{{ $p->name }}</strong></td>
                 <td class="center">{{ $p->nip ?? '-' }}</td>
                 <td>{{ $p->email }}</td>
                 <td>{{ $p->asal_instansi ?? '-' }}</td>
@@ -161,23 +182,24 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="center">Tidak ada peserta terdaftar</td>
+                <td colspan="6" class="center">Tidak ada peserta terdaftar dalam bimbingan teknis ini</td>
             </tr>
             @endforelse
         </tbody>
     </table>
 
     <div class="summary">
-        <strong>Total Peserta:</strong> {{ $peserta->count() }} orang
+        <strong>Total Peserta Kelas:</strong> {{ $peserta->count() }} orang
     </div>
 
     <div class="footer">
         <div class="signature">
-            <p>Padang, {{ $tanggal_cetak }}</p>
-            <p>Koordinator RT Bimtek</p>
+            <p>Padang, {{ $tanggal_cetak ?? now()->locale('id')->isoFormat('D MMMM Y') }}</p>
+            <p>Koordinator / PIC Bimtek</p>
             <div class="signature-line"></div>
-            <p><strong>{{ $pic ? $pic->name : '____________________' }}</strong></p>
-            <small>NIP. {{ $pic ? $pic->nip ?? '-' : '____________________' }}</small>
+            {{-- REFAKTORISASI SIGNATURE: Menyelaraskan output penanggung jawab kedinasan --}}
+            <p><strong>{{ $bimtek->pic ? $bimtek->pic->name : ($pic->name ?? '____________________') }}</strong></p>
+            <small>NIP. {{ $bimtek->pic ? ($bimtek->pic->nip ?? '-') : ($pic->nip ?? '____________________') }}</small>
         </div>
         <div style="clear: both;"></div>
     </div>

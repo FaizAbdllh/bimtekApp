@@ -56,10 +56,15 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($recentPengajuan as $pengajuan)
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $pengajuan->judul_rencana }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->tempat_kegiatan ?? '-' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $pengajuan->judul_final ?? $pengajuan->judul_rencana }}
+                                </td>
+                                {{-- REFAKTORISASI: Menampilkan lokasi aktual, jika kosong gunakan rencana lokasi awal --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $pengajuan->tanggal_mulai_rencana ? $pengajuan->tanggal_mulai_rencana->format('d/m/Y') : '-' }}
+                                    {{ $pengajuan->lokasi_aktual ?? $pengajuan->tempat_kegiatan_rencana ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $pengajuan->tanggal_mulai_aktual ? $pengajuan->tanggal_mulai_aktual->format('d/m/Y') : ($pengajuan->tanggal_mulai_rencana ? $pengajuan->tanggal_mulai_rencana->format('d/m/Y') : '-') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @php
@@ -74,7 +79,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <a href="{{ route('rt.show', $pengajuan) }}" class="text-blue-600 hover:text-blue-900">Kelola</a>
+                                    <a href="{{ route('rt.show', $pengajuan->id) }}" class="text-blue-600 hover:text-blue-900 font-medium">Kelola</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -82,7 +87,9 @@
                 </table>
             </div>
         @else
-            <p class="text-gray-500">Tidak ada kebutuhan RT yang menunggu pemenuhan.</p>
+            <div class="text-center py-6">
+                <p class="text-gray-500">Tidak ada kebutuhan logistik sarana Rumah Tangga yang menunggu pemenuhan.</p>
+            </div>
         @endif
     </div>
 </div>

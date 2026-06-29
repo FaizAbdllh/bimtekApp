@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Rekap Absensi - {{ $bimtek->judul_final }}</title>
+    <title>Rekap Absensi - {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</title>
     <style>
         @page {
             margin: 1.5cm 1cm;
@@ -118,13 +118,20 @@
     </div>
 
     <div class="title">
-        <h3>REKAP ABSENSI PESERTA</h3>
-        <p>{{ $bimtek->judul_final }}</p>
+        <h3>REKAP ABSENSI KEHADIRAN PESERTA</h3>
+        {{-- REFAKTORISASI: Fallback jika judul_final kelas aktual belum diisi PIC --}}
+        <p>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</p>
     </div>
 
     <div class="info">
-        <span><strong>Tanggal:</strong> {{ $bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->locale('id')->isoFormat('D MMMM Y') : '-' }} - {{ $bimtek->tanggal_selesai_final ? $bimtek->tanggal_selesai_final->locale('id')->isoFormat('D MMMM Y') : '-' }}</span>
-        <span><strong>Tempat:</strong> {{ $bimtek->lokasi_final ?? '-' }}</span>
+        {{-- REFAKTORISASI WAKTU: Menyelaraskan dari tanggal_mulai_final lama ke kolom aktual baru --}}
+        <span><strong>Tanggal Pelaksanaan:</strong> 
+            {{ $bimtek->tanggal_mulai_aktual ? $bimtek->tanggal_mulai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_mulai_rencana ? $bimtek->tanggal_mulai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }} 
+            - 
+            {{ $bimtek->tanggal_selesai_aktual ? $bimtek->tanggal_selesai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_selesai_rencana ? $bimtek->tanggal_selesai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }}
+        </span>
+        {{-- REFAKTORISASI LOKASI: Mengubah lokasi_final lama menjadi lokasi_aktual baru --}}
+        <span><strong>Tempat / Aula:</strong> {{ $bimtek->lokasi_aktual ?? $bimtek->tempat_kegiatan_rencana ?? '-' }}</span>
     </div>
 
     <table class="data">
@@ -145,8 +152,8 @@
             @forelse($rekapAbsensi as $userId => $data)
             <tr>
                 <td>{{ $no++ }}</td>
-                <td class="left">{{ $data['user']->name }}</td>
-                <td class="left">{{ $data['user']->email }}</td>
+                <td class="left"><strong>{{ $data['user']->name ?? '-' }}</strong></td>
+                <td class="left">{{ $data['user']->email ?? '-' }}</td>
                 @foreach($sesiAbsensis as $sesi)
                 @php $hadir = $data['kehadiran'][$sesi->id] ?? false; @endphp
                 <td class="{{ $hadir ? 'hadir' : 'alpha' }}">{{ $hadir ? 'H' : '-' }}</td>
@@ -156,7 +163,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="{{ 5 + $sesiAbsensis->count() }}">Tidak ada data absensi</td>
+                <td colspan="{{ 5 + $sesiAbsensis->count() }}">Tidak ada data absensi peserta terdaftar dalam kelas ini</td>
             </tr>
             @endforelse
         </tbody>
@@ -164,21 +171,23 @@
 
     <div class="legend">
         <strong>Keterangan:</strong>
-        <span class="hadir">H = Hadir</span>
-        <span class="alpha">- = Tidak Hadir</span>
+        <span class="hadir">H = Hadir Sah</span>
+        <span class="alpha">- = Tidak Hadir / Absen</span>
     </div>
 
     <div class="summary">
-        <strong>Total Peserta:</strong> {{ count($rekapAbsensi) }} orang | 
-        <strong>Total Sesi:</strong> {{ $totalSesi }} sesi
+        <strong>Total Anggota Kelas:</strong> {{ count($rekapAbsensi) }} orang | 
+        <strong>Total Sesi Presensi Terjadwal:</strong> {{ $totalSesi }} sesi
     </div>
 
     <div class="footer">
         <div class="signature">
-            <p>Padang, {{ $tanggal_cetak }}</p>
-            <p>Koordinator RT Bimtek</p>
+            <p>Padang, {{ $tanggal_cetak ?? now()->locale('id')->isoFormat('D MMMM Y') }}</p>
+            <p>Koordinator / PIC Pelaksana</p>
             <div class="signature-line"></div>
+            {{-- REFAKTORISASI SIGNATURE: Menyelaraskan tanda tangan resmi penanggung jawab PIC --}}
             <p><strong>{{ $bimtek->pic ? $bimtek->pic->name : '____________________' }}</strong></p>
+            <small>NIP. {{ $bimtek->pic ? $bimtek->pic->nip ?? '-' : '____________________' }}</small>
         </div>
         <div style="clear: both;"></div>
     </div>

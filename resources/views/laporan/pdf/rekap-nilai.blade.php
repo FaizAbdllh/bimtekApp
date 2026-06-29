@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Rekap Nilai - {{ $bimtek->judul_final }}</title>
+    <title>Rekap Nilai - {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</title>
     <style>
         @page {
             margin: 1.5cm 1cm;
@@ -127,21 +127,42 @@
     </style>
 </head>
 <body>
+    @php
+        // REFAKTORISASI NARASUMBER: Mengurai array JSON narasumber aktual dari model terpadu
+        $pemateriList = '-';
+        $firstPemateri = '____________________';
+        if (is_array($bimtek->daftar_pemateri) && count($bimtek->daftar_pemateri) > 0) {
+            $names = [];
+            foreach($bimtek->daftar_pemateri as $pm) {
+                if(!empty($pm['nama'])) {
+                    $names[] = $pm['nama'];
+                }
+            }
+            if(count($names) > 0) {
+                $pemateriList = implode(', ', $names);
+                $firstPemateri = $bimtek->daftar_pemateri[0]['nama'];
+            }
+        }
+    @endphp
+
     <div class="header">
         <h1>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h1>
         <h2>BALAI BESAR PENJAMINAN MUTU PENDIDIKAN SUMATERA BARAT</h2>
     </div>
 
     <div class="title">
-        <h3>REKAP NILAI TUGAS PESERTA</h3>
-        <p>{{ $bimtek->judul_final }}</p>
+        <h3>REKAP NILAI TUGAS PESERTA BIMTEK</h3>
+        <p>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</p>
     </div>
 
     <div class="info">
-        <span><strong>Tanggal:</strong> {{ $bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->locale('id')->isoFormat('D MMMM Y') : '-' }} - {{ $bimtek->tanggal_selesai_final ? $bimtek->tanggal_selesai_final->locale('id')->isoFormat('D MMMM Y') : '-' }}</span>
-        <span><strong>Narasumber:</strong> {{ is_array($bimtek->narasumber ?? null)
-            ? ($bimtek->narasumber['name'] ?? $bimtek->narasumber['nama'] ?? '-')
-            : (($bimtek->narasumber->name ?? $bimtek->narasumber->nama ?? $bimtek->narasumber ?? '-') ?? '-') }}</span>
+        {{-- REFAKTORISASI WAKTU: Menyelaraskan dari properti _final lama ke kolom aktual baru --}}
+        <span><strong>Tanggal:</strong> 
+            {{ $bimtek->tanggal_mulai_aktual ? $bimtek->tanggal_mulai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_mulai_rencana ? $bimtek->tanggal_mulai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }}
+            - 
+            {{ $bimtek->tanggal_selesai_aktual ? $bimtek->tanggal_selesai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_selesai_rencana ? $bimtek->tanggal_selesai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }}
+        </span>
+        <span><strong>Narasumber:</strong> {{ $pemateriList }}</span>
     </div>
 
     <table class="data">
@@ -172,8 +193,8 @@
             @endphp
             <tr>
                 <td>{{ $no++ }}</td>
-                <td class="left">{{ $data['user']->name }}</td>
-                <td class="left">{{ $data['user']->email }}</td>
+                <td class="left"><strong>{{ $data['user']->name ?? '-' }}</strong></td>
+                <td class="left">{{ $data['user']->email ?? '-' }}</td>
                 @foreach($tugasList as $tugas)
                 @php
                     $nilai = $data['nilai'][$tugas->id] ?? null;
@@ -194,7 +215,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="{{ 5 + $tugasList->count() }}">Tidak ada data nilai</td>
+                <td colspan="{{ 5 + $tugasList->count() }}">Belum ada data rekapitulasi penilaian tugas peserta kelas ini</td>
             </tr>
             @endforelse
         </tbody>
@@ -209,18 +230,17 @@
     </div>
 
     <div class="summary">
-        <strong>Total Peserta:</strong> {{ count($rekapNilai) }} orang | 
-        <strong>Total Tugas:</strong> {{ $tugasList->count() }} tugas
+        <strong>Total Anggota Kelas:</strong> {{ count($rekapNilai) }} orang | 
+        <strong>Total Tugas Pengayaan:</strong> {{ $tugasList->count() }} tugas
     </div>
 
     <div class="footer">
         <div class="signature">
-            <p>Padang, {{ $tanggal_cetak }}</p>
-            <p>Narasumber</p>
+            <p>Padang, {{ $tanggal_cetak ?? now()->locale('id')->isoFormat('D MMMM Y') }}</p>
+            <p>Narasumber Utama / Instruktur</p>
             <div class="signature-line"></div>
-            <p><strong>{{ is_array($bimtek->narasumber ?? null)
-                ? ($bimtek->narasumber['name'] ?? $bimtek->narasumber['nama'] ?? '____________________')
-                : (($bimtek->narasumber->name ?? $bimtek->narasumber->nama ?? $bimtek->narasumber ?? '____________________') ?? '____________________') }}</strong></p>
+            {{-- REFAKTORISASI: Menampilkan nama narasumber pertama dari array JSON kedinasan --}}
+            <p><strong>{{ $firstPemateri }}</strong></p>
         </div>
         <div style="clear: both;"></div>
     </div>

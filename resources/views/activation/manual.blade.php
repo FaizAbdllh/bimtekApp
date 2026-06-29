@@ -1,78 +1,109 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-4">
-    <div class="max-w-md mx-auto bg-white shadow p-6 rounded">
+<div class="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md mx-auto bg-white shadow-sm border border-gray-100 p-6 sm:p-8 rounded-2xl shadow-gray-50/50">
         
+        {{-- Flash Notification Error Alert --}}
         @if(session('error'))
-            <div class="bg-red-100 text-red-800 p-3 rounded mb-4 text-sm">{{ session('error') }}</div>
+            <div class="bg-red-50 border border-red-100 text-red-700 p-4 rounded-xl text-xs font-semibold mb-5 flex items-start gap-2 shadow-sm">
+                <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
         @endif
 
         {{-- ======================================================== --}}
-        {{-- TAHAP 2: FORM INPUT PASSWORD --}}
+        {{-- TAHAP 2: FORM INPUT PASSWORD (AKUN TERVERIFIKASI)       --}}
         {{-- ======================================================== --}}
-        {{-- PERBAIKAN: Form password langsung terbuka jika token terverifikasi lewat session, --}}
-        {{-- terjadi eror validasi password, ATAU jika link membawa parameter email & token dari email panitia --}}
         @if(session('token_verified') || ($errors->has('password') && old('token')) || (!empty($email) && !empty($token)))
-            <h2 class="text-xl font-semibold mb-2 text-center text-green-600">Token Terdeteksi</h2>
-            <p class="text-sm text-gray-500 text-center mb-6">
-                Silakan buat password baru untuk mengaktifkan akun Anda.
-            </p>
+            <div class="text-center mb-6">
+                {{-- Ikon Sukses Valid --}}
+                <div class="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-100">
+                    ✓
+                </div>
+                <h2 class="text-xl font-bold text-green-600 mb-1">Token Terverifikasi Valid</h2>
+                <p class="text-xs text-gray-400 font-medium leading-relaxed">
+                    Sistem mendeteksi otorisasi sah. Silakan tetapkan kata sandi baru untuk mengaktifkan akun pendaftaran Anda.
+                </p>
+            </div>
 
-            <form action="{{ route('activation.set-password') }}" method="post">
+            <form action="{{ route('activation.set-password') }}" method="POST" class="space-y-4">
                 @csrf
-                {{-- PERBAIKAN: Menggabungkan data dari old(), session(), dan query parameter URL ($email / $token) --}}
+                
+                {{-- Kumpulan Data Hidden State --}}
                 <input type="hidden" name="email" value="{{ old('email', session('verified_email', $email ?? '')) }}">
                 <input type="hidden" name="token" value="{{ old('token', session('verified_token', $token ?? '')) }}">
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Anda</label>
-                    <input type="text" class="w-full bg-gray-100 border rounded p-2 text-sm text-gray-500 cursor-not-allowed" value="{{ old('email', session('verified_email', $email ?? '')) }}" disabled>
+                {{-- Tampilan Email Disabled Viewer --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Alamat Email Pendaftar</label>
+                    <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-500 cursor-not-allowed shadow-inner" value="{{ old('email', session('verified_email', $email ?? '')) }}" disabled>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
-                    <input type="password" name="password" class="w-full border rounded p-2 focus:ring-2 focus:ring-primary-500 text-sm" required placeholder="Minimal 8 karakter">
-                    @error('password') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                {{-- Input Password Baru --}}
+                <div>
+                    <label for="password" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Buat Password Baru <span class="text-red-500">*</span></label>
+                    <input type="password" name="password" id="password" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required placeholder="Gunakan minimal 8 karakter gabungan">
+                    @error('password') 
+                        <p class="text-red-600 text-xs font-semibold mt-1">{{ $message }}</p> 
+                    @enderror
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
-                    <input type="password" name="password_confirmation" class="w-full border rounded p-2 focus:ring-2 focus:ring-primary-500 text-sm" required placeholder="Ulangi password baru">
+                {{-- Input Konfirmasi Password --}}
+                <div>
+                    <label for="password_confirmation" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Ulangi Konfirmasi Password <span class="text-red-500">*</span></label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required placeholder="Ulangi kembali password di atas">
                 </div>
 
-                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-green-700 transition shadow">
-                    Simpan Password & Masuk Aplikasi
-                </button>
+                {{-- Button Kirim Set Password --}}
+                <div class="pt-2">
+                    <button type="submit" class="w-full inline-flex justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wide rounded-xl transition shadow-sm shadow-green-50">
+                        Simpan Password & Masuk Aplikasi
+                    </button>
+                </div>
             </form>
 
         {{-- ======================================================== --}}
-        {{-- TAHAP 1: FORM VERIFIKASI EMAIL & TOKEN (Akses Manual Tanpa Link) --}}
+        {{-- TAHAP 1: FORM INPUT TOKEN AWAL (AKSES MANUAL)          --}}
         {{-- ======================================================== --}}
+        @html
         @else
-            <h2 class="text-xl font-semibold mb-2 text-center">Aktivasi Akun Peserta</h2>
-            <p class="text-sm text-gray-500 text-center mb-6">
-                Masukkan email pendaftaran dan token dari panitia untuk memverifikasi akun Anda.
-            </p>
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-1">Aktivasi Akun Mandiri</h2>
+                <p class="text-xs text-gray-400 font-medium leading-relaxed">
+                    Silakan masukkan email kedinasan terdaftar dan kode token rahasia dari pihak panitia Pokja BBPMP Sumatera Barat.
+                </p>
+            </div>
 
-            <form action="{{ route('activation.verify') }}" method="post">
+            <form action="{{ route('activation.verify') }}" method="POST" class="space-y-4">
                 @csrf
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Pendaftaran</label>
-                    <input type="email" name="email" value="{{ old('email') }}" class="w-full border rounded p-2 focus:ring-2 focus:ring-primary-500 text-sm" required placeholder="nama@email.com">
-                    @error('email') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                {{-- Input Email Pendaftaran --}}
+                <div>
+                    <label for="email" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Alamat Email Pendaftaran <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" id="email" value="{{ old('email') }}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required placeholder="Contoh: nama@instansi.sch.id">
+                    @error('email') 
+                        <p class="text-red-600 text-xs font-semibold mt-1">{{ $message }}</p> 
+                    @enderror
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Token Aktivasi</label>
-                    <input type="text" name="token" value="{{ old('token') }}" class="w-full border rounded p-2 focus:ring-2 focus:ring-primary-500 font-mono text-sm uppercase text-center tracking-widest" required placeholder="X7Y9-K2M1">
-                    @error('token') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                {{-- Input Kode Token --}}
+                <div>
+                    <label for="token" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Kode Token Aktivasi <span class="text-red-500">*</span></label>
+                    <input type="text" name="token" id="token" value="{{ old('token') }}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm uppercase text-center tracking-widest font-black text-gray-800" required placeholder="KODE-TOKEN-X7Y9">
+                    @error('token') 
+                        <p class="text-red-600 text-xs font-semibold mt-1">{{ $message }}</p> 
+                    @enderror
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 transition shadow">
-                    Cek Validasi Token
-                </button>
+                {{-- Button Kirim Check Validasi Token --}}
+                <div class="pt-2">
+                    <button type="submit" class="w-full inline-flex justify-center px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs uppercase tracking-wide rounded-xl transition shadow-sm">
+                        Cek Validasi Token
+                    </button>
+                </div>
             </form>
         @endif
 
