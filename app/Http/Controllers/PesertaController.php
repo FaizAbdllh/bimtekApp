@@ -360,13 +360,15 @@ class PesertaController extends Controller
 
             if (empty($name) || empty($email)) {
                 $errorCount++;
-                $errors[] = "Baris {$addedCount + $skippedCount + $errorCount}: Nama dan Email wajib diisi.";
+                $barisKe = $addedCount + $skippedCount + $errorCount;
+                $errors[] = "Baris {$barisKe}: Nama dan Email wajib diisi.";
                 continue;
             }
 
             if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errorCount++;
-                $errors[] = "Baris {$addedCount + $skippedCount + $errorCount}: Format email '{$email}' tidak valid.";
+                $barisKe = $addedCount + $skippedCount + $errorCount;
+                $errors[] = "Baris {$barisKe}: Format email '{$email}' tidak valid.";
                 continue;
             }
 
@@ -377,7 +379,8 @@ class PesertaController extends Controller
             if (! $user) {
                 if (! empty($nip) && User::where('nip', $nip)->exists()) {
                     $errorCount++;
-                    $errors[] = "Baris {$addedCount + $skippedCount + $errorCount}: NIP '{$nip}' sudah terdaftar.";
+                    $barisKe = $addedCount + $skippedCount + $errorCount;
+                    $errors[] = "Baris {$barisKe}: NIP '{$nip}' sudah terdaftar.";
                     continue;
                 }
 
@@ -437,12 +440,14 @@ class PesertaController extends Controller
                     Log::error("Gagal mengirim notifikasi email.");
                 }
             }
-        }
+        } // SAKTI: Di sinilah perulangan while baru benar-benar ditutup dengan aman!
 
         fclose($handle);
 
         $message = "Import selesai. {$addedCount} peserta ditambahkan ke bimtek.";
-        if ($createdCount > 0) $message .= " {$createdCount} akun baru dibuat.";
+        if ($createdCount > 0) {
+            $message .= " {$createdCount} akun baru dibuat.";
+        }
 
         return redirect()
             ->route('bimtek.peserta.index', $bimtek->id)
@@ -509,6 +514,7 @@ class PesertaController extends Controller
 
     private function authorizeAccess(Bimtek $bimtek): void
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         if ($user->isAdminIt() || $user->isKepala() || $user->isPpk()) {
             return;

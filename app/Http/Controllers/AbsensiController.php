@@ -8,6 +8,7 @@ use App\Models\SesiAbsensi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class AbsensiController extends Controller
@@ -80,7 +81,7 @@ class AbsensiController extends Controller
             'status.required' => 'Status sesi wajib dipilih.',
         ]);
 
-        SesiAbsening::create([
+        SesiAbsensi::create([
             'bimtek_id' => $bimtek->id,
             'nama_sesi' => $validated['nama_sesi'],
             'status' => $validated['status'],
@@ -231,7 +232,7 @@ class AbsensiController extends Controller
     /**
      * Tampilkan kamera / antarmuka scan QR bagi peserta (Sisi Handphone Peserta).
      */
-    public function scanInterface(Bimtek $bimtek, SesiAbsensi $sesi): View
+    public function scanInterface(Bimtek $bimtek, SesiAbsensi $sesi): View|RedirectResponse
     {
         if (! $this->isPeserta($bimtek)) {
             abort(403, 'Anda bukan peserta resmi dari kegiatan bimtek ini.');
@@ -242,8 +243,8 @@ class AbsensiController extends Controller
         }
 
         if ($bimtek->mode_pelaksanaan === 'online') {
-            return redirect()
-                ->route('bimtek.absensi.show', [$bimtek->id, $sesi->id])
+            // Menggunakan Facade resmi agar IDE bisa membaca definisinya dengan sempurna
+            return Redirect::route('bimtek.absensi.show', [$bimtek->id, $sesi->id])
                 ->with('error', 'Bimtek mode online menggunakan presensi langsung. Silakan klik tombol Hadir Online.');
         }
 
