@@ -226,8 +226,10 @@ class MateriController extends Controller
             return;
         }
 
-        // Check if user is involved in bimtek
-        $isInvolved = $bimtek->users()->where('user_id', $user->id)->exists();
+        // Check if user is involved in bimtek (PIC, Panitia, atau Peserta)
+        $isInvolved = ($bimtek->pic_user_id === $user->id) 
+            || $bimtek->panitia()->where('user_id', $user->id)->exists() 
+            || $bimtek->peserta()->where('user_id', $user->id)->exists();
 
         // Check if user is the pengajuan owner
         $isOwner = $bimtek->pengajuan && $bimtek->pengajuan->user_id === $user->id;

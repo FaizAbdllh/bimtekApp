@@ -6,7 +6,6 @@
                 <ol class="inline-flex items-center space-x-1 text-xs text-gray-400 font-medium">
                     <li><a href="{{ route('bimtek.index') }}" class="hover:text-primary-600 transition-colors">Bimtek</a></li>
                     <li><span class="mx-1">/</span></li>
-                    {{-- REFAKTORISASI: Kestabilan UUID rute dan fallback judul rencana --}}
                     <li><a href="{{ route('bimtek.show', $bimtek->id) }}" class="hover:text-primary-600 transition-colors">{{ Str::limit($bimtek->judul_final ?? $bimtek->judul_rencana, 30) }}</a></li>
                     <li><span class="mx-1">/</span></li>
                     <li class="text-gray-800 font-bold">Kelola Peserta</li>
@@ -24,7 +23,6 @@
             {{-- Page Header dengan Deretan Tombol Utama --}}
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    {{-- REFAKTORISASI: Kestabilan ID rute kembali --}}
                     <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold text-xs uppercase tracking-wide transition shadow-sm w-fit">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -32,14 +30,12 @@
                         Kembali ke Detail
                     </a>
                     <div class="mt-3 text-sm">
-                        {{-- REFAKTORISASI: Fallback judul rencana usulan --}}
                         <p class="text-gray-900 font-semibold">{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</p>
                         <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $bimtek->peserta->count() }} Anggota Terdaftar Resmi</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 font-bold text-xs uppercase tracking-wide">
                     @if($canManage)
-                        {{-- REFAKTORISASI: Kestabilan ID rute ekspor data --}}
                         <a href="{{ route('bimtek.peserta.export', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm">
                             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -165,8 +161,8 @@
                                     onclick="navigator.clipboard.writeText('{{ url('/login') }}'); alert('Tautan halaman login & gerbang aktivasi mandiri berhasil disalin ke clipboard!');"
                                     class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition shadow-sm"
                                     title="Salin tautan pintu masuk untuk dibagikan ke grup koordinasi">
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 4h5m-5 4h5m-3 4h3"/>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 00-2 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 4h5m-5 4h5m-3 4h3"/>
                                 </svg>
                                 Tautan Login
                             </button>
@@ -182,15 +178,11 @@
                                     </button>
                                 </div>
                                 <div class="ml-1 shadow-sm rounded-xl overflow-hidden">
+                                    {{-- 💡 PERBAIKAN 1: Logika perhitungan dipindah langsung membaca dari tabel users --}}
                                     @php
-                                        $allPesertaIds = $bimtek->peserta->pluck('id')->toArray();
-                                        
-                                        $aktifUserIds = \App\Models\ActivationToken::whereIn('user_id', $allPesertaIds)
-                                            ->whereNotNull('used_at')
-                                            ->pluck('user_id')
-                                            ->toArray();
-
-                                        $pendingPesertaIds = array_values(array_diff($allPesertaIds, $aktifUserIds));
+                                        $allPeserta = $bimtek->peserta;
+                                        $aktifUserIds = $allPeserta->where('is_active', true)->pluck('id')->toArray();
+                                        $pendingPesertaIds = $allPeserta->where('is_active', false)->pluck('id')->toArray();
                                     @endphp
 
                                     <button type="button" 
@@ -239,12 +231,12 @@
                                     </th>
                                 @endif
                                 <th class="px-4 py-3 text-center w-14">No</th>
-                                <th class="px-6 py-3 text-left pl-6">Nama Lengkap Anggota</th>
-                                <th class="px-6 py-3 text-left">Alamat Email</th>
-                                <th class="px-6 py-3 text-center w-40">Identitas NIP</th>
-                                <th class="px-6 py-3 text-left pl-6">Asal Lembaga Sekolah</th>
+                                <th class="px-6 py-3 text-left pl-6">Nama</th>
+                                <th class="px-6 py-3 text-left">Email</th>
+                                <th class="px-6 py-3 text-center w-40">NIP</th>
+                                <th class="px-6 py-3 text-left pl-6">Asal Instansi</th>
                                 <th class="px-4 py-3 text-center w-36">Status Akun</th>
-                                <th class="px-4 py-3 text-center w-36">Kelulusan Berkas</th>
+                                <th class="px-4 py-3 text-center w-36">Status Berkas</th>
                                 @if($canManage)
                                     <th class="px-6 py-3 text-right pr-6 w-24 border-l border-gray-100 bg-gray-50">Aksi</th>
                                 @endif
@@ -252,9 +244,9 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
                             @forelse($bimtek->peserta->sortBy('name') as $index => $peserta)
+                                {{-- 💡 PERBAIKAN 2: Data dibaca langsung dari objek $peserta bawaan database users --}}
                                 @php
-                                    $latestToken = \App\Models\ActivationToken::where('user_id', $peserta->id)->latest()->first();
-                                    $hasActiveStatus = $latestToken && $latestToken->used_at;
+                                    $hasActiveStatus = $peserta->is_active;
 
                                     $bolehGenerateToken = true;
                                     if ($bimtek->butuh_verifikasi_dokumen) {
@@ -320,7 +312,6 @@
                                     @if($canManage)
                                         <td class="px-6 py-4 text-right pr-6 align-middle border-l border-gray-50 bg-gray-50/50 whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1">
-                                                {{-- REFAKTORISASI FORM DESTROY: Kestabilan ID parameter rute hapus single peserta --}}
                                                 <form action="{{ route('bimtek.peserta.destroy', [$bimtek->id, $peserta->id]) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -334,10 +325,9 @@
                                                     </button>
                                                 </form>
                                                 
-                                                {{-- Opsi Revoke Token Aktif --}}
-                                                @if($latestToken && !$latestToken->used_at && !$latestToken->revoked_at)
-                                                    {{-- REFAKTORISASI: Kestabilan ID parameter rute pencabutan token --}}
-                                                    <form action="{{ route('bimtek.activation-tokens.revoke', [$bimtek->id, $latestToken->id]) }}" method="POST" class="inline">
+                                                {{-- 💡 PERBAIKAN 3: Pembatalan token diarahkan langsung menggunakan model ID User hasil pembaruan Routing web.php --}}
+                                                @if(!$peserta->is_active && $peserta->activation_token)
+                                                    <form action="{{ route('activation-tokens.revoke', [$bimtek->id, $peserta->id]) }}" method="POST" class="inline">
                                                         @csrf
                                                         <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-white hover:shadow-sm rounded-lg transition" title="Batalkan/Revoke Token Masa Berlaku" onclick="return confirm('Apakah Anda yakin ingin membatalkan token rilis untuk {{ $peserta->name }}?')">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,7 +353,6 @@
                                                 <button type="button" x-data @click="$dispatch('open-modal', 'tambah-peserta')" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition shadow-sm">
                                                     Input Manual Perdana
                                                 </button>
-                                                {{-- REFAKTORISASI: Kestabilan ID parameter rute invite --}}
                                                 <form action="{{ route('bimtek.generate-invite', $bimtek->id) }}" method="POST" class="inline">
                                                     @csrf
                                                     <button class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm">
@@ -381,7 +370,6 @@
 
                 {{-- Hidden Form Pemicu Penghapusan Massal --}}
                 @if($canManage)
-                    {{-- REFAKTORISASI: Kestabilan ID parameter rute bulk-destroy --}}
                     <form id="bulk-delete-form" action="{{ route('bimtek.peserta.bulk-destroy', $bimtek->id) }}" method="POST" style="display: none;">
                         @csrf
                         <div id="bulk-delete-inputs"></div>
@@ -432,7 +420,6 @@
                                 </div>
                                 <span class="inline-flex px-2.5 py-0.5 bg-green-100 text-green-800 rounded-md text-[10px] font-bold uppercase border border-green-200 shrink-0">Panitia</span>
                                 @if($canManage)
-                                    {{-- REFAKTORISASI: Kestabilan ID parameter rute demote change-role panitia --}}
                                     <form action="{{ route('bimtek.peserta.change-role', [$bimtek->id, $panitia->id]) }}" method="POST" class="inline shrink-0">
                                         @csrf
                                         @method('PATCH')
@@ -462,8 +449,8 @@
 
     {{-- Modal 1: Penerbitan Token Aktivasi Berjalan Massal --}}
     <x-modal name="generate-tokens" :show="false" maxWidth="md">
-        {{-- REFAKTORISASI FORM ACTION: Fallback safety routing target --}}
-        <form id="generate-tokens-form" action="{{ Route::has('bimtek.activation-tokens.generate-batch') ? route('bimtek.activation-tokens.generate-batch', $bimtek->id) : url('') }}" method="POST" class="p-6 bg-white">
+        {{-- 💡 PERBAIKAN 4: Action form diarahkan menggunakan rute terpusat baru --}}
+        <form id="generate-tokens-form" action="{{ Route::has('activation-tokens.generate-batch') ? route('activation-tokens.generate-batch', $bimtek->id) : url('') }}" method="POST" class="p-6 bg-white">
             @csrf
             <h3 class="text-base font-bold text-gray-900 border-b border-gray-50 pb-2 mb-3">Rilis Token Otorisasi Massal</h3>
             <p class="text-xs text-gray-500 leading-relaxed mb-4">Sistem akan membangkitkan kombinasi token aktivasi unik untuk baris nama peserta terpilih yang berstatus belum aktivasi saja.</p>
@@ -491,7 +478,6 @@
                 {{-- Jalur Formulir A: Daftarkan Entitas Akun Segar Baru --}}
                 <div class="space-y-3 pt-4 border-t border-gray-100">
                     <h4 class="text-xs font-bold text-gray-800 uppercase tracking-wider">Opsi 1: Entri Akun Individu Baru</h4>
-                    {{-- REFAKTORISASI: Kestabilan ID parameter rute store-new --}}
                     <form action="{{ route('bimtek.peserta.store-new', $bimtek->id) }}" method="POST" class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-semibold text-gray-700">
@@ -522,7 +508,6 @@
                 {{-- Jalur Formulir B: Sinkronisasikan User yang Telah Eksis di Database --}}
                 <div class="space-y-3 pt-6 border-t border-gray-200">
                     <h4 class="text-xs font-bold text-gray-800 uppercase tracking-wider">Opsi 2: Sinkronisasikan Anggota Berjalan</h4>
-                    {{-- REFAKTORISASI: Kestabilan ID parameter rute store --}}
                     <form action="{{ route('bimtek.peserta.store', $bimtek->id) }}" method="POST" class="space-y-4">
                         @csrf
                         <div>
@@ -553,7 +538,6 @@
 
         {{-- Modal 3: Impor Spreadsheet CSV Hasil Rekap Sekolah Luar --}}
         <x-modal name="import-peserta" :show="false" maxWidth="md">
-            {{-- REFAKTORISASI: Kestabilan ID parameter rute import --}}
             <form action="{{ route('bimtek.peserta.import', $bimtek->id) }}" method="POST" enctype="multipart/form-data" class="p-6 bg-white space-y-4">
                 @csrf
                 <div>

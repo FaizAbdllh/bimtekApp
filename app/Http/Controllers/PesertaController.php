@@ -45,10 +45,10 @@ class PesertaController extends Controller
                 ->get();
         }
 
-        // Hitung peserta "Menunggu Aktivasi" secara efisien
-        $activatedUserIds = \App\Models\ActivationToken::where('bimtek_id', $bimtek->id)
-            ->whereNotNull('used_at')
-            ->pluck('user_id')
+        // Hitung peserta yang status akunnya sudah aktif (is_active = 1)
+        $activatedUserIds = $bimtek->peserta()
+            ->where('users.is_active', 1) // Sesuai kolom is_active TINYINT/BOOLEAN pada image_d22515.png
+            ->pluck('users.id')
             ->toArray();
 
         $totalPesertaIds = $bimtek->peserta->pluck('id')->toArray();

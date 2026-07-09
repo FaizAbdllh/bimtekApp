@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivationToken;
 use App\Models\Bimtek;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ActivationTokenAdminController extends Controller
@@ -49,15 +49,20 @@ class ActivationTokenAdminController extends Controller
                 continue;
             }
 
-            [$tokenModel, $raw] = ActivationToken::generateFor($user, $days, $request->user()?->id);
-            $tokenModel->bimtek_id = $bimtek->id;
-            $tokenModel->save();
+            // 💡 PERBAIKAN UTAMA: Generate token acak dan simpan langsung ke tabel 'users'
+            $rawToken = Str::random(64);
+            
+            $user->update([
+                'activation_token' => $rawToken,
+                'token_expires_at' => now()->addDays($days),
+                'is_active' => 0, // Pastikan status kembali mengunci sebelum aktivasi sukses
+            ]);
 
             $rows[] = [
                 'user_id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'token' => $raw,
+                'token' => $rawToken,
             ];
         }
 
@@ -78,11 +83,14 @@ class ActivationTokenAdminController extends Controller
         return $response;
     }
 
-    public function revoke(Request $request, Bimtek $bimtek, ActivationToken $activationToken)
+    // 💡 PERBAIKAN UTAMA: Parameter diubah dari 'ActivationToken' menjadi model 'User' langsung
+    public function revoke(Request $request, Bimtek $bimtek, User $user)
     {
-        $activationToken->revoked_at = now();
-        $activationToken->revoked_by = $request->user()?->id;
-        $activationToken->save();
+        // Mengosongkan token langsung di dalam tabel 'users' milik peserta terkait
+        $user->update([
+            'activation_token' => null,
+            'token_expires_at' => null,
+        ]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['status' => 'ok']);

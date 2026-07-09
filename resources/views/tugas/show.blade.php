@@ -85,18 +85,33 @@
                         {{-- Lampiran Berkas Panduan Lembar Kerja dari Instruktur --}}
                         @if($tugas->file_instruksi_path)
                             <div class="pt-4 border-t border-gray-100">
-                                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Dokumen Acuan Pendukung</h3>
-                                <div class="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-200/60 shadow-inner shadow-gray-50">
-                                    <div class="flex items-center min-w-0 mr-4">
-                                        <svg class="w-7 h-7 text-gray-400 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Dokumen Acuan Pendukung</h3>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200/60 shadow-inner shadow-gray-50/30">
+                                    
+                                    {{-- Sisi Kiri: Ikon & Nama File dengan Proteksi Truncate --}}
+                                    <div class="flex items-center min-w-0 gap-2.5 flex-1 mr-4">
+                                        <svg class="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
-                                        <span class="text-xs font-bold text-gray-700 truncate block">{{ basename($tugas->file_instruksi_path) }}</span>
+                                        {{-- Mengunci nama file panjang agar otomatis terpotong titik-titik (...) secara aman --}}
+                                        <span class="text-xs font-semibold text-gray-700 truncate max-w-[200px] sm:max-w-xs md:max-w-md block" title="{{ basename($tugas->file_instruksi_path) }}">
+                                            {{ basename($tugas->file_instruksi_path) }}
+                                        </span>
                                     </div>
-                                    <div class="flex items-center gap-3 font-bold text-xs shrink-0">
-                                        {{-- REFAKTORISASI: Kestabilan ID parameter rute berkas acuan --}}
-                                        <a href="{{ route('bimtek.tugas.download-instruksi', [$bimtek->id, $tugas->id]) }}" class="text-primary-600 hover:text-primary-800">Unduh</a>
+                                    
+                                    {{-- Sisi Kanan: Opsi Akses Berkas Berdampingan --}}
+                                    <div class="flex items-center gap-3 font-bold text-xs shrink-0 pl-2">
+                                        {{-- Fitur Pratinjau (Membuka PDF langsung di tab baru peramban) --}}
+                                        <a href="{{ route('bimtek.tugas.preview-instruksi', [$bimtek->id, $tugas->id]) }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-800 transition-colors">
+                                            Lihat
+                                        </a>
+                                        <span class="text-gray-300 font-light text-[10px]">|</span>
+                                        {{-- Fitur Unduh Otomatis --}}
+                                        <a href="{{ route('bimtek.tugas.download-instruksi', [$bimtek->id, $tugas->id]) }}" class="text-green-600 hover:text-green-800 transition-colors">
+                                            Unduh
+                                        </a>
                                     </div>
+
                                 </div>
                             </div>
                         @endif

@@ -24,6 +24,11 @@ class User extends Authenticatable
         'nip',
         'asal_instansi',
         'role_id',
+        // 💡 Tambahan Kolom Baru Hasil Peleburan Fitur Token Aktivasi
+        'is_active',
+        'token_hash',
+        'expires_at',
+        'used_at',
     ];
 
     /**
@@ -42,6 +47,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            // 💡 Tambahan Casting Objek agar Kolom Boolean & Timestamp Terbaca Akurat
+            'is_active' => 'boolean',
+            'expires_at' => 'datetime',
+            'used_at' => 'datetime',
         ];
     }
 
@@ -59,7 +68,7 @@ class User extends Authenticatable
      */
     public function bimteksSebagaiPic(): HasMany
     {
-        return $this->hasMany(Bimtek::class, 'pic_user_id'); // Pastikan kolom di tabel bimteks bernama pic_id atau user_id
+        return $this->hasMany(Bimtek::class, 'pic_user_id'); 
     }
 
     /**
@@ -68,7 +77,7 @@ class User extends Authenticatable
     public function bimteksSebagaiPanitia(): BelongsToMany
     {
         return $this->belongsToMany(Bimtek::class, 'bimtek_panitias', 'user_id', 'bimtek_id')
-                    ->withPivot('fungsi_panitia') // Sesuai kolom di migrasi bimtek_panitias
+                    ->withPivot('fungsi_panitia') 
                     ->withTimestamps();
     }
 
@@ -78,7 +87,7 @@ class User extends Authenticatable
     public function bimteksSebagaiPeserta(): BelongsToMany
     {
         return $this->belongsToMany(Bimtek::class, 'bimtek_pesertas', 'user_id', 'bimtek_id')
-                    ->withPivot('status_verifikasi') // Kolom berkah tersembunyi yang kita bahas tadi!
+                    ->withPivot('status_verifikasi') 
                     ->withTimestamps();
     }
 

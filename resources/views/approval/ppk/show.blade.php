@@ -180,7 +180,8 @@
                 <div class="px-6 py-5 bg-gray-50 border-t border-gray-100 rounded-b-2xl shadow-inner shadow-gray-50">
                     <h4 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">Lembar Kendali Biaya Pejabat PPK</h4>
                     
-                    <div x-data grandfather x-data="{ action: null }" class="space-y-4">
+                    {{-- 💡 Deklarasi x-data Alpine.js sudah dibersihkan dan siap bekerja --}}
+                    <div x-data="{ action: null }" class="space-y-4">
                         {{-- Pilihan Opsi Aksi --}}
                         <div class="flex flex-wrap gap-3">
                             <button @click="action = 'approve'" type="button" 

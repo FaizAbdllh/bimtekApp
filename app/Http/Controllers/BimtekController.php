@@ -74,6 +74,19 @@ class BimtekController extends Controller
         $this->authorizeAccess($bimtek);
         $user = Auth::user();
 
+        // LOGIKA OTOMATIS: Jika yang mengakses adalah PIC Utama dan statusnya masih 'disetujui_final',
+        // langsung naikkan status ke 'persiapan' di database secara senyap.
+        if ($bimtek->status === 'disetujui_final' && $bimtek->pic_user_id === $user->id) {
+            $bimtek->update([
+                'status' => 'persiapan'
+            ]);
+            
+            // Mencatat perubahan ke log sistem agar tetap terlacak resmi
+            if (class_exists(LogSistem::class)) {
+                LogSistem::info("Status Bimtek ID {$bimtek->id} otomatis diubah dari disetujui_final ke persiapan saat diakses pertama kali oleh PIC.", $user->id);
+            }
+        }
+
         // Cek keterlibatan user di kelas ini melalui jembatan bimtek_pesertas
         $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
 
@@ -248,7 +261,35 @@ class BimtekController extends Controller
             ->route('pengajuan.edit', $bimtek->id)
             ->with('success', 'Status diturunkan ke Perlu Revisi. Silakan perbarui rancangan anggaran biaya Anda.');
     }
+    /**
+     * Menyimpan data pemateri baru ke dalam kelas Bimtek
+     */
+    public function storePemateri(Request $request, Bimtek $bimtek)
+    {
+        $request->validate([
+            'nama_pemateri' => 'required|string|max:255',
+            'asal_instansi' => 'required|string|max:255',
+        ]);
 
+        $bimtek->pemateris()->create($request->only(['nama_pemateri', 'asal_instansi']));
+
+        return redirect()->back()->with('success', 'Data pemateri berhasil ditambahkan.');
+    }
+
+    /**
+     * Menghapus data pemateri dari kelas Bimtek
+     */
+    public function destroyPemateri(Bimtek $bimtek, BimtekPemateri $pemateri)
+    {
+        // Pastikan pemateri yang dihapus memang milik bimtek yang sedang dibuka
+        if ($pemateri->bimtek_id !== $bimtek->id) {
+            abort(403);
+        }
+
+        $pemateri->delete();
+
+        return redirect()->back()->with('success', 'Data pemateri berhasil dihapus.');
+    }
     /**
      * Assign Panitia to bimtek (Menembak tabel bridge riil `bimtek_panitias`).
      */

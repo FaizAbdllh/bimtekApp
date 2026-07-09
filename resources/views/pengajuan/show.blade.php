@@ -202,8 +202,8 @@
                                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $kategori }}</p>
                                         <p class="text-base font-bold text-gray-800 mt-0.5">Rp {{ number_format($items->sum('total_biaya'), 0, ',', '.') }}</p>
                                     </div>
-                                </div>
-                            @endif
+                                @endforeach
+                            </div>
                         @else
                             <div class="p-6 bg-white border border-gray-100 rounded-xl text-center shadow-sm">
                                 <p class="text-sm text-gray-500 font-medium">Belum ada rincian komponen anggaran biaya yang diajukan.</p>

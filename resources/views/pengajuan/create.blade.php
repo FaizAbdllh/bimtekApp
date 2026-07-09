@@ -552,7 +552,10 @@
                                                 <option value="Lembar">Lembar</option>
                                                 <option value="Lainnya">Lainnya...</option>
                                             </select>
-                                            <input type="text" x-model="item.satuanCustom" x-show="item.satuan === 'Lainnya'" required
+                                            <input type="text" 
+                                                x-model="item.satuanCustom" 
+                                                x-show="item.satuan === 'Lainnya'" 
+                                                :required="item.satuan === 'Lainnya'"
                                                 class="w-20 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
                                                 placeholder="Satuan...">
                                             <input type="hidden" :name="'fasilitas['+index+'][satuan]'" :value="item.satuan === 'Lainnya' ? item.satuanCustom : item.satuan">

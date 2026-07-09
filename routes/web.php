@@ -32,6 +32,12 @@ Route::get('/aktivasi', [ActivationController::class, 'showManualActivationForm'
 Route::post('/aktivasi', [ActivationController::class, 'verifyManualToken'])->name('activation.verify');
 Route::post('/aktivasi/set-password', [ActivationController::class, 'setPassword'])->name('activation.set-password');
 
+// Halaman Formulir Pendaftaran Mandiri Peserta Luar
+Route::get('/register', [ActivationController::class, 'showRegistrationForm'])->name('register.invite');
+
+// Eksekusi Simpan Data Pendaftaran Mandiri
+Route::post('/register', [ActivationController::class, 'submitRegistration'])->name('register.submit');
+
 // Dashboard - accessible by all authenticated users
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -109,9 +115,16 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
 
     // Assign Panitia
     Route::post('/{bimtek}/assign-panitia', [BimtekController::class, 'assignPanitia'])->name('assign-panitia');
+    
+    //Rute Aksi Hapus Aktor (Panitia/Peserta) oleh PIC
+    Route::post('/{bimtek}/remove-peserta/{user}', [BimtekController::class, 'removePeserta'])->name('remove-peserta');
 
     // Kelola Pemateri
     Route::patch('/{bimtek}/pemateri', [BimtekController::class, 'updatePemateri'])->name('pemateri.update');
+
+    // Rute Operasional Pemateri
+    Route::post('/{bimtek}/add-pemateri', [BimtekController::class, 'storePemateri'])->name('add-pemateri');
+    Route::delete('/{bimtek}/remove-pemateri/{pemateri}', [BimtekController::class, 'destroyPemateri'])->name('remove-pemateri');
 
     // Ajukan revisi pengajuan oleh PIC
     Route::post('/{bimtek}/ajukan-revisi', [BimtekController::class, 'requestRevisi'])->name('request-revisi');
@@ -222,7 +235,7 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
         ->middleware('auth')
         ->name('activation-tokens.generate-batch');
         
-    Route::post('/{bimtek}/activation-tokens/{activationToken}/revoke', [ActivationTokenAdminController::class, 'revoke'])
+    Route::post('/{bimtek}/activation-tokens/{user}/revoke', [ActivationTokenAdminController::class, 'revoke'])
         ->middleware('auth')
         ->name('activation-tokens.revoke');
 });

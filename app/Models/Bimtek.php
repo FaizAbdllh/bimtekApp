@@ -112,13 +112,19 @@ class Bimtek extends Model
             ->withPivot('status_verifikasi')
             ->withTimestamps();
     }
-
+    /**
+     * Mengambil daftar narasumber / pemateri yang bertugas di kelas Bimtek ini
+     */
+    public function pemateris(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BimtekPemateri::class, 'bimtek_id');
+    }
     public function kebutuhanAnggarans(): HasMany
     {
         return $this->hasMany(KebutuhanAnggaran::class, 'bimtek_id');
     }
 
-    public function fasiitasLogistiks(): HasMany
+    public function fasilitasLogistiks(): HasMany
     {
         return $this->hasMany(FasilitasLogistik::class, 'bimtek_id');
     }
