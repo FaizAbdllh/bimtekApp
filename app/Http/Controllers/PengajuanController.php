@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePengajuanRequest;
 use App\Http\Requests\UpdatePengajuanRequest;
-use App\Models\Bimtek; // <-- Menggunakan model Bimtek sebagai penampung tunggal
+use App\Models\Bimtek; 
 use App\Models\SbmMaster;
+use App\Models\SyaratDokumen;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,41 +21,33 @@ class PengajuanController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        
-        // Menggunakan Bimtek dengan relasi ke PIC (Pengaju)
         $query = Bimtek::with(['pic']);
 
-        // Jika Pegawai Internal, hanya tampilkan pengajuan (Bimtek) miliknya sendiri
         if ($user->isPegawaiInternal()) {
             $query->where('pic_user_id', $user->id);
         }
 
-        // Filter berdasarkan status alur kerja (BPMN State)
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter berdasarkan jenis kegiatan (internal/eksternal)
         if ($request->filled('jenis')) {
             $query->where('jenis_kegiatan', $request->jenis);
         }
 
-        // Fitur Pencarian Global
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul_rencana', 'like', "%{$search}%")
-                    ->orWhere('tempat_kegiatan_rencana', 'like', "%{$search}%") // Kolom disesuaikan dengan migrasi baru
+                    ->orWhere('tempat_kegiatan_rencana', 'like', "%{$search}%")
                     ->orWhereHas('pic', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
                     });
             });
         }
 
-        // Variabel tetap bernama $pengajuans agar halaman View Blade kamu tidak crash/error!
         $pengajuans = $query->latest()->paginate(10)->withQueryString();
 
-        // Menyebutkan opsi status baru sesuai sistem State Machine Enum di database
         $statusOptions = [
             'draft_pic' => 'Draft',
             'diajukan' => 'Diajukan',
@@ -93,29 +86,47 @@ class PengajuanController extends Controller
         try {
             $validated = $request->validated();
             
-            // Pasangkan ke kolom pemilik baru: pic_user_id
             $validated['pic_user_id'] = Auth::id();
 
-            // Atur status workflow berdasarkan tombol yang ditekan pengguna
+            // Intersepsi status checkbox agar tidak terbuang
+            $validated['butuh_verifikasi_dokumen'] = $request->has('butuh_verifikasi_dokumen') ? 1 : 0;
+
             $isDraft = $request->has('save_draft');
             $validated['status'] = $isDraft ? 'draft_pic' : 'diajukan';
             $validated['mode_pelaksanaan'] = $validated['mode_pelaksanaan'] ?? 'offline';
 
-            // Jika file request kamu masih menggunakan key lama dari form (tanpa suffix _rencana), 
-            // kita lakukan mapping jaring pengaman di sini agar SQL tidak menolak data.
             $validated['judul_rencana'] = $validated['judul_rencana'] ?? $request->input('judul');
             $validated['tempat_kegiatan_rencana'] = $validated['tempat_kegiatan_rencana'] ?? $request->input('tempat_kegiatan');
             $validated['tanggal_mulai_rencana'] = $validated['tanggal_mulai_rencana'] ?? $request->input('tanggal_mulai');
             $validated['tanggal_selesai_rencana'] = $validated['tanggal_selesai_rencana'] ?? $request->input('tanggal_selesai');
             $validated['deskripsi_rencana'] = $validated['deskripsi_rencana'] ?? $request->input('deskripsi');
 
-            // Membuat instansiasi baris baru langsung ke tabel bimteks
             $pengajuan = Bimtek::create($validated);
+
+            // Proses simpan dokumen persyaratan
+            if ($validated['butuh_verifikasi_dokumen'] && $request->filled('syarat_dokumen')) {
+                foreach ($request->input('syarat_dokumen') as $doc) {
+                    if (empty($doc)) continue;
+
+                    $namaDokumen = is_array($doc) ? ($doc['nama_dokumen'] ?? '') : $doc;
+                    $deskripsi   = is_array($doc) ? ($doc['deskripsi_syarat'] ?? null) : null;
+                    $isWajib     = is_array($doc) ? (isset($doc['is_wajib']) ? 1 : 0) : 1;
+
+                    if (!empty($namaDokumen)) {
+                        SyaratDokumen::create([
+                            'bimtek_id'        => $pengajuan->id,
+                            'nama_dokumen'     => $namaDokumen,
+                            'deskripsi_syarat' => $deskripsi,
+                            'is_wajib'         => $isWajib,
+                        ]);
+                    }
+                }
+            }
 
             // Menyimpan akumulasi dana komponen anggaran belanja SBM
             if ($request->has('anggaran') && is_array($request->anggaran)) {
                 foreach ($request->anggaran as $item) {
-                    if (empty($item['nama_item']) && !$item['total_biaya']) {
+                    if (empty($item['nama_item']) && !($item['total_biaya'] ?? 0)) {
                         continue;
                     }
 
@@ -163,7 +174,6 @@ class PengajuanController extends Controller
                 ->with('success', 'Pengajuan bimtek berhasil dibuat dan menunggu persetujuan Kepala.');
         } catch (\Exception $e) {
             DB::rollBack();
-
             return redirect()
                 ->back()
                 ->withInput()
@@ -179,7 +189,6 @@ class PengajuanController extends Controller
         $user = Auth::user();
         $user->load('role');
 
-        // Proteksi Hak Akses Pembacaan Data
         $canAccess = $pengajuan->pic_user_id === $user->id
             || $user->isAdminIt()
             || $user->isKepala()
@@ -190,8 +199,7 @@ class PengajuanController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk melihat pengajuan ini.');
         }
 
-        // Load relasi terbaru yang diikat ke struktur tabel tunggal
-        $pengajuan->load(['pic', 'fasilitasLogistiks']);
+        $pengajuan->load(['pic', 'fasilitasLogistiks', 'syaratDokumens']);
 
         return view('pengajuan.show', compact('pengajuan'));
     }
@@ -207,12 +215,14 @@ class PengajuanController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk mengedit pengajuan ini.');
         }
 
-        // Mengubah pengecekan status berdasarkan enum baru
         if (!in_array($pengajuan->status, ['draft_pic', 'diajukan', 'perlu_revisi'])) {
             return redirect()
                 ->route('pengajuan.show', $pengajuan->id)
                 ->with('error', 'Pengajuan tidak dapat diedit karena sudah diproses.');
         }
+
+        // 💡 PERBAIKAN UTAMA: Eager Loading relasi syaratDokumens untuk view edit
+        $pengajuan->load(['syaratDokumens', 'kebutuhanAnggarans', 'fasilitasLogistiks']);
 
         $sbmMasters = SbmMaster::active()
             ->tahunBerlaku(2026)
@@ -247,7 +257,8 @@ class PengajuanController extends Controller
             $validated = $request->validated();
             $isDraft = $request->has('save_draft');
 
-            // Logika transisi status otomatis (State Machine Re-submission)
+            $validated['butuh_verifikasi_dokumen'] = $request->has('butuh_verifikasi_dokumen') ? 1 : 0;
+
             if ($isDraft) {
                 $validated['status'] = 'draft_pic';
             } elseif ($pengajuan->status === 'perlu_revisi') {
@@ -258,7 +269,6 @@ class PengajuanController extends Controller
 
             $validated['mode_pelaksanaan'] = $validated['mode_pelaksanaan'] ?? 'offline';
 
-            // Jaring pengaman keselarasan key request nama kolom
             $validated['judul_rencana'] = $validated['judul_rencana'] ?? $request->input('judul');
             $validated['tempat_kegiatan_rencana'] = $validated['tempat_kegiatan_rencana'] ?? $request->input('tempat_kegiatan');
             $validated['tanggal_mulai_rencana'] = $validated['tanggal_mulai_rencana'] ?? $request->input('tanggal_mulai');
@@ -267,12 +277,35 @@ class PengajuanController extends Controller
 
             $pengajuan->update($validated);
 
+            // 💡 PERBAIKAN SINKRONISASI TABEL SYARAT_DOKUMENS
+            // Bersihkan baris lama terlebih dahulu
+            DB::table('syarat_dokumens')->where('bimtek_id', $pengajuan->id)->delete();
+
+            if ($validated['butuh_verifikasi_dokumen'] && $request->filled('syarat_dokumen')) {
+                foreach ($request->input('syarat_dokumen') as $doc) {
+                    if (empty($doc)) continue;
+
+                    $namaDokumen = is_array($doc) ? ($doc['nama_dokumen'] ?? '') : $doc;
+                    $deskripsi   = is_array($doc) ? ($doc['deskripsi_syarat'] ?? null) : null;
+                    $isWajib     = is_array($doc) ? (isset($doc['is_wajib']) ? 1 : 0) : 1;
+
+                    if (!empty($namaDokumen)) {
+                        SyaratDokumen::create([
+                            'bimtek_id'        => $pengajuan->id,
+                            'nama_dokumen'     => $namaDokumen,
+                            'deskripsi_syarat' => $deskripsi,
+                            'is_wajib'         => $isWajib,
+                        ]);
+                    }
+                }
+            }
+
             // Sinkronisasi ulang data RAB SBM
             if ($request->has('anggaran')) {
                 $pengajuan->kebutuhanAnggarans()->delete();
 
                 foreach ($request->anggaran as $item) {
-                    if (empty($item['nama_item']) && !$item['total_biaya']) {
+                    if (empty($item['nama_item']) && !($item['total_biaya'] ?? 0)) {
                         continue;
                     }
 
@@ -322,7 +355,6 @@ class PengajuanController extends Controller
                 ->with('success', 'Pengajuan berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-
             return redirect()
                 ->back()
                 ->withInput()
@@ -341,7 +373,6 @@ class PengajuanController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk menghapus pengajuan ini.');
         }
 
-        // Pengajuan tidak boleh dihapus jika statusnya sudah disetujui final atau sedang berjalan
         if (in_array($pengajuan->status, ['disetujui_final', 'persiapan', 'berlangsung', 'selesai'])) {
             return redirect()
                 ->route('pengajuan.index')

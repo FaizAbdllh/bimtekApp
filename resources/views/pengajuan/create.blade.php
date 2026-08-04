@@ -21,7 +21,8 @@
             return {
                 butuhVerifikasi: @json((bool) old('butuh_verifikasi_dokumen', false)),
                 jenisKegiatan: @json(old('jenis_kegiatan', '')),
-                docTypes: @json(old('jenis_dokumen_wajib', ['Surat Tugas', 'SPPD'])),
+                // 💡 PERBAIKAN 1: Mengambil old value dari 'syarat_dokumen'
+                docTypes: @json(old('syarat_dokumen', ['Surat Tugas', 'SPPD'])),
                 newDocType: '',
                 predefinedDocType: '',
                 predefinedOptions: [
@@ -317,7 +318,7 @@
                             </div>
                         </div>
 
-                        {{-- REFAKTORISASI LOKASI: Mengubah id, name, dan old dari tempat_kegiatan menjadi tempat_kegiatan_rencana --}}
+                        {{-- Tempat Kegiatan Rencana --}}
                         <div>
                             <label for="tempat_kegiatan_rencana" class="block text-sm font-semibold text-gray-700">
                                 Rencana Tempat Kegiatan <span class="text-red-500">*</span>
@@ -379,7 +380,8 @@
                                         <template x-for="(jenis, index) in docTypes" :key="jenis">
                                             <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 bg-white shadow-sm">
                                                 <div class="flex items-center">
-                                                    <input type="hidden" name="jenis_dokumen_wajib[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+                                                    {{-- 💡 PERBAIKAN 2: Mengubah name="jenis_dokumen_wajib[]" menjadi name="syarat_dokumen[]" --}}
+                                                    <input type="hidden" name="syarat_dokumen[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
                                                     <span class="text-sm font-medium text-gray-700" x-text="jenis"></span>
                                                 </div>
                                                 <button type="button" class="text-xs font-bold text-red-600 hover:text-red-800 transition" @click="removeDocType(index)">Hapus</button>

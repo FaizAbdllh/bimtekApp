@@ -22,7 +22,7 @@ class StorePengajuanRequest extends FormRequest
         if ($this->input('jenis_kegiatan') === 'internal') {
             $this->merge([
                 'butuh_verifikasi_dokumen' => false,
-                'jenis_dokumen_wajib' => null,
+                'syarat_dokumen' => null, // 💡 DISINKRONKAN: Menggunakan kunci syarat_dokumen
             ]);
         }
     }
@@ -39,7 +39,7 @@ class StorePengajuanRequest extends FormRequest
 
         $base = [
             'judul_rencana' => [$isDraft ? 'required' : 'required', 'string', 'max:255'],
-            'tempat_kegiatan_rencana' => [$isDraft ? 'nullable' : 'required', 'string', 'max:255'], // 💡 TITIK 1: Diselaraskan dengan DB
+            'tempat_kegiatan_rencana' => [$isDraft ? 'nullable' : 'required', 'string', 'max:255'],
             'sumber_pembiayaan' => [$isDraft ? 'nullable' : 'required', 'string', 'max:255'],
             'tanggal_mulai_rencana' => [$isDraft ? 'nullable' : 'required', 'date', $isDraft ? null : 'after_or_equal:today'],
             'tanggal_selesai_rencana' => [$isDraft ? 'nullable' : 'required', 'date', 'after_or_equal:tanggal_mulai_rencana'],
@@ -50,15 +50,14 @@ class StorePengajuanRequest extends FormRequest
             'catatan_logistik' => ['nullable', 'string', 'max:5000'],
         ];
 
-        // Validasi verifikasi dokumen
+        // 💡 DISINKRONKAN: Validasi verifikasi dokumen menggunakan 'syarat_dokumen'
         $verif = [
             'butuh_verifikasi_dokumen' => ['nullable', 'boolean'],
-            'jenis_dokumen_wajib' => ['nullable', 'array'],
-            'jenis_dokumen_wajib.*' => ['string', 'max:100', 'distinct'],
+            'syarat_dokumen' => ['nullable', 'array'],
         ];
 
         if (! $isDraft && $this->boolean('butuh_verifikasi_dokumen')) {
-            $verif['jenis_dokumen_wajib'] = ['required', 'array', 'min:1'];
+            $verif['syarat_dokumen'] = ['required', 'array', 'min:1'];
         }
 
         return array_merge($base, $verif);
@@ -74,7 +73,7 @@ class StorePengajuanRequest extends FormRequest
         return [
             'judul_rencana' => 'judul kegiatan',
             'jumlah_peserta' => 'jumlah peserta',
-            'tempat_kegiatan_rencana' => 'tempat kegiatan', // 💡 TITIK 2: Label pesan error tetap rapi
+            'tempat_kegiatan_rencana' => 'tempat kegiatan',
             'sumber_pembiayaan' => 'sumber pembiayaan',
             'tanggal_mulai_rencana' => 'tanggal mulai',
             'tanggal_selesai_rencana' => 'tanggal selesai',
@@ -82,6 +81,7 @@ class StorePengajuanRequest extends FormRequest
             'mode_pelaksanaan' => 'mode pelaksanaan',
             'jenis_kegiatan' => 'jenis kegiatan',
             'catatan_logistik' => 'catatan logistik',
+            'syarat_dokumen' => 'dokumen persyaratan',
         ];
     }
 
@@ -96,7 +96,7 @@ class StorePengajuanRequest extends FormRequest
             'judul_rencana.required' => 'Judul kegiatan wajib diisi.',
             'jumlah_peserta.integer' => 'Jumlah peserta harus berupa angka.',
             'jumlah_peserta.min' => 'Jumlah peserta minimal :min orang.',
-            'tempat_kegiatan_rencana.required' => 'Tempat kegiatan wajib diisi.', // 💡 TITIK 3: Key disesuaikan
+            'tempat_kegiatan_rencana.required' => 'Tempat kegiatan wajib diisi.',
             'sumber_pembiayaan.required' => 'Sumber pembiayaan wajib diisi.',
             'tanggal_mulai_rencana.required' => 'Tanggal mulai wajib diisi.',
             'tanggal_mulai_rencana.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
@@ -107,6 +107,7 @@ class StorePengajuanRequest extends FormRequest
             'mode_pelaksanaan.in' => 'Mode pelaksanaan tidak valid.',
             'jenis_kegiatan.required' => 'Jenis kegiatan wajib dipilih.',
             'jenis_kegiatan.in' => 'Jenis kegiatan tidak valid.',
+            'syarat_dokumen.required' => 'Minimal cantumkan 1 dokumen persyaratan jika verifikasi dokumen diaktifkan.',
         ];
     }
 }

@@ -152,10 +152,12 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/{bimtek}/verifikasi-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'index'])->name('verifikasi-dokumen.index');
     Route::get('/{bimtek}/upload-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'uploadForm'])->name('verifikasi-dokumen.upload-form');
     Route::post('/{bimtek}/upload-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'upload'])->name('verifikasi-dokumen.upload');
-    Route::post('/dokumen/{dokumen}/approve', [\App\Http\Controllers\VerifikasiDokumenController::class, 'approve'])->name('verifikasi-dokumen.approve');
-    Route::post('/dokumen/{dokumen}/reject', [\App\Http\Controllers\VerifikasiDokumenController::class, 'reject'])->name('verifikasi-dokumen.reject');
-    Route::get('/dokumen/{dokumen}/preview', [\App\Http\Controllers\VerifikasiDokumenController::class, 'preview'])->name('verifikasi-dokumen.preview');
-    Route::get('/dokumen/{dokumen}/download', [\App\Http\Controllers\VerifikasiDokumenController::class, 'download'])->name('verifikasi-dokumen.download');
+    
+    // 👇 Rute di bawah ini disesuaikan untuk menggunakan Composite Key (3 parameter)
+    Route::post('/{bimtek}/dokumen/{userId}/{syaratId}/approve', [\App\Http\Controllers\VerifikasiDokumenController::class, 'approve'])->name('verifikasi-dokumen.approve');
+    Route::post('/{bimtek}/dokumen/{userId}/{syaratId}/reject', [\App\Http\Controllers\VerifikasiDokumenController::class, 'reject'])->name('verifikasi-dokumen.reject');
+    Route::get('/{bimtek}/dokumen/{userId}/{syaratId}/preview', [\App\Http\Controllers\VerifikasiDokumenController::class, 'preview'])->name('verifikasi-dokumen.preview');
+    Route::get('/{bimtek}/dokumen/{userId}/{syaratId}/download', [\App\Http\Controllers\VerifikasiDokumenController::class, 'download'])->name('verifikasi-dokumen.download');
 
     // Materi routes (Pembersihan: middleware verified.peserta dihapus)
     Route::get('/{bimtek}/materi', [MateriController::class, 'index'])->name('materi.index');

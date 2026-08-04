@@ -60,7 +60,8 @@
         $fasilitasData = [['nama' => '', 'jumlah' => 1, 'satuan' => 'Unit', 'satuanCustom' => '']];
     }
     
-    $docTypesData = $pengajuan->jenis_dokumen_wajib ?? [];
+    // 💡 PERBAIKAN 1: Membaca dari relasi tabel syaratDokumens
+    $docTypesData = $pengajuan->syaratDokumens ? $pengajuan->syaratDokumens->pluck('nama_dokumen')->toArray() : [];
 @endphp
 
 @push('head-scripts')
@@ -81,12 +82,13 @@
     window.initialFasilitasData = @json($fasilitasData);
     window.initialDocTypes = @json($docTypesData);
     
-    function pengajuanForm() {
+    window.pengajuanForm = function() {
         return {
             jenisKegiatan: @json(old('jenis_kegiatan', $pengajuan->jenis_kegiatan)),
             butuhVerifikasi: @json((bool) old('butuh_verifikasi_dokumen', $pengajuan->butuh_verifikasi_dokumen)),
             anggaranItems: JSON.parse(JSON.stringify(window.initialAnggaranData)),
             fasilitasItems: JSON.parse(JSON.stringify(window.initialFasilitasData)),
+            // 💡 PERBAIKAN 2: Sinkronisasi draf syarat dokumen
             docTypes: JSON.parse(JSON.stringify(window.initialDocTypes)),
             newDocType: '',
             predefinedDocType: '',
@@ -139,7 +141,7 @@
                 }
 
                 const vol1 = Number(item.volume_1) || 0;
-                const vol2 = Number(item.volume_2) || 1; // Fallback ke 1 agar tidak menolkan hasil perkalian
+                const vol2 = Number(item.volume_2) || 1;
                 const harga = Number(item.harga_satuan) || 0;
                 item.total_biaya = vol1 * (vol2 > 0 ? vol2 : 1) * harga;
             },
@@ -226,7 +228,7 @@
                 this.syncVerifikasiByJenis();
             }
         };
-    }
+    };
 </script>
 @endpush
 
@@ -242,7 +244,7 @@
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                             </svg>
                             <span class="ml-1 text-sm text-gray-700 font-medium">Edit Pengajuan</span>
@@ -251,7 +253,6 @@
                 </ol>
             </nav>
 
-            {{-- REFAKTORISASI: Mengubah status_pengajuan menjadi status tunggal baru --}}
             @if($pengajuan->status === 'perlu_revisi' && $pengajuan->catatan_kepala)
             <div class="mb-6 p-4 bg-orange-100 border border-orange-400 rounded-xl shadow-sm">
                 <div class="flex">
@@ -329,7 +330,7 @@
 
                             {{-- Sumber Pembiayaan --}}
                             <div>
-                                <label filter="sumber_pembiayaan" class="block text-sm font-semibold text-gray-700">
+                                <label for="sumber_pembiayaan" class="block text-sm font-semibold text-gray-700">
                                     Sumber Pembiayaan <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" name="sumber_pembiayaan" id="sumber_pembiayaan" value="{{ old('sumber_pembiayaan', $pengajuan->sumber_pembiayaan) }}" required
@@ -364,7 +365,7 @@
                             </div>
                         </div>
 
-                        {{-- REFAKTORISASI LOKASI: Mengubah id, name, dan old dari tempat_kegiatan menjadi tempat_kegiatan_rencana --}}
+                        {{-- Tempat Kegiatan Rencana --}}
                         <div>
                             <label for="tempat_kegiatan_rencana" class="block text-sm font-semibold text-gray-700">
                                 Rencana Tempat Kegiatan <span class="text-red-500">*</span>
@@ -426,7 +427,8 @@
                                         <template x-for="(jenis, index) in docTypes" :key="jenis">
                                             <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 bg-white shadow-sm">
                                                 <div class="flex items-center">
-                                                    <input type="hidden" name="jenis_dokumen_wajib[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+                                                    {{-- 💡 PERBAIKAN 3: Disinkronkan ke name="syarat_dokumen[]" --}}
+                                                    <input type="hidden" name="syarat_dokumen[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
                                                     <span class="text-sm font-semibold text-gray-700" x-text="jenis"></span>
                                                 </div>
                                                 <button type="button" class="text-xs font-bold text-red-600 hover:text-red-800" @click="removeDocType(index)">Hapus</button>
@@ -610,9 +612,12 @@
                                                 <option value="Lembar">Lembar</option>
                                                 <option value="Lainnya">Lainnya...</option>
                                             </select>
-                                            <input type="text" x-model="fasilitas.satuanCustom" x-show="fasilitas.satuan === 'Lainnya'" required
+                                            
+                                            {{-- 💡 PERBAIKAN UTAMA: Mengubah required statis menjadi conditional :required --}}
+                                            <input type="text" x-model="fasilitas.satuanCustom" x-show="fasilitas.satuan === 'Lainnya'" :required="fasilitas.satuan === 'Lainnya'"
                                                 class="w-20 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
                                                 placeholder="Satuan...">
+                                                
                                             <input type="hidden" :name="'fasilitas[' + index + '][satuan]'" :value="fasilitas.satuan === 'Lainnya' ? fasilitas.satuanCustom : fasilitas.satuan">
                                             <input type="text" :name="'fasilitas[' + index + '][nama]'" x-model="fasilitas.nama" required
                                                 class="flex-1 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
@@ -676,7 +681,6 @@
                             </button>
                             
                             {{-- Kirim Pengajuan --}}
-                            {{-- REFAKTORISASI: Menyelaraskan teks tombol dengan memetakan 'draft_pic' --}}
                             <button type="submit"
                                 class="inline-flex items-center px-6 py-2.5 bg-primary-600 border border-transparent rounded-xl font-bold text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition shadow-sm">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

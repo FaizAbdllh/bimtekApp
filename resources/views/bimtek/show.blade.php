@@ -135,6 +135,24 @@
                                 </div>
                             </div>
 
+                            {{-- 💡 DINAMIS: Menampilkan daftar syarat berkas yang aktif di halaman detail Bimtek --}}
+                            @if($bimtek->butuh_verifikasi_dokumen && $bimtek->syaratDokumens->isNotEmpty())
+                                <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                                    <h4 class="font-bold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                        📋 Berkas Syarat Masuk Kelas:
+                                    </h4>
+                                    <ul class="space-y-1.5 font-semibold text-gray-600">
+                                        @foreach($bimtek->syaratDokumens as $syarat)
+                                            <li class="flex items-center gap-2">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $syarat->is_wajib ? 'bg-red-500' : 'bg-gray-400' }}"></span>
+                                                {{ $syarat->nama_dokumen }}
+                                                <span class="text-[10px] text-gray-400 font-normal">({{ $syarat->is_wajib ? 'Wajib' : 'Opsional' }})</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
                             {{-- Tautan Registrasi Mandiri / Shared Link --}}
                             @if($canManage && $bimtek->mode_pelaksanaan !== 'internal')
                                 <div class="mt-4 pt-4 border-t border-gray-100">

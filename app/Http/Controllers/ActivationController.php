@@ -5,196 +5,200 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Bimtek;
 use App\Models\Role;
+use App\Models\DokumenPersyaratanPeserta; // 💡 WAJIB DITAMBAHKAN
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ActivationController extends Controller
 {
     /**
-     * Tampilkan halaman form aktivasi (Tahap 1)
+     * TAHAP PENDAFTARAN: Menampilkan form registrasi mandiri via link kode undangan
      */
-    public function showManualActivationForm(Request $request)
+    public function showRegistrationForm(Request $request)
     {
-        // 1. Tangkap data email dan token dari query string URL email
-        $email = $request->query('email');
-        $token = $request->query('token');
+        $inviteCode = $request->query('code');
+        $bimtek = Bimtek::where('invite_code', $inviteCode)->first();
 
-        // 2. Oper variabel tersebut ke dalam file Blade activation.manual
-        return view('activation.manual', compact('email', 'token')); 
+        if (!$inviteCode || !$bimtek) {
+            return abort(404, 'Link pendaftaran tidak valid atau kelas Bimtek telah ditutup.');
+        }
+
+        // ALUMNI DETECTED: Jika user sudah login, jangan suruh isi form lagi.
+        if (Auth::check()) {
+            return view('auth.register-join-confirm', compact('bimtek', 'inviteCode'));
+        }
+
+        // Simpan kode undangan ke session untuk cadangan jika nanti dia dialihkan ke halaman login
+        session(['pending_invite_code' => $inviteCode]);
+
+        return view('auth.register', compact('bimtek', 'inviteCode'));
     }
 
     /**
-     * TAHAP 1: Verifikasi Email dan Token Manual via POST
+     * TAHAP PENDAFTARAN: Memproses submit data akun + berkas dari peserta luar
      */
-    public function verifyManualToken(Request $request)
+    public function submitRegistration(Request $request)
     {
+        // 1. Validasi awal input form (Sudah termasuk deteksi file dokumen)
         $request->validate([
-            'email' => 'required|email',
-            'token' => 'required|string',
+            'invite_code'   => 'required',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email',
+            'nip'           => 'required|string',
+            'asal_instansi' => 'required|string',
+            'dokumen'       => 'nullable|array', 
+            'dokumen.*'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // Maks 5MB per file
         ]);
 
-        $inputToken = trim($request->token);
+        $bimtek = Bimtek::where('invite_code', $request->invite_code)->firstOrFail();
 
-        // 💡 SINKRONISASI DB: Pencocokan langsung ke kolom 'token_hash'
-        $user = User::where('email', $request->email)
-            ->where('token_hash', $inputToken)
-            ->where('is_active', 0) // Pastikan akun memang belum aktif
+        // 2. Cek apakah user sudah terdaftar berdasarkan EMAIL atau NIP
+        $existingUser = User::where('email', $request->email)
+            ->orWhere('nip', $request->nip)
             ->first();
 
-        if (! $user) {
-            return redirect()->back()->withInput()->with('error', 'Token aktivasi tidak valid atau email salah.');
+        $registeredUserId = null;
+
+        if ($existingUser) {
+            // Cek apakah user tersebut sudah terdaftar di Bimtek ini
+            $isAlreadyJoined = $bimtek->peserta()->where('user_id', $existingUser->id)->exists();
+
+            if ($isAlreadyJoined) {
+                return redirect()->route('login')
+                    ->with('info', 'NIP atau Email Anda sudah terdaftar di kegiatan Bimtek ini. Silakan login ke akun Anda.');
+            }
+
+            // Jika user sudah punya akun di platform tetapi belum masuk ke Bimtek ini, daftarkan langsung
+            $bimtek->peserta()->attach($existingUser->id, [
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+            ]);
+
+            $registeredUserId = $existingUser->id;
+        } else {
+            // 3. Jika user benar-benar baru, buat entitas user baru
+            $rolePeserta = Role::where('nama_peran', 'Peserta Eksternal')
+                ->orWhere('nama_peran', 'Peserta')
+                ->first();
+
+            $user = User::create([
+                'name'          => $request->name,
+                'email'         => $request->email,
+                'password'      => Hash::make(Str::random(32)),
+                'nip'           => $request->nip,
+                'asal_instansi' => $request->asal_instansi,
+                'role_id'       => $rolePeserta?->id,
+                'is_active'     => 0,
+            ]);
+
+            // Hubungkan user baru ke tabel bridge peserta Bimtek
+            $bimtek->peserta()->attach($user->id, [
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+            ]);
+
+            $registeredUserId = $user->id;
         }
 
-        // 💡 SINKRONISASI DB: Validasi Kedaluwarsa Waktu menggunakan kolom asli 'expires_at'
-        if ($user->expires_at && now()->gt($user->expires_at)) {
-            return redirect()->back()->withInput()->with('error', 'Token aktivasi ini sudah kedaluwarsa. Silakan hubungi panitia untuk token baru.');
+        // 💡 4. PROSES TANGKAP DAN SIMPAN BERKAS PERSYARATAN
+        if ($bimtek->butuh_verifikasi_dokumen && $request->hasFile('dokumen')) {
+            foreach ($request->file('dokumen') as $syaratId => $file) {
+                if ($file && $file->isValid()) {
+                    // Simpan file fisik ke folder storage/app/public/dokumen-persyaratan/...
+                    $path = $file->store("dokumen-persyaratan/{$bimtek->id}", 'public');
+
+                    // Simpan record data berkas ke tabel dokumen_persyaratan_peserta
+                    DokumenPersyaratanPeserta::updateOrCreate(
+                        [
+                            'bimtek_id'         => $bimtek->id,
+                            'user_id'           => $registeredUserId,
+                            'syarat_dokumen_id' => $syaratId,
+                        ],
+                        [
+                            'file_path'   => $path,
+                            'file_name'   => $file->getClientOriginalName(), // 💡 WAJIB ADA: Mengambil nama asli file (misal: surat_tugas.pdf)
+                            'status'      => 'pending',
+                            'uploaded_at' => now(), // 💡 WAJIB ADA: Menyimpan timestamp waktu unggah
+                        ]
+                    );
+                }
+            }
         }
 
-        // 3. JIKA VALID: Oper status ke Blade Tahap 2 menggunakan Flash Session
-        return redirect()->back()->with([
-            'token_verified' => true,
-            'verified_email' => $request->email,
-            'verified_token' => $inputToken 
-        ]);
+        $message = $existingUser 
+            ? 'NIP/Email Anda sudah terdaftar di platform BBPMP. Pendaftaran kelas berhasil dan berkas Anda sedang antre untuk diperiksa. Silakan login!' 
+            : 'Pendaftaran berhasil! Berkas administrasi Anda telah diterima dan sedang dalam antrean pemeriksaan panitia. Silakan login.';
+
+        return redirect()->route('login')->with('success', $message);
     }
 
     /**
-     * TAHAP 2: Eksekusi Pembuatan Password Baru & Aktivasi Akun
+     * TAHAP AKTIVASI (MAGIC LINK): Membuka link dari email / WA secara langsung
+     * URL Pattern: /aktivasi/{token}
      */
-    public function setPassword(Request $request)
+    public function processMagicLink($token)
+    {
+        // Sistem langsung mencari pemilik token di balik layar (Tanpa ketik manual)
+        $user = User::where('token_hash', $token)
+            ->where('is_active', 0)
+            ->first();
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Tautan aktivasi tidak valid atau sudah pernah digunakan.');
+        }
+
+        // Validasi Kedaluwarsa Waktu token
+        if ($user->expires_at && now()->gt($user->expires_at)) {
+            return redirect()->route('login')->with('error', 'Tautan aktivasi ini sudah kedaluwarsa. Silakan hubungi panitia BBPMP.');
+        }
+
+        // Jika lolos semua validasi, langsung buka halaman set password baru
+        return view('auth.set-password', compact('user', 'token'));
+    }
+
+    /**
+     * TAHAP AKTIVASI: Eksekusi simpan password buatan peserta dan aktifkan akun
+     */
+    public function activateAccountAndSetPassword(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
             'token'    => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $inputToken = trim($request->token);
-
-        // Verifikasi ulang user dan token langsung di tabel users (Security Layer)
-        $user = User::where('email', $request->email)
-            ->where('token_hash', $inputToken)
+        $user = User::where('token_hash', $request->token)
             ->where('is_active', 0)
             ->first();
         
-        if (! $user) {
-            return redirect()->to('/aktivasi')->with('error', 'Sesi aktivasi tidak valid atau sudah digunakan, silakan ulangi.');
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Sesi aktivasi tidak valid.');
         }
 
-        // Double Check Kedaluwarsa di Tahap Akhir
-        if ($user->expires_at && now()->gt($user->expires_at)) {
-            return redirect()->to('/aktivasi')->with('error', 'Proses gagal. Token telah kedaluwarsa.');
-        }
-
-        // 💡 SINKRONISASI DB: Menggunakan token_hash, expires_at, dan used_at sekaligus
+        // Eksekusi Aktivasi Akun secara permanen
         $user->update([
             'password'   => Hash::make($request->password),
-            'is_active'  => 1,
-            'token_hash' => null, // Dikosongkan agar token hangus & tidak bisa disalahgunakan
+            'is_active'  => 1, // 🔓 AKUN RESMI AKTIF!
+            'token_hash' => null, // Hanguskan token agar tidak bisa diklik ulang
             'expires_at' => null,
             'used_at'    => now(),
         ]);
 
-        // 2. Otomatis Login-kan peserta ke dalam sistem
+        // Otomatis login-kan peserta ke dalam sistem
         Auth::login($user);
 
-        // =====================================================================
-        // 💡 PERBAIKAN UTAMA: Mengalihkan pencarian ke tabel baru 'bimtek_pesertas'
-        // =====================================================================
+        // Cari tahu kelas bimektnya untuk diarahkan ke halaman yang sesuai
         $assignedBimtek = DB::table('bimtek_pesertas')
             ->where('user_id', $user->id)
             ->latest('created_at')
             ->first();
 
         if ($assignedBimtek) {
-            // Jika hubungan kelas ditemukan, arahkan langsung ke halaman upload persyaratan berkas
-            return redirect()->route('bimtek.verifikasi-dokumen.upload-form', $assignedBimtek->bimtek_id)
-                ->with('success', 'Akun Anda berhasil diaktifkan! Silakan unggah dokumen persyaratan Anda.');
+            return redirect()->route('dashboard')
+                ->with('success', 'Selamat! Akun Anda berhasil diaktifkan dan terdaftar resmi sebagai peserta.');
         }
 
-        // Fallback jika karena suatu hal data jembatan tidak terbaca, arahkan ke dashboard utama
-        return redirect()->route('dashboard')
-            ->with('success', 'Akun Anda berhasil diaktifkan!');
-    }
-
-    /**
-     * Menampilkan form registrasi mandiri via link kode undangan
-     */
-    public function showRegistrationForm(Request $request)
-    {
-        $inviteCode = $request->query('code');
-
-        // Cari kelas bimtek yang memiliki kode undangan tersebut
-        $bimtek = Bimtek::where('invite_code', $inviteCode)->first();
-
-        // Jika kode tidak diisi atau kelas tidak ditemukan, lempar 404 khusus
-        if (!$inviteCode || !$bimtek) {
-            return abort(404, 'Link pendaftaran tidak valid atau kelas Bimtek telah ditutup.');
-        }
-
-        return view('auth.register', compact('bimtek', 'inviteCode'));
-    }
-
-    /**
-     * Memproses submit data akun dari peserta luar
-     */
-    public function submitRegistration(Request $request)
-    {
-        $request->validate([
-            'invite_code'   => 'required|string',
-            'name'          => 'required|string|max:255',
-            'email'         => 'required|string|email|max:255|unique:users,email',
-            'password'      => 'required|string|min:8|confirmed',
-            'nip'           => 'nullable|string|max:50|unique:users,nip',
-            'asal_instansi' => 'nullable|string|max:255',
-        ]);
-
-        $bimtek = Bimtek::where('invite_code', $request->invite_code)->first();
-        if (!$bimtek) {
-            return back()->withInput()->with('error', 'Kode undangan kadaluwarsa atau tidak sah.');
-        }
-
-        // =====================================================================
-        // 💡 PERBAIKAN DEFINITIF: Ambil UUID Role secara dinamis dari tabel roles
-        // =====================================================================
-        $rolePeserta = Role::where('nama_peran', 'Peserta Eksternal')
-            ->orWhere('nama_peran', 'Peserta')
-            ->first();
-
-        if (!$rolePeserta) {
-            return back()->withInput()->with('error', 'Konfigurasi Role untuk Peserta tidak ditemukan di database.');
-        }
-
-        // 1. Buat Akun User Baru langsung dengan status Aktif (karena mendaftar lewat link resmi)
-        $user = User::create([
-            'name'          => $request->name,
-            'email'         => $request->email,
-            'password'      => Hash::make($request->password),
-            'nip'           => $request->nip,
-            'asal_instansi' => $request->asal_instansi,
-            'role_id'       => $rolePeserta->id, // Menggunakan UUID string asli hasil query di atas
-            'is_active'     => 1,
-            'used_at'       => now(), // Sesuai kolom database riil
-        ]);
-
-        // 2. Pasangkan secara otomatis ke dalam tabel jembatan keanggotaan kelas
-        $bimtek->peserta()->attach($user->id, [
-            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'invited' : 'verified',
-            'created_at'        => now(),
-            'updated_at'        => now(),
-        ]);
-
-        // 3. Otomatis login-kan user ke sistem
-        Auth::login($user);
-
-        // 4. Arahkan ke form upload berkas jika butuh verifikasi, atau ke dashboard jika bebas syarat
-        if ($bimtek->butuh_verifikasi_dokumen) {
-            return redirect()->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
-                ->with('success', 'Registrasi berhasil! Silakan lengkapi berkas persyaratan administrasi Anda.');
-        }
-
-        return redirect()->route('dashboard')->with('success', 'Selamat bergabung! Akun Anda berhasil diaktifkan.');
+        return redirect()->route('dashboard')->with('success', 'Akun Anda berhasil diaktifkan!');
     }
 }

@@ -14,104 +14,99 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class VerifikasiDokumenController extends Controller
 {
     /**
-     * Tampilkan halaman form unggah berkas persyaratan bagi peserta.
+     * Tampilkan halaman form unggah berkas persyaratan bagi peserta (Untuk perbaikan berkas).
      */
     public function uploadForm(Bimtek $bimtek): View
     {
         $user = Auth::user();
 
-        // REFAKTORISASI: Memeriksa keanggotaan menggunakan jembatan peserta baru
         $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
         if (! $isPeserta) {
             abort(403, 'Anda bukan peserta resmi dari kegiatan bimtek ini.');
         }
 
-        // REFAKTORISASI: Mengalihkan pembacaan data dari bimtek_user ke bimtek_pesertas
         $assignment = DB::table('bimtek_pesertas')
             ->where('bimtek_id', $bimtek->id)
             ->where('user_id', $user->id)
             ->first();
 
-        $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
+        $syaratDokumens = $bimtek->syaratDokumens;
 
+        // 💡 Murni menggunakan relasi syarat_dokumen_id
         $userDokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
             ->where('user_id', $user->id)
-            ->whereIn('jenis_dokumen', $jenisDokumenWajib)
             ->latest('uploaded_at')
             ->get();
 
-        $dokumenMap = $userDokumen
-            ->groupBy('jenis_dokumen')
-            ->map(fn ($items) => $items->first());
+        $dokumenMap = $userDokumen->keyBy('syarat_dokumen_id');
 
         return view('verifikasi-dokumen.upload', compact(
             'bimtek',
             'assignment',
             'dokumenMap',
-            'jenisDokumenWajib',
-            'userDokumen'
+            'syaratDokumens'
         ));
     }
 
     /**
-     * Simpan file berkas yang diunggah oleh peserta ke dalam storage lokal.
+     * Simpan file berkas yang diunggah ulang oleh peserta (revisi/perbaikan).
      */
     public function upload(Request $request, Bimtek $bimtek): RedirectResponse
     {
         $user = Auth::user();
-        $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
 
         $validated = $request->validate([
-            'jenis_dokumen' => ['required', Rule::in($jenisDokumenWajib)],
+            'syarat_dokumen_id' => 'required|exists:syarat_dokumens,id',
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ], [
             'file.max' => 'Ukuran file maksimal 2MB.',
             'file.mimes' => 'File harus berformat PDF, JPG, atau PNG.',
         ]);
 
-        // Cari dan hapus berkas fisik versi lama jika peserta melakukan unggah ulang (re-upload)
+        $syaratId = $validated['syarat_dokumen_id'];
+
         $oldDokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
             ->where('user_id', $user->id)
-            ->where('jenis_dokumen', $validated['jenis_dokumen'])
+            ->where('syarat_dokumen_id', $syaratId)
             ->first();
 
         if ($oldDokumen) {
             Storage::disk('public')->delete($oldDokumen->file_path);
-            $oldDokumen->delete();
+            // Kita tidak perlu delete datanya, cukup updateOrCreate nanti
         }
 
         $file = $request->file('file');
-        $fileName = time().'_'.Str::slug($validated['jenis_dokumen']).'_'.$user->id.'.'.$file->getClientOriginalExtension();
-        $filePath = $file->storeAs('dokumen_persyaratan', $fileName, 'public');
+        $fileName = time().'_rev_'.$user->id.'.'.$file->getClientOriginalExtension();
+        $filePath = $file->storeAs("dokumen-persyaratan/{$bimtek->id}", $fileName, 'public');
 
-        DokumenPersyaratanPeserta::create([
-            'bimtek_id' => $bimtek->id,
-            'user_id' => $user->id,
-            'jenis_dokumen' => $validated['jenis_dokumen'],
-            'file_path' => $filePath,
-            'file_name' => $file->getClientOriginalName(),
-            'status' => 'pending',
-            'uploaded_at' => now(),
-        ]);
+        DokumenPersyaratanPeserta::updateOrCreate(
+            [
+                'bimtek_id' => $bimtek->id,
+                'user_id' => $user->id,
+                'syarat_dokumen_id' => $syaratId,
+            ],
+            [
+                'file_path' => $filePath,
+                'file_name' => $file->getClientOriginalName(),
+                'status' => 'pending',
+                'uploaded_at' => now(),
+            ]
+        );
 
-        // REFAKTORISASI: Naikkan status kelulusan berkas di tabel bridge bimtek_pesertas menjadi 'pending'
         DB::table('bimtek_pesertas')
             ->where('bimtek_id', $bimtek->id)
             ->where('user_id', $user->id)
             ->whereIn('status_verifikasi', ['invited', 'rejected'])
             ->update(['status_verifikasi' => 'pending']);
 
-        $jenisLabel = Str::of($validated['jenis_dokumen'])->replace('_', ' ')->title();
-
         return redirect()
             ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
-            ->with('success', "Dokumen {$jenisLabel} berhasil diunggah. Menunggu proses pemeriksaan panitia.");
+            ->with('success', "Dokumen revisi berhasil diunggah. Menunggu pemeriksaan panitia.");
     }
 
     /**
@@ -120,43 +115,44 @@ class VerifikasiDokumenController extends Controller
     public function index(Bimtek $bimtek): View
     {
         $this->authorizePicPanitia($bimtek);
-        $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
+        
+        $syaratDokumens = $bimtek->syaratDokumens;
 
-        // Mengumpulkan daftar peserta beserta lampiran file dokumennya
         $pesertaList = $bimtek->peserta()
             ->with(['dokumenPersyaratan' => function ($query) use ($bimtek) {
                 $query->where('bimtek_id', $bimtek->id)->latest('uploaded_at');
             }])
             ->get()
-            ->map(function ($peserta) use ($bimtek, $jenisDokumenWajib) {
-                // REFAKTORISASI: Membaca status checklist kelulusan dari tabel jembatan baru
+            ->map(function ($peserta) use ($bimtek) {
                 $assignment = DB::table('bimtek_pesertas')
                     ->where('bimtek_id', $bimtek->id)
                     ->where('user_id', $peserta->id)
                     ->first();
 
-                $dokumenByJenis = $peserta->dokumenPersyaratan
-                    ->whereIn('jenis_dokumen', $jenisDokumenWajib)
-                    ->groupBy('jenis_dokumen')
-                    ->map(fn ($items) => $items->first());
+                // 💡 Pemetakan file berdasarkan syarat_dokumen_id
+                $dokumenBySyaratId = $peserta->dokumenPersyaratan->keyBy('syarat_dokumen_id');
 
                 return [
                     'user' => $peserta,
                     'status_verifikasi' => $assignment->status_verifikasi ?? 'invited',
-                    'dokumen' => $dokumenByJenis,
+                    'dokumen' => $dokumenBySyaratId,
                 ];
             });
 
-        return view('verifikasi-dokumen.index', compact('bimtek', 'pesertaList', 'jenisDokumenWajib'));
+        return view('verifikasi-dokumen.index', compact('bimtek', 'pesertaList', 'syaratDokumens'));
     }
 
     /**
      * Aksi Persetujuan Dokumen oleh Panitia.
      */
-    public function approve(Request $request, DokumenPersyaratanPeserta $dokumen): RedirectResponse
+    public function approve(Request $request, Bimtek $bimtek, string $userId, string $syaratId): RedirectResponse
     {
-        $bimtek = $dokumen->bimtek;
         $this->authorizePicPanitia($bimtek);
+
+        $dokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $userId)
+            ->where('syarat_dokumen_id', $syaratId)
+            ->firstOrFail();
 
         $dokumen->update([
             'status' => 'approved',
@@ -165,7 +161,6 @@ class VerifikasiDokumenController extends Controller
             'catatan_verifikasi' => $request->input('catatan_verifikasi') ?? $request->input('catatan'),
         ]);
 
-        // Menjalankan pengecekan otomatis, jika semua berkas wajib sudah disetujui, luluskan peserta
         $this->updatePesertaStatusVerifikasi($bimtek, $dokumen->user_id);
 
         return redirect()
@@ -176,16 +171,18 @@ class VerifikasiDokumenController extends Controller
     /**
      * Aksi Penolakan Dokumen oleh Panitia (Disertai catatan koreksi).
      */
-    public function reject(Request $request, DokumenPersyaratanPeserta $dokumen): RedirectResponse
+    public function reject(Request $request, Bimtek $bimtek, string $userId, string $syaratId): RedirectResponse
     {
-        $bimtek = $dokumen->bimtek;
         $this->authorizePicPanitia($bimtek);
 
         $validated = $request->validate([
             'catatan_verifikasi' => 'required|string|max:1000',
-        ], [
-            'catatan_verifikasi.required' => 'Alasan penolakan dokumen wajib diisi agar peserta tahu bagian yang salah.',
         ]);
+
+        $dokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $userId)
+            ->where('syarat_dokumen_id', $syaratId)
+            ->firstOrFail();
 
         $dokumen->update([
             'status' => 'rejected',
@@ -194,7 +191,6 @@ class VerifikasiDokumenController extends Controller
             'catatan_verifikasi' => $validated['catatan_verifikasi'],
         ]);
 
-        // REFAKTORISASI: Kunci status verifikasi peserta di tabel bridge menjadi 'rejected'
         DB::table('bimtek_pesertas')
             ->where('bimtek_id', $bimtek->id)
             ->where('user_id', $dokumen->user_id)
@@ -220,89 +216,73 @@ class VerifikasiDokumenController extends Controller
      */
     protected function updatePesertaStatusVerifikasi(Bimtek $bimtek, string $userId): void
     {
-        $jenisDokumenWajib = $bimtek->jenis_dokumen_wajib ?? ['surat_tugas', 'sppd'];
+        $jumlahDokumenWajib = DB::table('syarat_dokumens')
+            ->where('bimtek_id', $bimtek->id)
+            ->where('is_wajib', 1)
+            ->count();
 
-        $allApproved = true;
-        foreach ($jenisDokumenWajib as $jenis) {
-            $dokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
-                ->where('user_id', $userId)
-                ->where('jenis_dokumen', $jenis)
-                ->latest('uploaded_at')
-                ->first();
+        // 💡 PERBAIKAN: Menghapus typo fatal 'dokumen_persyaratan_peserta('
+        $jumlahApproved = DB::table('dokumen_persyaratan_peserta')
+            ->join('syarat_dokumens', 'dokumen_persyaratan_peserta.syarat_dokumen_id', '=', 'syarat_dokumens.id')
+            ->where('dokumen_persyaratan_peserta.bimtek_id', $bimtek->id)
+            ->where('dokumen_persyaratan_peserta.user_id', $userId)
+            ->where('syarat_dokumens.is_wajib', 1)
+            ->where('dokumen_persyaratan_peserta.status', 'approved')
+            ->count();
 
-            if (! $dokumen || $dokumen->status !== 'approved') {
-                $allApproved = false;
-                break;
-            }
-        }
-
-        // Jika seluruh syarat dokumen terpenuhi tanpa cela, ubah status final peserta menjadi verified
-        if ($allApproved) {
-            // REFAKTORISASI: Perbarui status akhir kelulusan langsung ke tabel jembatan bimtek_pesertas
+        if ($jumlahDokumenWajib > 0 && $jumlahDokumenWajib === $jumlahApproved) {
             DB::table('bimtek_pesertas')
                 ->where('bimtek_id', $bimtek->id)
                 ->where('user_id', $userId)
-                ->update(['status_verifikasi' => 'verified']);
+                ->update(['status_verifikasi' => 'verified', 'updated_at' => now()]);
 
             try {
                 $peserta = User::find($userId);
-                Mail::to($peserta->email)->send(new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified'));
+
+                if ($peserta->is_active == 0) {
+                    $magicToken = Str::random(64);
+                    $peserta->update([
+                        'token_hash' => $magicToken,
+                        'expires_at' => now()->addDays(7),
+                    ]);
+
+                    $activationUrl = url('/aktivasi/' . $magicToken);
+
+                    Mail::to($peserta->email)->send(
+                        new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified', null, $activationUrl)
+                    );
+                } else {
+                    Mail::to($peserta->email)->send(
+                        new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified')
+                    );
+                }
             } catch (\Exception $e) {
-                Log::error('Gagal mengirim email kelulusan dokumen.');
+                Log::error('Gagal memproses otomatisasi rilis token/email kelulusan: '.$e->getMessage());
             }
         }
-    }
-
-    /**
-     * Fitur Pratinjau Berkas Persyaratan (Khusus format berkas PDF).
-     */
-    public function preview(DokumenPersyaratanPeserta $dokumen)
-    {
-        $bimtek = $dokumen->bimtek;
-        $user = Auth::user();
-
-        $isPicPanitia = $bimtek->pic_user_id === $user->id || $bimtek->panitia()->where('user_id', $user->id)->exists();
-        $isOwner = $dokumen->user_id === $user->id;
-
-        if (! $isPicPanitia && ! $isOwner && ! $user->isAdminIt()) {
-            abort(403, 'Anda tidak memiliki hak otoritas untuk melihat berkas dokumen ini.');
-        }
-
-        $filePath = Storage::disk('public')->path($dokumen->file_path);
-        $mimeType = Storage::disk('public')->mimeType($dokumen->file_path);
-
-        if ($mimeType !== 'application/pdf') {
-            return redirect()->route('bimtek.verifikasi-dokumen.download', $dokumen->id)
-                ->with('info', 'Format berkas non-PDF hanya mendukung opsi unduh langsung.');
-        }
-
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="'.$dokumen->file_name.'"',
-        ]);
     }
 
     /**
      * Unduh berkas fisik dokumen persyaratan.
      */
-    public function download(DokumenPersyaratanPeserta $dokumen)
+    public function download(Bimtek $bimtek, string $userId, string $syaratId)
     {
-        $bimtek = $dokumen->bimtek;
         $user = Auth::user();
-
         $isPicPanitia = $bimtek->pic_user_id === $user->id || $bimtek->panitia()->where('user_id', $user->id)->exists();
-        $isOwner = $dokumen->user_id === $user->id;
+        $isOwner = $userId === (string) $user->id;
 
         if (! $isPicPanitia && ! $isOwner && ! $user->isAdminIt()) {
             abort(403, 'Akses ditolak.');
         }
 
+        $dokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $userId)
+            ->where('syarat_dokumen_id', $syaratId)
+            ->firstOrFail();
+
         return Storage::disk('public')->download($dokumen->file_path, $dokumen->file_name);
     }
 
-    /**
-     * Proteksi Keamanan Akses Meja Verifikasi Berkegiatan.
-     */
     protected function authorizePicPanitia(Bimtek $bimtek): void
     {
         $user = Auth::user();
@@ -312,5 +292,37 @@ class VerifikasiDokumenController extends Controller
         if (! $isPic && ! $isPanitia) {
             abort(403, 'Wewenang terbatas! Modul ini dikunci khusus bagi PIC atau jajaran Panitia Pokja.');
         }
+    }
+    /**
+     * Fitur Pratinjau Berkas Persyaratan (Khusus format berkas PDF).
+     */
+    public function preview(Bimtek $bimtek, string $userId, string $syaratId)
+    {
+        $user = Auth::user();
+        $isPicPanitia = $bimtek->pic_user_id === $user->id || $bimtek->panitia()->where('user_id', $user->id)->exists();
+        $isOwner = $userId === (string) $user->id;
+
+        if (! $isPicPanitia && ! $isOwner && ! $user->isAdminIt()) {
+            abort(403, 'Anda tidak memiliki hak otoritas untuk melihat berkas dokumen ini.');
+        }
+
+        $dokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $userId)
+            ->where('syarat_dokumen_id', $syaratId)
+            ->firstOrFail();
+
+        $filePath = Storage::disk('public')->path($dokumen->file_path);
+        $mimeType = Storage::disk('public')->mimeType($dokumen->file_path);
+
+        if ($mimeType !== 'application/pdf') {
+            return redirect()->route('bimtek.verifikasi-dokumen.download', [
+                'bimtek' => $bimtek->id, 'userId' => $userId, 'syaratId' => $syaratId
+            ])->with('info', 'Format berkas non-PDF hanya mendukung opsi unduh langsung.');
+        }
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.$dokumen->file_name.'"',
+        ]);
     }
 }

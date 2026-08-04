@@ -55,11 +55,14 @@
                                     <th class="px-4 py-3 text-center w-12">No</th>
                                     <th class="px-4 py-3 text-left pl-6">Nama Lengkap Anggota</th>
                                     <th class="px-4 py-3 text-center w-36">Status Kelulusan</th>
-                                    @foreach($jenisDokumenWajib as $jenis)
+                                    
+                                    {{-- Loop Kolom Header Menggunakan Nama Dokumen Riil Relasional --}}
+                                    @foreach($bimtek->syaratDokumens as $syarat)
                                         <th class="px-4 py-3 text-center">
-                                            {{ \Illuminate\Support\Str::of($jenis)->replace('_', ' ')->title() }}
+                                            {{ $syarat->nama_dokumen }}
                                         </th>
                                     @endforeach
+                                    
                                     <th class="px-4 py-3 text-center w-20">Aksi</th>
                                 </tr>
                             </thead>
@@ -82,10 +85,14 @@
                                                 <span class="px-2.5 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-bold">✗ Ditolak</span>
                                             @endif
                                         </td>
-                                        @foreach($jenisDokumenWajib as $jenis)
+                                        
+                                        {{-- Mencocokkan Berkas Peserta Berdasarkan syarat_dokumen_id --}}
+                                        @foreach($bimtek->syaratDokumens as $syarat)
                                             @php
-                                                $dokumen = $item['dokumen'][$jenis] ?? null;
-                                                $label = \Illuminate\Support\Str::of($jenis)->replace('_', ' ')->title();
+                                                $dokumen = $item['user']->dokumenPersyaratan
+                                                    ->where('bimtek_id', $bimtek->id)
+                                                    ->where('syarat_dokumen_id', $syarat->id)
+                                                    ->first();
                                             @endphp
                                             <td class="px-4 py-3 text-center">
                                                 @if($dokumen)
@@ -99,17 +106,19 @@
                                                         @endif
                                                         <div class="flex items-center gap-2 mt-0.5 font-bold text-xs">
                                                             @if(str_ends_with($dokumen->file_path, '.pdf'))
-                                                                <a href="{{ route('bimtek.verifikasi-dokumen.preview', $dokumen->id) }}" 
-                                                                    target="_blank" rel="noopener"
-                                                                    class="text-purple-600 hover:text-purple-800 hover:underline">Lihat</a>
+                                                                {{-- 💡 PERBAIKAN: Penambahan bimtek. pada nama route --}}
+                                                                <a href="{{ route('bimtek.verifikasi-dokumen.preview', ['bimtek' => $bimtek->id, 'userId' => $item['user']->id, 'syaratId' => $syarat->id]) }}" 
+                                                                   target="_blank" rel="noopener"
+                                                                   class="text-purple-600 hover:text-purple-800 hover:underline">Lihat</a>
                                                             @endif
-                                                            <a href="{{ route('bimtek.verifikasi-dokumen.download', $dokumen->id) }}" 
+                                                            {{-- 💡 PERBAIKAN: Penambahan bimtek. pada nama route --}}
+                                                            <a href="{{ route('bimtek.verifikasi-dokumen.download', ['bimtek' => $bimtek->id, 'userId' => $item['user']->id, 'syaratId' => $syarat->id]) }}" 
                                                                class="text-primary-600 hover:text-primary-800 hover:underline">Unduh</a>
                                                             
                                                             @if($dokumen->status === 'pending')
-                                                                <button type="button" x-data @click="$dispatch('open-modal', 'approve-{{ $dokumen->id }}')"
+                                                                <button type="button" x-data @click="$dispatch('open-modal', 'approve-{{ $item['user']->id }}-{{ $syarat->id }}')"
                                                                         class="text-green-600 hover:text-green-800 hover:underline">Setujui</button>
-                                                                <button type="button" x-data @click="$dispatch('open-modal', 'reject-{{ $dokumen->id }}')"
+                                                                <button type="button" x-data @click="$dispatch('open-modal', 'reject-{{ $item['user']->id }}-{{ $syarat->id }}')"
                                                                         class="text-red-600 hover:text-red-800 hover:underline">Tolak</button>
                                                             @endif
                                                         </div>
@@ -122,22 +131,25 @@
                                         <td class="px-4 py-3 text-center text-gray-400 font-medium align-middle">-</td>
                                     </tr>
 
-                                    {{-- COMPONENT MODAL PERSURATAN DI DALAM TABEL ITERASI --}}
-                                    @foreach($jenisDokumenWajib as $jenis)
+                                    {{-- Loop Pembuatan Komponen Pop-up Modal Persuratan Secara Dinamis --}}
+                                    @foreach($bimtek->syaratDokumens as $syarat)
                                         @php
-                                            $dokumen = $item['dokumen'][$jenis] ?? null;
-                                            $label = \Illuminate\Support\Str::of($jenis)->replace('_', ' ')->title();
+                                            $dokumen = $item['user']->dokumenPersyaratan
+                                                ->where('bimtek_id', $bimtek->id)
+                                                ->where('syarat_dokumen_id', $syarat->id)
+                                                ->first();
                                         @endphp
                                         @if($dokumen && $dokumen->status === 'pending')
                                             {{-- Modal Konfirmasi Persetujuan Berkas Berjalan --}}
-                                            <x-modal name="approve-{{ $dokumen->id }}" :show="false" maxWidth="md">
-                                                <form action="{{ route('bimtek.verifikasi-dokumen.approve', $dokumen->id) }}" method="POST" class="p-6 bg-white">
+                                            <x-modal name="approve-{{ $item['user']->id }}-{{ $syarat->id }}" :show="false" maxWidth="md">
+                                                {{-- 💡 PERBAIKAN: Penambahan bimtek. pada nama route form --}}
+                                                <form action="{{ route('bimtek.verifikasi-dokumen.approve', ['bimtek' => $bimtek->id, 'userId' => $item['user']->id, 'syaratId' => $syarat->id]) }}" method="POST" class="p-6 bg-white">
                                                     @csrf
                                                     <div class="flex items-center gap-3 mb-4 border-b border-gray-50 pb-3">
                                                         <div class="w-9 h-9 bg-green-100 text-green-700 rounded-full flex items-center justify-center flex-shrink-0">
                                                             ✓
                                                         </div>
-                                                        <h3 class="text-base font-bold text-gray-900">Sahkan {{ $label }}</h3>
+                                                        <h3 class="text-base font-bold text-gray-900">Sahkan {{ $syarat->nama_dokumen }}</h3>
                                                     </div>
                                                     <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-1 mb-4">
                                                         <p><span class="font-bold text-gray-500">Nama Dokumen:</span> {{ $dokumen->file_name }}</p>
@@ -155,14 +167,15 @@
                                             </x-modal>
 
                                             {{-- Modal Penolakan / Pengembalian Berkas Peserta --}}
-                                            <x-modal name="reject-{{ $dokumen->id }}" :show="false" maxWidth="md">
-                                                <form action="{{ route('bimtek.verifikasi-dokumen.reject', $dokumen->id) }}" method="POST" class="p-6 bg-white">
+                                            <x-modal name="reject-{{ $item['user']->id }}-{{ $syarat->id }}" :show="false" maxWidth="md">
+                                                {{-- 💡 PERBAIKAN: Penambahan bimtek. pada nama route form --}}
+                                                <form action="{{ route('bimtek.verifikasi-dokumen.reject', ['bimtek' => $bimtek->id, 'userId' => $item['user']->id, 'syaratId' => $syarat->id]) }}" method="POST" class="p-6 bg-white">
                                                     @csrf
                                                     <div class="flex items-center gap-3 mb-4 border-b border-gray-50 pb-3">
                                                         <div class="w-9 h-9 bg-red-100 text-red-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">
                                                             ✗
                                                         </div>
-                                                        <h3 class="text-base font-bold text-gray-900">Tolak Berkas {{ $label }}</h3>
+                                                        <h3 class="text-base font-bold text-gray-900">Tolak Berkas {{ $syarat->nama_dokumen }}</h3>
                                                     </div>
                                                     <div class="mb-4">
                                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Alasan Penolakan Berkas <span class="text-red-500">*</span></label>
@@ -179,7 +192,7 @@
                                 @empty
                                     <tr>
                                         @php
-                                            $colspan = 4 + count($jenisDokumenWajib);
+                                            $colspan = 4 + $bimtek->syaratDokumens->count();
                                         @endphp
                                         <td colspan="{{ $colspan }}" class="px-4 py-12 text-center text-gray-400 font-medium">
                                             <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

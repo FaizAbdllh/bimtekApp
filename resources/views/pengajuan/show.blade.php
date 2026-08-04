@@ -96,7 +96,7 @@
                         {{ $verificationLabel }}
                     </div>
                     <p class="mt-2 text-xs text-gray-400">
-                        {{ $pengajuan->butuh_verifikasi_dokumen ? 'Wajib unggah Surat Tugas/SPPD.' : 'Akses kelas terbuka langsung.' }}
+                        {{ $pengajuan->butuh_verifikasi_dokumen ? 'Wajib unggah dokumen persyaratan.' : 'Akses kelas terbuka langsung.' }}
                     </p>
                 </div>
 

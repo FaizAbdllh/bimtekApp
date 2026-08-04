@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bimtek;
 use App\Models\LogSistem;
 use App\Models\User;
+use App\Models\BimtekPemateri;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -115,7 +116,8 @@ class BimtekController extends Controller
             'tugas.pengumpulanTugas',
             'sesiAbsensis',
             'sertifikats.user',
-            'fasilitasLogistiks'
+            'fasilitasLogistiks',
+            'syaratDokumens'
         ]);
 
         // Mengumpulkan daftar ID user yang sudah tergabung agar tidak muncul ganda di modal input

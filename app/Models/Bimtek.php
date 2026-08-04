@@ -102,7 +102,14 @@ class Bimtek extends Model
             ->withPivot('fungsi_panitia')
             ->withTimestamps();
     }
-
+    /**
+     * Relasi ke tabel syarat_dokumens (One-to-Many)
+     */
+    public function syaratDokumens(): HasMany
+    {
+        // Sesuaikan 'SyaratDokumen' dengan nama Class Model milik tabel syarat_dokumens Anda
+        return $this->hasMany(SyaratDokumen::class, 'bimtek_id');
+    }
     /**
      * Relasi Jembatan Peserta (Sesuai tabel terpisah baru)
      */
