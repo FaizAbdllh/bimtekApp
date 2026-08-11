@@ -306,12 +306,27 @@
                                 $sertifikatSaya = $bimtek->sertifikats->where('user_id', auth()->id())->first();
                             @endphp
                             @if($sertifikatSaya)
-                                <div class="p-5 border border-green-200 bg-green-50/40 rounded-2xl flex items-center justify-between">
+                                <div class="p-5 border border-green-200 bg-green-50/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                     <div>
                                         <h4 class="text-sm font-bold text-green-900">Selamat! Sertifikat Kelulusan Anda Tersedia</h4>
                                         <p class="text-xs text-green-700 font-medium font-mono mt-1">No Seri: {{ $sertifikatSaya->nomor_sertifikat }}</p>
                                     </div>
-                                    <a href="{{ route('bimtek.sertifikat.download', [$bimtek->id, $sertifikatSaya->id]) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl transition shadow-sm">Unduh PDF</a>
+                                    
+                                    <div class="flex items-center gap-2.5 shrink-0">
+                                        {{-- Tombol Pratinjau (Membuka PDF di Tab Baru) --}}
+                                        <a href="{{ route('bimtek.sertifikat.preview', [$bimtek->id, $sertifikatSaya->user_id]) }}" 
+                                        target="_blank" 
+                                        rel="noopener" 
+                                        class="px-4 py-2 bg-white border border-green-300 hover:bg-green-50 text-green-700 font-bold text-xs rounded-xl transition shadow-sm">
+                                            Pratinjau
+                                        </a>
+
+                                        {{-- Tombol Unduh PDF --}}
+                                        <a href="{{ route('bimtek.sertifikat.download', [$bimtek->id, $sertifikatSaya->user_id]) }}" 
+                                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl transition shadow-sm">
+                                            Unduh PDF
+                                        </a>
+                                    </div>
                                 </div>
                             @else
                                 <div class="text-center py-12 bg-gray-50/50 rounded-2xl border border-gray-100">

@@ -47,7 +47,6 @@
                 <p style="font-size: 13px; color: #334155;">Selamat, proses pemeriksaan dokumen persyaratan pendaftaran Anda untuk kegiatan bimbingan teknis di bawah ini dinyatakan <strong>Lengkap dan Memenuhi Syarat</strong>:</p>
                 
                 <div class="info-box">
-                    {{-- REFAKTORISASI: Kestabilan properti fallback nama kelas bimtek --}}
                     <h3>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</h3>
                     <p>Status Kelayakan: <span class="text-green-600">Dokumen Diverifikasi & Disetujui</span></p>
                 </div>
@@ -63,7 +62,7 @@
                 </div>
 
                 <div style="text-align: center; margin: 20px 0;">
-                    <a href="{{ route('login') }}" target="_blank" rel="noopener" class="cta-button">Masuk ke Ruang Kelas</a>
+                    <a href="{{ route('login') }}" target="_blank" rel="noopener" class="cta-button">Masuk ke Dasbor Kelas</a>
                 </div>
 
             {{-- KONDISI B: BERKAS DINYATAKAN REJECTED / PERLU KOREKSI --}}
@@ -71,27 +70,18 @@
                 <div class="status-badge status-rejected">
                     ✗ DOKUMEN MEMERLUKAN PERBAIKAN
                 </div>
-                <p style="font-size: 13px; color: #334155;">Mohon perhatian, berdasarkan hasil kurasi pemeriksaan oleh tim penilai, dokumen persyaratan administrasi Anda untuk kegiatan berikut dinyatakan **Belum Memenuhi Syarat**:</p>
+                <p style="font-size: 13px; color: #334155;">Mohon perhatian, berdasarkan hasil kurasi pemeriksaan oleh tim penilai, dokumen persyaratan administrasi Anda untuk kegiatan berikut dinyatakan <strong>Belum Memenuhi Syarat</strong>:</p>
                 
                 <div class="info-box" style="border-left-color: #ef4444;">
-                    {{-- REFAKTORISASI: Kestabilan properti fallback nama kelas bimtek --}}
                     <h3>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</h3>
-                    <p>Status Kelayakan: <span class="text-red-600">Perlu Perbaikan / Upload Ulang</span></p>
+                    <p>Status Kelayakan: <span style="color: #dc2626;">Perlu Perbaikan / Upload Ulang</span></p>
                     
-                    @if(isset($rejectedDocuments) && $rejectedDocuments->count() > 0)
-                        <p style="margin-top: 12px; margin-bottom: 6px; font-weight: bold; color: #1e293b;">Daftar komponen berkas yang ditolak:</p>
-                        <ul style="padding-left: 18px; margin: 0;">
-                            @foreach($rejectedDocuments as $doc)
-                                <li style="margin-bottom: 8px; font-size: 12px; font-weight: 600; color: #1e293b;">
-                                    {{ str_replace('_', ' ', ucwords($doc->jenis_dokumen)) }}
-                                    @if(!empty($doc->catatan_verifikasi))
-                                        <div style="margin-top: 2px; font-size: 11px; color: #ef4444; font-weight: 500; font-style: italic; background: #fff; padding: 4px 8px; border-radius: 4px; border: 1px solid #fee2e2;">
-                                            📝 Catatan Koreksi: "{{ $doc->catatan_verifikasi }}"
-                                        </div>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
+                    {{-- 💡 PERBAIKAN: Menggunakan variabel tunggal $catatan dari Controller --}}
+                    @if(!empty($catatan))
+                        <p style="margin-top: 12px; margin-bottom: 6px; font-weight: bold; color: #1e293b;">Catatan Koreksi dari Panitia:</p>
+                        <div style="margin-top: 2px; font-size: 12px; color: #ef4444; font-weight: 500; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #fee2e2;">
+                            📝 "{{ $catatan }}"
+                        </div>
                     @endif
                 </div>
 
@@ -99,12 +89,13 @@
                 <ol>
                     <li>Persiapkan lembar dokumen pengganti yang valid sesuai dengan catatan koreksi tim penilai di atas.</li>
                     <li>Masuk ke dalam platform menggunakan akun Anda, lalu menuju menu verifikasi dokumen.</li>
-                    <li>Lakukan unggah ulang (*upload*) pada kolom komponen dokumen persyaratan terkait.</li>
-                    <li>Tim pelaksana Pokja akan melakukan peninjauan ulang berkas dalam waktu maksimal 1x24 jam kerja.</li>
+                    <li>Lakukan unggah ulang (*upload*) pada form revisi berkas yang tersedia.</li>
+                    <li>Tim pelaksana Pokja akan melakukan peninjauan ulang berkas Anda.</li>
                 </ol>
 
                 <div style="text-align: center; margin: 20px 0;">
-                    <a href="{{ route('login') }}" target="_blank" rel="noopener" class="cta-button" style="background: #ef4444;">Unggah Ulang Dokumen</a>
+                    {{-- 💡 PERBAIKAN: Menggunakan $uploadUrl agar langsung mengarah ke halaman form revisi --}}
+                    <a href="{{ $uploadUrl ?? route('login') }}" target="_blank" rel="noopener" class="cta-button" style="background: #ef4444;">Unggah Ulang Dokumen</a>
                 </div>
             @endif
 

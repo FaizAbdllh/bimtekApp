@@ -8,6 +8,7 @@ use App\Models\SesiAbsensi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -116,8 +117,10 @@ class AbsensiController extends Controller
         // Mencari daftar peserta yang tercatat mangkir / belum melakukan presensi
         $attendedUserIds = $sesi->absensiPesertas->pluck('user_id')->toArray();
         $notAttendedPeserta = $bimtek->peserta->whereNotIn('id', $attendedUserIds);
+        
+        $totalPeserta = $bimtek->peserta->count();
 
-        return view('absensi.show', compact('bimtek', 'sesi', 'canManage', 'isPeserta', 'hasAttended', 'notAttendedPeserta'));
+        return view('absensi.show', compact('bimtek', 'sesi', 'canManage', 'isPeserta', 'hasAttended', 'notAttendedPeserta', 'totalPeserta'));
     }
 
     /**
@@ -217,7 +220,6 @@ class AbsensiController extends Controller
             abort(404);
         }
 
-        // Bypass jika kelas dikunci penuh dalam mode online murni
         if ($bimtek->mode_pelaksanaan === 'online') {
             abort(404);
         }
@@ -243,7 +245,6 @@ class AbsensiController extends Controller
         }
 
         if ($bimtek->mode_pelaksanaan === 'online') {
-            // Menggunakan Facade resmi agar IDE bisa membaca definisinya dengan sempurna
             return Redirect::route('bimtek.absensi.show', [$bimtek->id, $sesi->id])
                 ->with('error', 'Bimtek mode online menggunakan presensi langsung. Silakan klik tombol Hadir Online.');
         }
@@ -276,7 +277,6 @@ class AbsensiController extends Controller
 
         $validated = $request->validate(['qr_code' => 'required|string']);
 
-        // Mengubah status_pelaksanaan menjadi status
         if ($bimtek->status !== 'berlangsung') {
             return redirect()->back()->with('error', 'Absensi hanya dapat dilakukan saat bimtek sedang berlangsung.');
         }
@@ -293,9 +293,15 @@ class AbsensiController extends Controller
             return redirect()->back()->with('error', 'QR Code tidak valid atau sudah kadaluarsa.');
         }
 
-        AbsensiPeserta::create([
-            'sesi_absensi_id' => $sesi->id,
-            'user_id' => Auth::id(),
+        // DISIMPAN MENGGUNAKAN QUERY BUILDER AGAR AMAN DENGAN COMPOSITE PK
+        DB::table('absensi_pesertas')->insert([
+            'sesi_absensi_id'  => $sesi->id,
+            'bimtek_id'        => $bimtek->id,
+            'user_id'          => Auth::id(),
+            'status_kehadiran' => 'hadir',
+            'waktu_presensi'   => now(),
+            'created_at'       => now(),
+            'updated_at'       => now(),
         ]);
 
         return redirect()
@@ -304,7 +310,7 @@ class AbsensiController extends Controller
     }
 
     /**
-     * Presensi mandiri bagi peserta kelas Online / Hybrid (Disertai Unggah Bukti Tangkapan Layar Zoom).
+     * Presensi mandiri bagi peserta kelas Online / Hybrid.
      */
     public function hadirOnline(Request $request, Bimtek $bimtek, SesiAbsensi $sesi): RedirectResponse
     {
@@ -316,7 +322,6 @@ class AbsensiController extends Controller
             abort(404);
         }
 
-        // Memeriksa keselarasan fitur daring dari kolom mode_pelaksanaan
         if (! in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid'])) {
             return redirect()->back()->with('error', 'Presensi online hanya tersedia untuk bimtek mode online atau hybrid.');
         }
@@ -345,10 +350,16 @@ class AbsensiController extends Controller
 
         $buktiPath = $validated['bukti_hadir_online']->store('absensi-bukti-online', 'public');
 
-        AbsensiPeserta::create([
-            'sesi_absensi_id' => $sesi->id,
-            'user_id' => Auth::id(),
+        // DISIMPAN MENGGUNAKAN QUERY BUILDER AGAR AMAN DENGAN COMPOSITE PK
+        DB::table('absensi_pesertas')->insert([
+            'sesi_absensi_id'         => $sesi->id,
+            'bimtek_id'               => $bimtek->id,
+            'user_id'                 => Auth::id(),
             'bukti_hadir_online_path' => $buktiPath,
+            'status_kehadiran'        => 'hadir',
+            'waktu_presensi'          => now(),
+            'created_at'              => now(),
+            'updated_at'              => now(),
         ]);
 
         return redirect()
@@ -357,7 +368,7 @@ class AbsensiController extends Controller
     }
 
     /**
-     * Tindakan Force-Presence (Penyuntikan tanda hadir manual oleh Panitia jika gawai peserta terkendala).
+     * Tindakan Force-Presence (Penyuntikan tanda hadir manual oleh Panitia).
      */
     public function tambahKehadiran(Request $request, Bimtek $bimtek, SesiAbsensi $sesi): RedirectResponse
     {
@@ -382,9 +393,15 @@ class AbsensiController extends Controller
             return redirect()->back()->with('info', 'Peserta sudah tercatat hadir pada sesi ini.');
         }
 
-        AbsensiPeserta::create([
-            'sesi_absensi_id' => $sesi->id,
-            'user_id' => $validated['user_id'],
+        // DISIMPAN MENGGUNAKAN QUERY BUILDER AGAR AMAN DENGAN COMPOSITE PK
+        DB::table('absensi_pesertas')->insert([
+            'sesi_absensi_id'  => $sesi->id,
+            'bimtek_id'        => $bimtek->id,
+            'user_id'          => $validated['user_id'],
+            'status_kehadiran' => 'hadir',
+            'waktu_presensi'   => now(),
+            'created_at'       => now(),
+            'updated_at'       => now(),
         ]);
 
         return redirect()->back()->with('success', 'Kehadiran peserta berhasil ditambahkan manual.');
@@ -393,21 +410,25 @@ class AbsensiController extends Controller
     /**
      * Batalkan rekor absensi kehadiran peserta oleh panitia.
      */
-    public function hapusKehadiran(Bimtek $bimtek, SesiAbsensi $sesi, AbsensiPeserta $absensi): RedirectResponse
+    public function hapusKehadiran(Bimtek $bimtek, SesiAbsensi $sesi, string $userId): RedirectResponse
     {
         $this->authorizeManage($bimtek);
 
-        if ($sesi->bimtek_id !== $bimtek->id || $absensi->sesi_absensi_id !== $sesi->id) {
+        if ($sesi->bimtek_id !== $bimtek->id) {
             abort(404);
         }
 
-        $absensi->delete();
+        // Hapus menggunakan Query Builder karena menggunakan Composite Primary Key
+        DB::table('absensi_pesertas')
+            ->where('sesi_absensi_id', $sesi->id)
+            ->where('user_id', $userId)
+            ->delete();
 
         return redirect()->back()->with('success', 'Rekor kehadiran peserta berhasil dihapus.');
     }
 
     /**
-     * Rekapitulasi Matriks Absensi Total (Digunakan untuk kalkulasi syarat kelulusan sertifikasi).
+     * Rekapitulasi Matriks Absensi Total.
      */
     public function rekap(Bimtek $bimtek): View
     {
@@ -449,9 +470,6 @@ class AbsensiController extends Controller
         return view('absensi.rekap', compact('bimtek', 'rekapData', 'canManage', 'syaratKehadiran'));
     }
 
-    /**
-     * Gate Perlindungan Hak Akses Internal Controller
-     */
     private function canManage(Bimtek $bimtek): bool
     {
         $user = Auth::user();

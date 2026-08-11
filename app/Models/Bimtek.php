@@ -74,7 +74,9 @@ class Bimtek extends Model
         if (! $this->invite_code) {
             return null;
         }
-        return url("/bimtek/{$this->id}/daftar?code={$this->invite_code}");
+        
+        // ✅ PERBAIKAN: Mengarah ke Pintu Masuk / ActivationController yang benar
+        return route('register.invite', ['code' => $this->invite_code]);
     }
 
     /**

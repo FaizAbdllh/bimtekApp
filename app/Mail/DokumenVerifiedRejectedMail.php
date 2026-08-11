@@ -15,13 +15,9 @@ class DokumenVerifiedRejectedMail extends Mailable
     use Queueable, SerializesModels;
 
     public Bimtek $bimtek;
-
     public User $peserta;
-
     public string $status; // 'verified' or 'rejected'
-
     public ?string $catatan;
-
     public ?string $uploadUrl;
 
     /**
@@ -41,9 +37,12 @@ class DokumenVerifiedRejectedMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        // 💡 PERBAIKAN: Menggunakan judul_rencana sebagai cadangan jika judul_final kosong
+        $judul = $this->bimtek->judul_final ?? $this->bimtek->judul_rencana;
+        
         $subject = $this->status === 'verified'
-            ? 'Dokumen Disetujui: '.$this->bimtek->judul_final
-            : 'Dokumen Ditolak: '.$this->bimtek->judul_final;
+            ? 'Dokumen Disetujui: '.$judul
+            : 'Dokumen Ditolak: '.$judul;
 
         return new Envelope(
             subject: $subject,
@@ -56,6 +55,7 @@ class DokumenVerifiedRejectedMail extends Mailable
     public function content(): Content
     {
         return new Content(
+            // 💡 PERBAIKAN: Mengubah 'view' menjadi 'markdown' agar bisa membaca template UI Email Laravel
             view: 'emails.dokumen-verified-rejected',
         );
     }

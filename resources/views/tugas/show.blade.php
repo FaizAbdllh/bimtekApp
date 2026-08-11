@@ -163,9 +163,9 @@
                                                     <td class="px-4 py-4 text-center whitespace-nowrap font-bold text-xs">
                                                         <div class="flex items-center justify-center gap-2">
                                                             {{-- REFAKTORISASI: Kestabilan ID parameter rute pratinjau dan unduh jawaban --}}
-                                                            <a href="{{ route('bimtek.tugas.preview-jawaban', [$bimtek->id, $tugas->id, $pengumpulan->id]) }}" target="_blank" rel="noopener" class="text-purple-600 hover:text-purple-800 hover:underline">Lihat</a>
+                                                            <a href="{{ route('bimtek.tugas.preview-jawaban', [$bimtek->id, $tugas->id, $pengumpulan->user_id]) }}" target="_blank" rel="noopener" class="text-purple-600 hover:text-purple-800 hover:underline">Lihat</a>
                                                             <span class="text-gray-200">|</span>
-                                                            <a href="{{ route('bimtek.tugas.download-jawaban', [$bimtek->id, $tugas->id, $pengumpulan->id]) }}" class="text-primary-600 hover:text-primary-800 hover:underline">Unduh</a>
+                                                            <a href="{{ route('bimtek.tugas.download-jawaban', [$bimtek->id, $tugas->id, $pengumpulan->user_id]) }}" class="text-primary-600 hover:text-primary-800 hover:underline">Unduh</a>
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-4 text-center whitespace-nowrap">
@@ -179,11 +179,8 @@
                                                     </td>
                                                     <td class="px-6 py-4 text-right pr-6 whitespace-nowrap align-middle">
                                                         <button type="button"
-                                                                class="js-grade-button inline-flex items-center px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold text-xs uppercase tracking-wide transition shadow-sm shadow-primary-50"
-                                                                data-pengumpulan-id="{{ $pengumpulan->id }}"
-                                                                data-nama="{{ $pengumpulan->user->name ?? '-' }}"
-                                                                data-nilai="{{ $pengumpulan->nilai ?? '' }}"
-                                                                data-feedback="{{ $pengumpulan->feedback ?? '' }}">
+                                                                onclick="openGradeModal('{{ $pengumpulan->user_id }}', '{{ addslashes($pengumpulan->user->name ?? '-') }}', '{{ $pengumpulan->nilai ?? '' }}', '{{ addslashes($pengumpulan->feedback ?? '') }}')"
+                                                                class="inline-flex items-center px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold text-xs uppercase tracking-wide transition shadow-sm shadow-primary-50">
                                                             {{ $pengumpulan->nilai !== null ? 'Koreksi' : 'Beri Nilai' }}
                                                         </button>
                                                     </td>
@@ -249,8 +246,8 @@
                                             </div>
                                             <div class="flex items-center gap-3 font-bold text-xs shrink-0">
                                                 {{-- REFAKTORISASI: Kestabilan ID parameter rute unduh & pratinjau --}}
-                                                <a href="{{ route('bimtek.tugas.preview-jawaban', [$bimtek->id, $tugas->id, $userSubmission->id]) }}" target="_blank" rel="noopener" class="text-purple-600 hover:text-purple-800">Lihat</a>
-                                                <a href="{{ route('bimtek.tugas.download-jawaban', [$bimtek->id, $tugas->id, $userSubmission->id]) }}" class="text-primary-600 hover:text-primary-800">Unduh</a>
+                                                <a href="{{ route('bimtek.tugas.preview-jawaban', [$bimtek->id, $tugas->id, $userSubmission->user_id]) }}" target="_blank" rel="noopener" class="text-purple-600 hover:text-purple-800">Lihat</a>
+                                                <a href="{{ route('bimtek.tugas.download-jawaban', [$bimtek->id, $tugas->id, $userSubmission->user_id]) }}" class="text-primary-600 hover:text-primary-800">Unduh</a>
                                             </div>
                                         </div>
 
@@ -277,7 +274,7 @@
                                     </div>
                                 @else
                                     {{-- Kondisi Jika Peserta Belum Mengirimkan Berkas Dokumen Tugas --}}
-                                    @if($bimtek->status_pelaksanaan !== 'berlangsung')
+                                    @if($bimtek->status !== 'berlangsung')
                                         <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-500 font-medium text-center">
                                             Gerbang pengumpulan berkas terkunci karena status kelas sedang tidak aktif.
                                         </div>
@@ -379,14 +376,13 @@
         </div>
     </div>
 
-    {{-- MODUL COMPONENT MODAL PENILAIAN MANUAl (Diletakkan di luar grid agar terhindar dari clipping CSS) --}}
+    {{-- MODUL MODAL PENILAIAN MANUAL --}}
     @if($canManage)
         <div id="grade-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4 py-6 text-center sm:p-0">
                 <div id="grade-modal-overlay" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity"></div>
 
                 <div class="relative bg-white rounded-2xl max-w-lg w-full shadow-2xl text-left border border-gray-100 overflow-hidden transform transition-all my-8 align-middle">
-                    {{-- Form Aksi Pengisian Nilai --}}
                     <form id="grade-form" method="POST" data-action-base="{{ url('bimtek/' . $bimtek->id . '/tugas/' . $tugas->id . '/pengumpulan') }}">
                         @csrf
                         <div class="p-6 space-y-4">
@@ -395,17 +391,6 @@
                                 <p class="text-xs text-gray-400 font-semibold mt-0.5">Nama Anggota: <span id="grade-peserta-nama" class="text-primary-600 font-bold"></span></p>
                             </div>
 
-                            {{-- Rubrik Edukatif Singkat --}}
-                            <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-xs font-semibold text-blue-800 space-y-1.5 leading-relaxed">
-                                <h4 class="font-bold text-blue-900 uppercase tracking-wide text-[10px]">Kriteria Kelayakan Evaluasi:</h4>
-                                <ul class="space-y-1 list-disc list-inside text-gray-600 font-medium">
-                                    <li>Kesesuaian substansi laporan dengan petunjuk instruksi kerja.</li>
-                                    <li>Kelengkapan dokumen lembar jawaban, kerapian, dan sistematika.</li>
-                                    <li>Ketepatan ketepatan waktu pengiriman draf kerja.</li>
-                                </ul>
-                            </div>
-
-                            {{-- Input Angka Nilai --}}
                             <div>
                                 <label for="grade-nilai" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
                                     Skor Nilai Akhir Kuantitatif (0 - 100) <span class="text-red-500">*</span>
@@ -415,7 +400,6 @@
                                        required>
                             </div>
 
-                            {{-- Input Teks Feedback --}}
                             <div>
                                 <label for="grade-feedback" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
                                     Catatan Masukan Korektif (Opsional)
@@ -426,7 +410,6 @@
                             </div>
                         </div>
                         
-                        {{-- Tombol Kendali Modal --}}
                         <div class="bg-gray-50 px-6 py-4 flex justify-end gap-2 border-t border-gray-100 font-bold text-xs uppercase tracking-wide shadow-inner shadow-gray-50">
                             <button type="button" id="grade-modal-close" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition">
                                 Batal
@@ -439,51 +422,42 @@
                 </div>
             </div>
         </div>
-    @endif
 
-    {{-- Script Engine Handler Pembukaan/Penutupan Modal Penilaian Manual --}}
-    @push('scripts')
+        {{-- Script Global Langsung --}}
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            function openGradeModal(userId, nama, nilai, feedback) {
                 const modal = document.getElementById('grade-modal');
                 if (!modal) return;
 
-                const overlay = document.getElementById('grade-modal-overlay');
-                const closeBtn = document.getElementById('grade-modal-close');
                 const nameEl = document.getElementById('grade-peserta-nama');
                 const nilaiInput = document.getElementById('grade-nilai');
                 const feedbackInput = document.getElementById('grade-feedback');
                 const form = document.getElementById('grade-form');
                 const actionBase = form.getAttribute('data-action-base');
 
-                function openModal(button) {
-                    const id = button.getAttribute('data-pengumpulan-id');
-                    const nama = button.getAttribute('data-nama') || '-';
-                    const nilai = button.getAttribute('data-nilai');
-                    const feedback = button.getAttribute('data-feedback');
+                nameEl.textContent = nama;
+                nilaiInput.value = nilai || '';
+                feedbackInput.value = feedback || '';
+                form.action = `${actionBase}/${userId}/grade`;
 
-                    nameEl.textContent = nama;
-                    nilaiInput.value = nilai || '';
-                    feedbackInput.value = feedback || '';
-                    form.action = `${actionBase}/${id}/grade`;
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-y-hidden');
+            }
 
-                    modal.classList.remove('hidden');
-                    document.body.classList.add('overflow-y-hidden');
-                }
+            document.addEventListener('DOMContentLoaded', function () {
+                const modal = document.getElementById('grade-modal');
+                if (!modal) return;
+
+                const overlay = document.getElementById('grade-modal-overlay');
+                const closeBtn = document.getElementById('grade-modal-close');
 
                 function closeModal() {
                     modal.classList.add('hidden');
                     document.body.classList.remove('overflow-y-hidden');
                 }
 
-                document.querySelectorAll('.js-grade-button').forEach(function (button) {
-                    button.addEventListener('click', function () {
-                        openModal(button);
-                    });
-                });
-
-                overlay.addEventListener('click', closeModal);
-                closeBtn.addEventListener('click', closeModal);
+                if (overlay) overlay.addEventListener('click', closeModal);
+                if (closeBtn) closeBtn.addEventListener('click', closeModal);
                 document.addEventListener('keydown', function (event) {
                     if (event.key === 'Escape') {
                         closeModal();
@@ -491,5 +465,5 @@
                 });
             });
         </script>
-    @endpush
+    @endif
 </x-app-layout>

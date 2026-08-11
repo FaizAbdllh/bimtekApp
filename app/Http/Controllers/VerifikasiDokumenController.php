@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class VerifikasiDokumenController extends Controller
@@ -37,7 +36,6 @@ class VerifikasiDokumenController extends Controller
 
         $syaratDokumens = $bimtek->syaratDokumens;
 
-        // 💡 Murni menggunakan relasi syarat_dokumen_id
         $userDokumen = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
             ->where('user_id', $user->id)
             ->latest('uploaded_at')
@@ -62,9 +60,9 @@ class VerifikasiDokumenController extends Controller
 
         $validated = $request->validate([
             'syarat_dokumen_id' => 'required|exists:syarat_dokumens,id',
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ], [
-            'file.max' => 'Ukuran file maksimal 2MB.',
+            'file.max' => 'Ukuran file maksimal 5MB.',
             'file.mimes' => 'File harus berformat PDF, JPG, atau PNG.',
         ]);
 
@@ -77,7 +75,6 @@ class VerifikasiDokumenController extends Controller
 
         if ($oldDokumen) {
             Storage::disk('public')->delete($oldDokumen->file_path);
-            // Kita tidak perlu delete datanya, cukup updateOrCreate nanti
         }
 
         $file = $request->file('file');
@@ -129,7 +126,6 @@ class VerifikasiDokumenController extends Controller
                     ->where('user_id', $peserta->id)
                     ->first();
 
-                // 💡 Pemetakan file berdasarkan syarat_dokumen_id
                 $dokumenBySyaratId = $peserta->dokumenPersyaratan->keyBy('syarat_dokumen_id');
 
                 return [
@@ -212,7 +208,7 @@ class VerifikasiDokumenController extends Controller
     }
 
     /**
-     * Mesin Otomatisasi Kelulusan Verifikasi Berkas DIPA BBPMP Sumbar.
+     * Mesin Otomatisasi Kelulusan Verifikasi Berkas BBPMP Sumbar.
      */
     protected function updatePesertaStatusVerifikasi(Bimtek $bimtek, string $userId): void
     {
@@ -221,7 +217,6 @@ class VerifikasiDokumenController extends Controller
             ->where('is_wajib', 1)
             ->count();
 
-        // 💡 PERBAIKAN: Menghapus typo fatal 'dokumen_persyaratan_peserta('
         $jumlahApproved = DB::table('dokumen_persyaratan_peserta')
             ->join('syarat_dokumens', 'dokumen_persyaratan_peserta.syarat_dokumen_id', '=', 'syarat_dokumens.id')
             ->where('dokumen_persyaratan_peserta.bimtek_id', $bimtek->id)
@@ -239,25 +234,12 @@ class VerifikasiDokumenController extends Controller
             try {
                 $peserta = User::find($userId);
 
-                if ($peserta->is_active == 0) {
-                    $magicToken = Str::random(64);
-                    $peserta->update([
-                        'token_hash' => $magicToken,
-                        'expires_at' => now()->addDays(7),
-                    ]);
-
-                    $activationUrl = url('/aktivasi/' . $magicToken);
-
-                    Mail::to($peserta->email)->send(
-                        new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified', null, $activationUrl)
-                    );
-                } else {
-                    Mail::to($peserta->email)->send(
-                        new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified')
-                    );
-                }
+                // Mengirim email pemberitahuan bahwa seluruh dokumen sah dan akun terverifikasi penuh
+                Mail::to($peserta->email)->send(
+                    new DokumenVerifiedRejectedMail($bimtek, $peserta, 'verified')
+                );
             } catch (\Exception $e) {
-                Log::error('Gagal memproses otomatisasi rilis token/email kelulusan: '.$e->getMessage());
+                Log::error('Gagal memproses pengiriman email kelulusan dokumen: '.$e->getMessage());
             }
         }
     }
@@ -283,16 +265,6 @@ class VerifikasiDokumenController extends Controller
         return Storage::disk('public')->download($dokumen->file_path, $dokumen->file_name);
     }
 
-    protected function authorizePicPanitia(Bimtek $bimtek): void
-    {
-        $user = Auth::user();
-        $isPic = $bimtek->pic_user_id === $user->id;
-        $isPanitia = $bimtek->panitia()->where('user_id', $user->id)->exists();
-
-        if (! $isPic && ! $isPanitia) {
-            abort(403, 'Wewenang terbatas! Modul ini dikunci khusus bagi PIC atau jajaran Panitia Pokja.');
-        }
-    }
     /**
      * Fitur Pratinjau Berkas Persyaratan (Khusus format berkas PDF).
      */
@@ -324,5 +296,16 @@ class VerifikasiDokumenController extends Controller
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="'.$dokumen->file_name.'"',
         ]);
+    }
+
+    protected function authorizePicPanitia(Bimtek $bimtek): void
+    {
+        $user = Auth::user();
+        $isPic = $bimtek->pic_user_id === $user->id;
+        $isPanitia = $bimtek->panitia()->where('user_id', $user->id)->exists();
+
+        if (! $isPic && ! $isPanitia) {
+            abort(403, 'Wewenang terbatas! Modul ini dikunci khusus bagi PIC atau jajaran Panitia Pokja.');
+        }
     }
 }

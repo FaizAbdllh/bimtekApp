@@ -6,12 +6,14 @@ use App\Models\AbsensiPeserta;
 use App\Models\Bimtek;
 use App\Models\PengumpulanTugas;
 use App\Models\Sertifikat;
+use App\Models\User;
 use App\Services\SertifikatTemplateService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -126,12 +128,15 @@ class SertifikatController extends Controller
                 }
 
                 try {
-                    Sertifikat::create([
+                    // Menggunakan Query Builder agar mendukung tabel ber-composite key tanpa kolom 'id'
+                    DB::table('sertifikats')->insert([
                         'bimtek_id' => $bimtek->id,
                         'user_id' => $pesertaId,
                         'nomor_sertifikat' => $nomorSertifikat,
                         'tanggal_terbit' => $tanggalTerbit,
                         'file_path' => $filePath,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
 
                     $generatedCount++;
@@ -164,21 +169,27 @@ class SertifikatController extends Controller
     /**
      * Download sertifikat.
      */
-    public function download(Bimtek $bimtek, Sertifikat $sertifikat): BinaryFileResponse
+    public function download(Bimtek $bimtek, User $user): BinaryFileResponse
     {
         $this->ensureHasSertifikat($bimtek);
-        $this->authorizeAccess($bimtek);
+        // $this->authorizeAccess($bimtek); // <-- HAPUS BARIS INI AGAR PESERTA BISA MENGUNDUH
 
-        // Check ownership
-        $user = Auth::user();
+        // Check ownership / hak akses
+        $authUser = Auth::user();
         $canManage = $this->canManage($bimtek);
+        $isSelfPeserta = ($user->id === $authUser->id) && $bimtek->peserta()->where('users.id', $authUser->id)->exists();
 
-        if (! $canManage && $sertifikat->user_id !== $user->id) {
+        if (! $canManage && ! $isSelfPeserta) {
             abort(403, 'Anda tidak memiliki akses ke sertifikat ini.');
         }
 
-        if ($sertifikat->bimtek_id !== $bimtek->id) {
-            abort(404);
+        // Ambil data sertifikat berdasarkan composite key (bimtek_id & user_id)
+        $sertifikat = Sertifikat::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $sertifikat) {
+            abort(404, 'Data sertifikat tidak ditemukan.');
         }
 
         if (! $sertifikat->file_path || ! Storage::disk('public')->exists($sertifikat->file_path)) {
@@ -202,21 +213,27 @@ class SertifikatController extends Controller
     /**
      * Preview sertifikat.
      */
-    public function preview(Bimtek $bimtek, Sertifikat $sertifikat)
+    public function preview(Bimtek $bimtek, User $user)
     {
         $this->ensureHasSertifikat($bimtek);
-        $this->authorizeAccess($bimtek);
+        // $this->authorizeAccess($bimtek); // <-- HAPUS BARIS INI AGAR PESERTA BISA MELIHAT PRATINJAU
 
-        // Check ownership
-        $user = Auth::user();
+        // Check ownership / hak akses
+        $authUser = Auth::user();
         $canManage = $this->canManage($bimtek);
+        $isSelfPeserta = ($user->id === $authUser->id) && $bimtek->peserta()->where('users.id', $authUser->id)->exists();
 
-        if (! $canManage && $sertifikat->user_id !== $user->id) {
-            abort(403, 'Anda tidak memiliki akses ke sertifikat ini.');
+        if (! $canManage && ! $isSelfPeserta) {
+            abort(403, 'Anda tidak memiliki akses ke pratinjau sertifikat ini.');
         }
 
-        if ($sertifikat->bimtek_id !== $bimtek->id) {
-            abort(404);
+        // Ambil data sertifikat berdasarkan composite key (bimtek_id & user_id)
+        $sertifikat = Sertifikat::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $sertifikat) {
+            abort(404, 'Data sertifikat tidak ditemukan.');
         }
 
         if (! $sertifikat->file_path || ! Storage::disk('public')->exists($sertifikat->file_path)) {
@@ -507,8 +524,13 @@ class SertifikatController extends Controller
     private function authorizeAccess(Bimtek $bimtek): void
     {
         $user = Auth::user();
+        $isPic = ($bimtek->pic_user_id === $user->id);
 
-        $hasAccess = $bimtek->users()->where('users.id', $user->id)->exists();
+        // 2. Cek apakah user terdaftar sebagai panitia di bimtek ini
+        $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
+
+        // 3. Gabungkan akses (Bisa diakses jika dia PIC ATAU Panitia)
+        $hasAccess = $isPic || $isPanitia;
 
         if (! $hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');

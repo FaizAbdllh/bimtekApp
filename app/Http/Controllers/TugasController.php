@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Bimtek;
 use App\Models\PengumpulanTugas;
 use App\Models\Tugas;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -279,8 +281,7 @@ class TugasController extends Controller
             abort(403, 'Hanya peserta yang dapat mengumpulkan tugas.');
         }
 
-        // Check if bimtek is active (berlangsung)
-        if ($bimtek->status_pelaksanaan !== 'berlangsung') {
+        if ($bimtek->status !== 'berlangsung') {
             return back()->with('error', 'Pengumpulan tugas hanya dapat dilakukan saat bimtek sedang berlangsung.');
         }
 
@@ -310,11 +311,19 @@ class TugasController extends Controller
         // Upload file
         $filePath = $request->file('file_jawaban')->store("pengumpulan/bimtek-{$bimtek->id}/tugas-{$tugas->id}", 'public');
 
-        PengumpulanTugas::create([
-            'tugas_id' => $tugas->id,
-            'user_id' => $user->id,
-            'file_jawaban_path' => $filePath,
-        ]);
+        // MENGGUNAKAN QUERY BUILDER AGAR AMAN DENGAN COMPOSITE PK
+        DB::table('pengumpulan_tugas')->updateOrInsert(
+            [
+                'tugas_id' => $tugas->id,
+                'user_id'  => $user->id,
+            ],
+            [
+                'bimtek_id'         => $bimtek->id,
+                'file_jawaban_path' => $filePath,
+                'updated_at'        => now(),
+                'created_at'        => now(),
+            ]
+        );
 
         return redirect()
             ->route('bimtek.tugas.show', [$bimtek, $tugas])
@@ -324,16 +333,18 @@ class TugasController extends Controller
     /**
      * Download pengumpulan jawaban.
      */
-    public function downloadJawaban(Bimtek $bimtek, Tugas $tugas, PengumpulanTugas $pengumpulan)
+    public function downloadJawaban(Bimtek $bimtek, Tugas $tugas, User $user)
     {
         $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
-        $this->ensurePengumpulanOwnership($tugas, $pengumpulan);
 
-        // Check if user can view this submission
-        $user = Auth::user();
-        $canView = $this->canManage($bimtek) || $pengumpulan->user_id === $user->id;
+        $pengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $currentUser = Auth::id();
+        $canView = $this->canManage($bimtek) || $pengumpulan->user_id === $currentUser;
 
         if (! $canView) {
             abort(403, 'Anda tidak memiliki akses ke file ini.');
@@ -344,7 +355,7 @@ class TugasController extends Controller
         }
 
         $ext = pathinfo($pengumpulan->file_jawaban_path, PATHINFO_EXTENSION);
-        $filename = $tugas->judul.'_'.$pengumpulan->user->name.'.'.$ext;
+        $filename = $tugas->judul.'_'.$user->name.'.'.$ext;
 
         return Storage::disk('public')->download($pengumpulan->file_jawaban_path, $filename);
     }
@@ -352,16 +363,18 @@ class TugasController extends Controller
     /**
      * Preview pengumpulan jawaban.
      */
-    public function previewJawaban(Bimtek $bimtek, Tugas $tugas, PengumpulanTugas $pengumpulan)
+    public function previewJawaban(Bimtek $bimtek, Tugas $tugas, User $user)
     {
         $this->ensureHasTugas($bimtek);
         $this->authorizeAccess($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
-        $this->ensurePengumpulanOwnership($tugas, $pengumpulan);
 
-        // Check if user can view this submission
-        $user = Auth::user();
-        $canView = $this->canManage($bimtek) || $pengumpulan->user_id === $user->id;
+        $pengumpulan = PengumpulanTugas::where('tugas_id', $tugas->id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $currentUser = Auth::id();
+        $canView = $this->canManage($bimtek) || $pengumpulan->user_id === $currentUser;
 
         if (! $canView) {
             abort(403, 'Anda tidak memiliki akses ke file ini.');
@@ -391,18 +404,27 @@ class TugasController extends Controller
         }
 
         // Untuk file lain - langsung download
-        return $this->downloadJawaban($bimtek, $tugas, $pengumpulan);
+        return $this->downloadJawaban($bimtek, $tugas, $user);
     }
 
     /**
      * Grade a submission (PIC/Panitia only).
      */
-    public function grade(Request $request, Bimtek $bimtek, Tugas $tugas, PengumpulanTugas $pengumpulan): RedirectResponse
+    public function grade(Request $request, Bimtek $bimtek, Tugas $tugas, User $user): RedirectResponse
     {
         $this->ensureHasTugas($bimtek);
         $this->authorizeManage($bimtek);
         $this->ensureTugasOwnership($bimtek, $tugas);
-        $this->ensurePengumpulanOwnership($tugas, $pengumpulan);
+
+        // Pastikan data pengumpulan benar-benar ada
+        $exists = DB::table('pengumpulan_tugas')
+            ->where('tugas_id', $tugas->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$exists) {
+            abort(404);
+        }
 
         $validated = $request->validate([
             'nilai' => 'required|integer|min:0|max:100',
@@ -415,11 +437,16 @@ class TugasController extends Controller
             'feedback.max' => 'Catatan penilaian maksimal 1000 karakter.',
         ]);
 
-        $pengumpulan->update([
-            'nilai' => $validated['nilai'],
-            'feedback' => $validated['feedback'],
-            'user_id_penilai' => Auth::id(),
-        ]);
+        // Update menggunakan Query Builder untuk tabel ber-composite key
+        DB::table('pengumpulan_tugas')
+            ->where('tugas_id', $tugas->id)
+            ->where('user_id', $user->id)
+            ->update([
+                'nilai' => $validated['nilai'],
+                'feedback' => $validated['feedback'],
+                'user_id_penilai' => Auth::id(),
+                'updated_at' => now(),
+            ]);
 
         return redirect()
             ->route('bimtek.tugas.show', [$bimtek, $tugas])
@@ -497,16 +524,6 @@ class TugasController extends Controller
     {
         if ($tugas->bimtek_id !== $bimtek->id) {
             abort(404, 'Tugas tidak ditemukan.');
-        }
-    }
-
-    /**
-     * Ensure pengumpulan belongs to tugas.
-     */
-    protected function ensurePengumpulanOwnership(Tugas $tugas, PengumpulanTugas $pengumpulan): void
-    {
-        if ($pengumpulan->tugas_id !== $tugas->id) {
-            abort(404, 'Pengumpulan tidak ditemukan.');
         }
     }
 

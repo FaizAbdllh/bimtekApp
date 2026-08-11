@@ -16,14 +16,14 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('nip')->nullable()->unique();
+            $table->string('asal_instansi')->nullable();
             
-            // --- FITUR AKTIVASI AKUN (Konsolidasi dari activation_tokens) ---
-            $table->string('token_hash', 64)->nullable()->index();
-            $table->timestamp('expires_at')->nullable()->index();
-            $table->timestamp('used_at')->nullable()->index();
-            $table->boolean('is_active')->default(false)->index();
-            $table->uuid('created_by')->nullable(); // Menghubungkan ke UUID panitia pembuat token
-            // ----------------------------------------------------------------
+            // Peran Global User
+            $table->uuid('role_id')->nullable();
+
+            // Status Akun Langsung Aktif (Tanpa Token Aktivasi Email)
+            $table->boolean('is_active')->default(true);
             
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

@@ -24,11 +24,7 @@ class User extends Authenticatable
         'nip',
         'asal_instansi',
         'role_id',
-        // 💡 Tambahan Kolom Baru Hasil Peleburan Fitur Token Aktivasi
-        'is_active',
-        'token_hash',
-        'expires_at',
-        'used_at',
+        'is_active', // ✅ Tetap dipertahankan agar akun bisa langsung aktif tanpa token
     ];
 
     /**
@@ -47,10 +43,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            // 💡 Tambahan Casting Objek agar Kolom Boolean & Timestamp Terbaca Akurat
             'is_active' => 'boolean',
-            'expires_at' => 'datetime',
-            'used_at' => 'datetime',
         ];
     }
 
@@ -64,7 +57,6 @@ class User extends Authenticatable
 
     /**
      * 1. RELASI PIC: Menampilkan semua bimtek di mana user ini ditunjuk sebagai PIC utama.
-     * (Logika baru: PIC tertanam langsung di tabel induk bimteks)
      */
     public function bimteksSebagaiPic(): HasMany
     {

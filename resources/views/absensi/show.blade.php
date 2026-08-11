@@ -6,7 +6,6 @@
                 <ol class="inline-flex items-center space-x-1 text-xs text-gray-400 font-medium">
                     <li><a href="{{ route('bimtek.index') }}" class="hover:text-primary-600 transition-colors">Bimtek</a></li>
                     <li><span class="mx-1">/</span></li>
-                    {{-- REFAKTORISASI: Menggunakan parameter ID eksplisit dan menambahkan fallback judul rencana --}}
                     <li><a href="{{ route('bimtek.show', $bimtek->id) }}" class="hover:text-primary-600 transition-colors">{{ Str::limit($bimtek->judul_final ?? $bimtek->judul_rencana, 30) }}</a></li>
                     <li><span class="mx-1">/</span></li>
                     <li><a href="{{ route('bimtek.absensi.index', $bimtek->id) }}" class="hover:text-primary-600 transition-colors">Absensi</a></li>
@@ -25,26 +24,34 @@
             {{-- Page Header dengan Tombol Kendali Aksi --}}
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    {{-- REFAKTORISASI: Fallback judul rencana usulan --}}
                     <p class="text-sm font-semibold text-gray-700">Kegiatan: <span class="text-gray-900 font-bold">{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</span></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 font-bold text-xs uppercase tracking-wide">
-                    {{-- REFAKTORISASI: Kestabilan ID parameter rute kembali --}}
                     <a href="{{ route('bimtek.absensi.index', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm">
                         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                         Kembali
                     </a>
+
                     @if($canManage)
-                        {{-- REFAKTORISASI: Kestabilan ID parameter rute edit --}}
+                        {{-- TOMBOL BARU: Munculkan Layar QR Code jika mode bukan online murni --}}
+                        @if($bimtek->mode_pelaksanaan !== 'online')
+                            <a href="{{ route('bimtek.absensi.qr', [$bimtek->id, $sesi->id]) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                </svg>
+                                Layar QR Code
+                            </a>
+                        @endif
+
                         <a href="{{ route('bimtek.absensi.edit', [$bimtek->id, $sesi->id]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm">
                             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                             Koreksi Sesi
                         </a>
-                        {{-- REFAKTORISASI: Kestabilan ID parameter rute toggle status gerbang --}}
+
                         <form action="{{ route('bimtek.absensi.toggle-status', [$bimtek->id, $sesi->id]) }}" method="POST" class="inline">
                             @csrf
                             @method('PATCH')
@@ -95,7 +102,6 @@
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
-                                        {{-- Catatan: Relasi absensiPesertas mengarah ke koleksi entitas absensi_pesertas --}}
                                         @foreach($sesi->absensiPesertas as $index => $absensi)
                                             <tr class="hover:bg-gray-50/50 transition-colors">
                                                 <td class="px-6 py-4 text-center text-gray-400 font-medium">{{ $index + 1 }}</td>
@@ -108,8 +114,7 @@
                                                 </td>
                                                 @if($canManage)
                                                     <td class="px-6 py-4 text-right pr-6 align-middle whitespace-nowrap">
-                                                        {{-- REFAKTORISASI FORM DELETE: Kestabilan parameter rute ID multi-level --}}
-                                                        <form action="{{ route('bimtek.absensi.delete-record', [$bimtek->id, $sesi->id, $absensi->id]) }}" method="POST" onsubmit="return confirm('Batalkan pencatatan kehadiran untuk peserta ini?')">
+                                                        <form action="{{ route('bimtek.absensi.delete-record', [$bimtek->id, $sesi->id, $absensi->user_id]) }}" method="POST" onsubmit="return confirm('Batalkan pencatatan kehadiran untuk peserta ini?')">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="text-xs font-bold text-red-500 hover:text-red-700 transition">
@@ -131,9 +136,8 @@
                     </div>
                 </div>
 
-                {{-- Kanan: Panel Panel Informasi & Statistik Sesi (1/3 Width) --}}
+                {{-- Kanan: Panel Informasi & Statistik Sesi (1/3 Width) --}}
                 <div class="space-y-6">
-                    {{-- Widget Informasi Metadata Sesi --}}
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">Informasi Sesi</h3>
                         <div class="space-y-4 text-sm">
@@ -183,12 +187,10 @@
                         </div>
                     </div>
 
-                    {{-- Modul Penghapusan Permanen (Zona Berbahaya) --}}
                     @if($canManage)
                         <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
                             <h3 class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Zona Berbahaya</h3>
                             <p class="text-xs text-gray-400 font-medium leading-relaxed mb-4">Penghapusan lembar sesi ini bersifat permanen. Seluruh matriks kehadiran peserta yang tertangkap di dalam sesi ini akan ikut terhapus dari sistem DIPA.</p>
-                            {{-- REFAKTORISASI: Kestabilan ID parameter rute destroy --}}
                             <form action="{{ route('bimtek.absensi.destroy', [$bimtek->id, $sesi->id]) }}" method="POST" onsubmit="return confirm('PERINGATAN: Anda yakin ingin menghapus total sesi absensi ini? Seluruh record kehadiran peserta pada sesi ini akan hangus permanen!')">
                                 @csrf
                                 @method('DELETE')

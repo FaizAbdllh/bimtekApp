@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PesertaController extends Controller
@@ -33,7 +32,6 @@ class PesertaController extends Controller
         $availableUsers = collect();
 
         if ($canManage) {
-            // REFAKTORISASI: Menggabungkan ID dari panitia, peserta, dan PIC agar tidak muncul ganda di pilihan input
             $assignedUserIds = array_merge(
                 $bimtek->panitia->pluck('id')->toArray(),
                 $bimtek->peserta->pluck('id')->toArray(),
@@ -45,9 +43,8 @@ class PesertaController extends Controller
                 ->get();
         }
 
-        // Hitung peserta yang status akunnya sudah aktif (is_active = 1)
         $activatedUserIds = $bimtek->peserta()
-            ->where('users.is_active', 1) // Sesuai kolom is_active TINYINT/BOOLEAN pada image_d22515.png
+            ->where('users.is_active', 1) 
             ->pluck('users.id')
             ->toArray();
 
@@ -76,7 +73,6 @@ class PesertaController extends Controller
         $skippedCount = 0;
 
         foreach ($validated['user_ids'] as $userId) {
-            // REFAKTORISASI: Memeriksa apakah user sudah terdaftar di jembatan panitia atau peserta
             $isRegistered = $bimtek->peserta()->where('user_id', $userId)->exists() 
                 || $bimtek->panitia()->where('user_id', $userId)->exists()
                 || $bimtek->pic_user_id === $userId;
@@ -86,18 +82,17 @@ class PesertaController extends Controller
                 continue;
             }
 
-            // Atur status verifikasi dokumen kelulusan awal sesuai konfigurasi DIPA kelas
             $pivotData = [
-                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
             ];
 
-            // REFAKTORISASI: Menembak langsung ke tabel bridge khusus bimtek_pesertas
             $bimtek->peserta()->attach($userId, $pivotData);
 
             $user = User::find($userId);
 
             if ($bimtek->butuh_verifikasi_dokumen) {
                 try {
+                    // 💡 Kirim email pemberitahuan + link upload dokumen (karena akun sudah aktif)
                     Mail::to($user->email)->send(new PesertaBimtekInvitedMail(
                         $bimtek,
                         $user,
@@ -143,12 +138,6 @@ class PesertaController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'nip' => 'nullable|string|max:50|unique:users,nip',
             'asal_instansi' => 'nullable|string|max:255',
-        ], [
-            'name.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah terdaftar di sistem.',
-            'nip.unique' => 'NIP sudah terdaftar di sistem.',
         ]);
 
         $password = Str::random(10);
@@ -161,28 +150,28 @@ class PesertaController extends Controller
             'nip' => $validated['nip'] ?? null,
             'asal_instansi' => $validated['asal_instansi'] ?? null,
             'role_id' => $pesertaRole?->id,
+            'is_active' => 1, // 💡 Pastikan akun baru langsung aktif!
         ]);
 
         $pivotData = [
-            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
         ];
 
-        // REFAKTORISASI: Menyimpan relasi langsung ke jembatan peserta terpisah
         $bimtek->peserta()->attach($user->id, $pivotData);
 
         $emailSent = false;
         try {
+            // Mengirim email berisi password yang di-generate sistem
             Mail::to($user->email)->send(new PesertaCredentialsMail($user, $password, $bimtek));
             $emailSent = true;
         } catch (\Exception $e) {
             Log::error('Gagal mengirim email kredensial: '.$e->getMessage());
         }
 
+        // 💡 PERBAIKAN: Hapus blok Token Aktivasi! Langsung arahkan ke halaman upload jika butuh dokumen.
         if ($bimtek->butuh_verifikasi_dokumen) {
             try {
-                [$tokenModel, $rawToken] = \App\Models\ActivationToken::generateFor($user, 7, Auth::id());
-                $uploadUrl = route('activation.form') . '?email=' . urlencode($user->email) . '&token=' . $rawToken;
-
+                $uploadUrl = route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id);
                 Mail::to($user->email)->send(new PesertaBimtekInvitedMail($bimtek, $user, $uploadUrl));
             } catch (\Exception $e) {
                 Log::error('Gagal mengirim email undangan verifikasi dokumen: '.$e->getMessage());
@@ -199,101 +188,6 @@ class PesertaController extends Controller
     }
 
     /**
-     * Keluarkan seorang peserta dari keanggotaan kelas Bimtek.
-     */
-    public function destroy(Bimtek $bimtek, User $user): RedirectResponse
-    {
-        $this->authorizeManage($bimtek);
-
-        $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
-
-        if (! $isPeserta) {
-            return redirect()->route('bimtek.peserta.index', $bimtek->id)->with('error', 'User bukan peserta bimtek ini.');
-        }
-
-        // REFAKTORISASI: Detach langsung dari tabel khusus peserta
-        $bimtek->peserta()->detach($user->id);
-
-        return redirect()
-            ->route('bimtek.peserta.index', $bimtek->id)
-            ->with('success', "Peserta {$user->name} berhasil dihapus dari bimtek.");
-    }
-
-    /**
-     * Fitur Checklist Massal: Mengeluarkan banyak peserta sekaligus dari kelas.
-     */
-    public function bulkDestroy(Request $request, Bimtek $bimtek): RedirectResponse
-    {
-        $this->authorizeManage($bimtek);
-
-        $validated = $request->validate([
-            'user_ids' => 'required|array|min:1',
-            'user_ids.*' => 'exists:users,id',
-        ], [
-            'user_ids.required' => 'Pilih minimal 1 peserta.',
-        ]);
-
-        $removedCount = 0;
-
-        foreach ($validated['user_ids'] as $userId) {
-            $isPeserta = $bimtek->peserta()->where('user_id', $userId)->exists();
-
-            if ($isPeserta) {
-                $bimtek->peserta()->detach($userId);
-                $removedCount++;
-            }
-        }
-
-        return redirect()
-            ->route('bimtek.peserta.index', $bimtek->id)
-            ->with('success', "Berhasil menghapus {$removedCount} peserta.");
-    }
-
-    /**
-     * REFAKTORISASI RADIKAL: Mengubah peran kontekstual aktor di dalam kegiatan kelas.
-     * Karena tabel sudah dipisah, mekanismenya adalah mencabut dari tabel lama dan menyuntikkan ke tabel baru.
-     */
-    public function changeRole(Request $request, Bimtek $bimtek, User $user): RedirectResponse
-    {
-        $this->authorizeManage($bimtek);
-
-        $validated = $request->validate([
-            'peran' => 'required|in:peserta,panitia',
-        ]);
-
-        if ($validated['peran'] === 'panitia' && ! $user->isPegawaiInternal()) {
-            return redirect()->route('bimtek.peserta.index', $bimtek->id)->with('error', 'Hanya user dengan role Pegawai Internal yang dapat diubah menjadi panitia.');
-        }
-
-        $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
-        $isPanitia = $bimtek->panitia()->where('user_id', $user->id)->exists();
-
-        if (! $isPeserta && ! $isPanitia) {
-            return redirect()->route('bimtek.peserta.index', $bimtek->id)->with('error', 'User tidak terdaftar di bimtek ini.');
-        }
-
-        if ($validated['peran'] === 'panitia') {
-            // Cabut dari daftar peserta, pindahkan ke tabel panitia
-            $bimtek->peserta()->detach($user->id);
-            if (! $isPanitia) {
-                $bimtek->panitia()->attach($user->id, ['fungsi_panitia' => 'Anggota Tim Pelaksana']);
-            }
-        } else {
-            // Cabut dari daftar panitia, pindahkan ke tabel peserta
-            $bimtek->panitia()->detach($user->id);
-            if (! $isPeserta) {
-                $bimtek->peserta()->attach($user->id, [
-                    'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi'
-                ]);
-            }
-        }
-
-        return redirect()
-            ->route('bimtek.peserta.index', $bimtek->id)
-            ->with('success', "Peran {$user->name} berhasil diubah.");
-    }
-
-    /**
      * Memproses unggahan berkas massal CSV nama-nama peserta eksternal.
      */
     public function import(Request $request, Bimtek $bimtek): RedirectResponse
@@ -302,10 +196,6 @@ class PesertaController extends Controller
 
         $request->validate([
             'file' => 'required|mimes:csv,txt|max:2048',
-        ], [
-            'file.required' => 'File wajib diupload.',
-            'file.mimes' => 'Format file harus CSV.',
-            'file.max' => 'Ukuran file maksimal 2MB.',
         ]);
 
         $file = $request->file('file');
@@ -392,26 +282,26 @@ class PesertaController extends Controller
                     'nip' => ! empty($nip) ? $nip : null,
                     'asal_instansi' => ! empty($instansi) ? $instansi : null,
                     'role_id' => $pesertaRole?->id,
+                    'is_active' => 1, // 💡 Akun import CSV langsung aktif!
                 ]);
 
                 $isNewUser = true;
                 $createdCount++;
             }
 
-            // REFAKTORISASI: Cek double-input pada relasi peserta yang baru
             if ($bimtek->peserta()->where('user_id', $user->id)->exists()) {
                 $skippedCount++;
                 continue;
             }
 
             $pivotData = [
-                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
             ];
 
-            // REFAKTORISASI: Menyimpan massal ke tabel bridge khusus peserta
             $bimtek->peserta()->attach($user->id, $pivotData);
             $addedCount++;
 
+            // 💡 PERBAIKAN: Proses pengiriman email pada saat CSV import (Tanpa logika token aktivasi)
             if ($isNewUser && $password) {
                 try {
                     Mail::to($user->email)->send(new PesertaCredentialsMail($user, $password, $bimtek));
@@ -422,11 +312,11 @@ class PesertaController extends Controller
 
                 if ($bimtek->butuh_verifikasi_dokumen) {
                     try {
-                        [$tokenModel, $rawToken] = \App\Models\ActivationToken::generateFor($user, 7, Auth::id());
-                        $uploadUrl = route('activation.form') . '?email=' . urlencode($user->email) . '&token=' . $rawToken;
+                        // Langsung arahkan login lalu isi dokumen
+                        $uploadUrl = route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id);
                         Mail::to($user->email)->send(new PesertaBimtekInvitedMail($bimtek, $user, $uploadUrl));
                     } catch (\Exception $e) {
-                        Log::error("Gagal mengirim email undangan aktivasi hasil import.");
+                        Log::error("Gagal mengirim email undangan dokumen hasil import.");
                     }
                 }
             } else {
@@ -437,10 +327,10 @@ class PesertaController extends Controller
                         Mail::to($user->email)->send(new PesertaAddedToBimtekMail($bimtek, $user, route('login')));
                     }
                 } catch (\Exception $e) {
-                    Log::error("Gagal mengirim notifikasi email.");
+                    Log::error("Gagal mengirim notifikasi email peserta eksisting.");
                 }
             }
-        } // SAKTI: Di sinilah perulangan while baru benar-benar ditutup dengan aman!
+        } 
 
         fclose($handle);
 
@@ -454,6 +344,95 @@ class PesertaController extends Controller
             ->with('success', $message)
             ->with('import_errors', $errors)
             ->with('new_users', $newUsers);
+    }
+
+    /**
+     * Keluarkan seorang peserta dari keanggotaan kelas Bimtek.
+     */
+    public function destroy(Bimtek $bimtek, User $user): RedirectResponse
+    {
+        $this->authorizeManage($bimtek);
+
+        $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
+
+        if (! $isPeserta) {
+            return redirect()->route('bimtek.peserta.index', $bimtek->id)->with('error', 'User bukan peserta bimtek ini.');
+        }
+
+        $bimtek->peserta()->detach($user->id);
+
+        return redirect()
+            ->route('bimtek.peserta.index', $bimtek->id)
+            ->with('success', "Peserta {$user->name} berhasil dihapus dari bimtek.");
+    }
+
+    /**
+     * Fitur Checklist Massal: Mengeluarkan banyak peserta sekaligus dari kelas.
+     */
+    public function bulkDestroy(Request $request, Bimtek $bimtek): RedirectResponse
+    {
+        $this->authorizeManage($bimtek);
+
+        $validated = $request->validate([
+            'user_ids' => 'required|array|min:1',
+            'user_ids.*' => 'exists:users,id',
+        ]);
+
+        $removedCount = 0;
+
+        foreach ($validated['user_ids'] as $userId) {
+            $isPeserta = $bimtek->peserta()->where('user_id', $userId)->exists();
+
+            if ($isPeserta) {
+                $bimtek->peserta()->detach($userId);
+                $removedCount++;
+            }
+        }
+
+        return redirect()
+            ->route('bimtek.peserta.index', $bimtek->id)
+            ->with('success', "Berhasil menghapus {$removedCount} peserta.");
+    }
+
+    /**
+     * Mengubah peran kontekstual aktor di dalam kegiatan kelas.
+     */
+    public function changeRole(Request $request, Bimtek $bimtek, User $user): RedirectResponse
+    {
+        $this->authorizeManage($bimtek);
+
+        $validated = $request->validate([
+            'peran' => 'required|in:peserta,panitia',
+        ]);
+
+        if ($validated['peran'] === 'panitia' && ! $user->isPegawaiInternal()) {
+            return redirect()->route('bimtek.peserta.index', $bimtek->id)->with('error', 'Hanya user dengan role Pegawai Internal yang dapat diubah menjadi panitia.');
+        }
+
+        $isPeserta = $bimtek->peserta()->where('user_id', $user->id)->exists();
+        $isPanitia = $bimtek->panitia()->where('user_id', $user->id)->exists();
+
+        if (! $isPeserta && ! $isPanitia) {
+            return redirect()->route('bimtek.peserta.index', $bimtek->id)->with('error', 'User tidak terdaftar di bimtek ini.');
+        }
+
+        if ($validated['peran'] === 'panitia') {
+            $bimtek->peserta()->detach($user->id);
+            if (! $isPanitia) {
+                $bimtek->panitia()->attach($user->id, ['fungsi_panitia' => 'Anggota Tim Pelaksana']);
+            }
+        } else {
+            $bimtek->panitia()->detach($user->id);
+            if (! $isPeserta) {
+                $bimtek->peserta()->attach($user->id, [
+                    'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified'
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('bimtek.peserta.index', $bimtek->id)
+            ->with('success', "Peran {$user->name} berhasil diubah.");
     }
 
     /**

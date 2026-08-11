@@ -148,22 +148,6 @@
                     <form action="{{ route('bimtek.sertifikat.generate', $bimtek->id) }}" method="POST" id="generate-form">
                         @csrf
                         <div class="p-6 space-y-4">
-                            {{-- Aturan Pemetaan Template Variabel Placeholder Kertas --}}
-                            <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 shadow-inner shadow-blue-50">
-                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">ℹ️ Informasi Sinkronisasi Variabel Template Kertas:</h4>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-[10px] font-mono font-bold text-blue-700 text-center">
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${NAMA_PESERTA}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${NIP}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${INSTANSI}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${NOMOR_SERTIFIKAT}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${JUDUL_BIMTEK}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${TANGGAL_MULAI}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${TANGGAL_SELESAI}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${LOKASI}</div>
-                                    <div class="bg-white p-1 rounded border border-blue-100/60">${TANGGAL_TERBIT}</div>
-                                </div>
-                            </div>
-
                             {{-- Input Tanggal Terbit Sertifikat --}}
                             <div class="max-w-xs">
                                 <label for="tanggal_terbit" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
@@ -246,12 +230,12 @@
                                                     <div class="flex items-center justify-center gap-1.5 font-bold text-xs">
                                                         <span class="px-2 py-0.5 bg-blue-50 border border-blue-100 text-blue-700 font-bold rounded text-[10px] uppercase tracking-wide">Terbit Sah</span>
                                                         {{-- REFAKTORISASI: Kestabilan ID parameter rute download & destroy dokumen terbit --}}
-                                                        <a href="{{ route('bimtek.sertifikat.download', [$bimtek->id, $data['sertifikat']->id ?? $data['sertifikat']]) }}" class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition" title="Unduh Berkas">
+                                                        <a href="{{ route('bimtek.sertifikat.download', [$bimtek->id, $data['sertifikat']->user_id ?? $data['sertifikat']]) }}" class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition" title="Unduh Berkas">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                                             </svg>
                                                         </a>
-                                                        <form action="{{ route('bimtek.sertifikat.destroy', [$bimtek->id, $data['sertifikat']->id ?? $data['sertifikat']]) }}" method="POST" class="inline" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin membatalkan dan menghapus lembar sertifikat resmi peserta ini?')">
+                                                        <form action="{{ route('bimtek.sertifikat.destroy', [$bimtek->id, $data['sertifikat']->user_id ?? $data['sertifikat']]) }}" method="POST" class="inline" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin membatalkan dan menghapus lembar sertifikat resmi peserta ini?')">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded-lg transition" title="Hapus Lembar">
