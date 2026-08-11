@@ -17,14 +17,14 @@ class CheckBimtekRole
      */
     public function handle(Request $request, Closure $next, string ...$peranKontekstual): Response
     {
-        if (!$request->user()) {
+        if (! $request->user()) {
             return redirect()->route('login');
         }
 
         // Ambil bimtek_id dari route parameter
         $bimtekId = $request->route('bimtek') ?? $request->route('bimtek_id');
-        
-        if (!$bimtekId) {
+
+        if (! $bimtekId) {
             abort(400, 'Bimtek ID tidak ditemukan.');
         }
 
@@ -37,7 +37,7 @@ class CheckBimtekRole
         $userPeran = $user->getPeranKontekstual($bimtekId);
 
         // Cek apakah user memiliki salah satu peran kontekstual yang diizinkan
-        if (!$userPeran || !in_array($userPeran, $peranKontekstual)) {
+        if (! $userPeran || ! in_array($userPeran, $peranKontekstual)) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');
         }
 

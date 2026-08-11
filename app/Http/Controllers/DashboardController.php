@@ -3,30 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bimtek;
-use App\Models\Pengajuan;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    /**
-     * Tampilkan dashboard sesuai role user
-     */
     public function index(): View
     {
         $user = Auth::user();
-        
-        // Data dashboard berbeda sesuai role
         $data = $this->getDashboardData($user);
-        
         return view('dashboard', $data);
     }
 
-    /**
-     * Get dashboard data berdasarkan role user
-     */
     protected function getDashboardData(User $user): array
     {
         $data = [
@@ -51,67 +40,50 @@ class DashboardController extends Controller
         return $data;
     }
 
-    /**
-     * Dashboard data untuk Admin IT
-     */
     protected function getAdminItData(): array
     {
         return [
             'totalUsers' => User::count(),
             'totalBimtek' => Bimtek::count(),
-            'totalPengajuan' => Pengajuan::count(),
-            'bimtekAktif' => Bimtek::where('status_pelaksanaan', 'berlangsung')->count(),
-            'recentPengajuan' => Pengajuan::with(['user'])
+            'totalPengajuan' => Bimtek::whereIn('status', ['diajukan', 'disetujui_kepala', 'disetujui_ppk'])->count(),
+            'bimtekAktif' => Bimtek::where('status', 'berlangsung')->count(),
+            'recentPengajuan' => Bimtek::with(['pic'])
+                ->whereIn('status', ['diajukan', 'disetujui_kepala', 'disetujui_ppk'])
                 ->latest()
                 ->take(5)
                 ->get(),
         ];
     }
 
-    /**
-     * Dashboard data untuk Kepala
-     */
     protected function getKepalaData(): array
     {
         return [
-            'pengajuanMenunggu' => Pengajuan::where('status_pengajuan', 'diajukan')->count(),
-            // Disetujui = sudah disetujui Kepala (termasuk yang sudah lanjut ke PPK dan final)
-            'pengajuanDisetujui' => Pengajuan::whereIn('status_pengajuan', ['disetujui_kepala', 'disetujui_ppk', 'disetujui_final'])->count(),
-            'pengajuanDitolak' => Pengajuan::where('status_pengajuan', 'ditolak')->count(),
-            'recentPengajuan' => Pengajuan::with(['user'])
-                ->where('status_pengajuan', 'diajukan')
+            'pengajuanMenunggu' => Bimtek::where('status', 'diajukan')->count(),
+            'pengajuanDisetujui' => Bimtek::whereIn('status', ['disetujui_kepala', 'disetujui_ppk', 'disetujui_final'])->count(),
+            'pengajuanDitolak' => Bimtek::where('status', 'ditolak')->count(),
+            'recentPengajuan' => Bimtek::where('status', 'diajukan')
                 ->latest()
                 ->take(5)
                 ->get(),
         ];
     }
 
-    /**
-     * Dashboard data untuk PPK
-     */
     protected function getPpkData(): array
     {
         return [
-            'pengajuanMenungguPpk' => Pengajuan::where('status_pengajuan', 'disetujui_kepala')->count(),
-            // Disetujui PPK = yang sudah disetujui anggaran (termasuk final)
-            'pengajuanDisetujuiPpk' => Pengajuan::whereIn('status_pengajuan', ['disetujui_ppk', 'disetujui_final'])->count(),
+            'pengajuanMenungguPpk' => Bimtek::where('status', 'disetujui_kepala')->count(),
+            'pengajuanDisetujuiPpk' => Bimtek::whereIn('status', ['disetujui_ppk', 'disetujui_final'])->count(),
             'totalAnggaran' => Bimtek::sum('anggaran_disetujui'),
-            'recentPengajuan' => Pengajuan::with(['user'])
-                ->where('status_pengajuan', 'disetujui_kepala')
+            'recentPengajuan' => Bimtek::where('status', 'disetujui_kepala')
                 ->latest()
                 ->take(5)
                 ->get(),
         ];
     }
 
-    /**
-     * Dashboard data untuk Koordinator RT
-     */
     protected function getRtData(): array
     {
-        // Optimize with single query for statistics
-        $stats = Pengajuan::where('status_pengajuan', 'disetujui_final')
-            ->whereHas('fasilitasLogistiks')
+        $stats = Bimtek::whereIn('status', ['disetujui_final', 'persiapan', 'berlangsung'])
             ->selectRaw("
                 SUM(CASE WHEN status_rt = 'belum_dipenuhi' THEN 1 ELSE 0 END) as belum_dipenuhi,
                 SUM(CASE WHEN status_rt = 'telah_dipenuhi' THEN 1 ELSE 0 END) as telah_dipenuhi
@@ -121,64 +93,54 @@ class DashboardController extends Controller
         return [
             'kebutuhanBelumDipenuhi' => $stats->belum_dipenuhi ?? 0,
             'kebutuhanTerpenuhi' => $stats->telah_dipenuhi ?? 0,
-            'recentPengajuan' => Pengajuan::with(['user', 'fasilitasLogistiks'])
-                ->where('status_pengajuan', 'disetujui_final')
-                ->whereHas('fasilitasLogistiks')
-                ->where('status_rt', '!=', 'telah_dipenuhi')
+            'recentPengajuan' => Bimtek::whereIn('status', ['disetujui_final', 'persiapan'])
                 ->latest()
                 ->take(5)
                 ->get(),
         ];
     }
 
-    /**
-     * Dashboard data untuk Pegawai Internal
-     */
     protected function getPegawaiInternalData(User $user): array
     {
-        // Optimize pengajuan queries
-        $pengajuanStats = Pengajuan::where('user_id', $user->id)
+        $pengajuanStats = Bimtek::where('pic_user_id', $user->id)
             ->selectRaw("
                 COUNT(*) as total,
-                SUM(CASE WHEN status_pengajuan = 'disetujui_final' THEN 1 ELSE 0 END) as disetujui
+                SUM(CASE WHEN status = 'disetujui_final' THEN 1 ELSE 0 END) as disetujui
             ")
             ->first();
 
-        // Load bimtek data once
-        $bimtekData = $user->bimteks()->withPivot('peran_kontekstual')->get();
-        
-        // Count bimtek sebagai PIC (dari kolom pic_user_id)
-        $bimtekSebagaiPic = Bimtek::where('pic_user_id', $user->id)->count();
+        $bimtekPanitiaCount = $user->bimteksSebagaiPanitia()->count();
+        $bimtekPicCount = $user->bimteksSebagaiPic()->count();
 
         return [
             'pengajuanSaya' => $pengajuanStats->total ?? 0,
             'pengajuanDisetujui' => $pengajuanStats->disetujui ?? 0,
-            'bimtekSaya' => $bimtekData->count(),
-            'bimtekSebagaiPic' => $bimtekSebagaiPic,
-            'recentPengajuan' => Pengajuan::where('user_id', $user->id)
-                ->latest()
-                ->take(5)
-                ->get(),
-            'bimtekAktif' => $bimtekData
-                ->where('status_pelaksanaan', 'berlangsung')
-                ->take(5),
+            'bimtekSaya' => $bimtekPanitiaCount + $bimtekPicCount,
+            'bimtekSebagaiPic' => $bimtekPicCount,
+            'recentPengajuan' => Bimtek::where('pic_user_id', $user->id)->latest()->take(5)->get(),
+            'bimtekAktif' => $user->bimteksSebagaiPanitia()->where('status', 'berlangsung')->take(5)->get(),
         ];
     }
 
-    /**
-     * Dashboard data untuk Peserta Eksternal
-     */
+    protected function getPersuratanData(): array
+    {
+        return [
+            // Persuratan mengurus berkas surat undangan yang belum diunggah pasca finalisasi
+            'bimtekMenungguFinal' => Bimtek::where('status', 'disetujui_final')->whereNull('file_surat_undangan_path')->count(),
+            'bimtekSuratSelesai' => Bimtek::whereNotNull('file_surat_undangan_path')->count(),
+            'recentBimtekMenunggu' => Bimtek::where('status', 'disetujui_final')->whereNull('file_surat_undangan_path')->latest()->take(5)->get(),
+            'recentBimtekSelesai' => Bimtek::whereNotNull('file_surat_undangan_path')->latest()->take(5)->get(),
+        ];
+    }
+
     protected function getPesertaEksternalData(User $user): array
     {
         return [
-            'bimtekDiikuti' => $user->bimteks()->count(),
-            'bimtekSelesai' => $user->bimteks()->where('status_pelaksanaan', 'selesai')->count(),
+            'bimtekDiikuti' => $user->bimteksSebagaiPeserta()->count(),
+            'bimtekSelesai' => $user->bimteksSebagaiPeserta()->where('status', 'selesai')->count(),
             'sertifikatDiperoleh' => $user->sertifikats()->count(),
-            'bimtekAktif' => $user->bimteks()
-                ->whereIn('status_pelaksanaan', ['persiapan', 'berlangsung'])
-                ->take(5)
-                ->get(),
-            'tugasMenunggu' => 0, // Will be calculated later
+            'bimtekAktif' => $user->bimteksSebagaiPeserta()->whereIn('status', ['persiapan', 'berlangsung'])->take(5)->get(),
+            'tugasMenunggu' => 0,
         ];
     }
 }

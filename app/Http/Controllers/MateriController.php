@@ -25,7 +25,7 @@ class MateriController extends Controller
 
         $canManage = $this->canManage($bimtek);
         $isPeserta = $this->isPeserta($bimtek);
-        
+
         // Check verification status for peserta
         $isVerified = false;
         if ($isPeserta && $bimtek->butuh_verifikasi_dokumen) {
@@ -172,11 +172,11 @@ class MateriController extends Controller
         $this->authorizeAccess($bimtek);
         $this->ensureMateriOwnership($bimtek, $materi);
 
-        if (!$materi->file_path || !Storage::disk('public')->exists($materi->file_path)) {
+        if (! $materi->file_path || ! Storage::disk('public')->exists($materi->file_path)) {
             return back()->with('error', 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($materi->file_path, $materi->judul . '.' . pathinfo($materi->file_path, PATHINFO_EXTENSION));
+        return Storage::disk('public')->download($materi->file_path, $materi->judul.'.'.pathinfo($materi->file_path, PATHINFO_EXTENSION));
     }
 
     /**
@@ -187,7 +187,7 @@ class MateriController extends Controller
         $this->authorizeAccess($bimtek);
         $this->ensureMateriOwnership($bimtek, $materi);
 
-        if (!$materi->file_path || !Storage::disk('public')->exists($materi->file_path)) {
+        if (! $materi->file_path || ! Storage::disk('public')->exists($materi->file_path)) {
             return back()->with('error', 'File tidak ditemukan.');
         }
 
@@ -199,13 +199,14 @@ class MateriController extends Controller
         if ($ext === 'pdf') {
             return response()->file(Storage::disk('public')->path($materi->file_path), [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $materi->judul . '.pdf"'
+                'Content-Disposition' => 'inline; filename="'.$materi->judul.'.pdf"',
             ]);
         }
 
         // Office files (DOC, DOCX, PPT, PPTX, XLS, XLSX) - gunakan Google Docs Viewer
         if (in_array($ext, ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'])) {
-            $googleViewerUrl = 'https://docs.google.com/viewer?url=' . urlencode($fullUrl) . '&embedded=true';
+            $googleViewerUrl = 'https://docs.google.com/viewer?url='.urlencode($fullUrl).'&embedded=true';
+
             return redirect()->away($googleViewerUrl);
         }
 
@@ -225,13 +226,15 @@ class MateriController extends Controller
             return;
         }
 
-        // Check if user is involved in bimtek
-        $isInvolved = $bimtek->users()->where('user_id', $user->id)->exists();
-        
+        // Check if user is involved in bimtek (PIC, Panitia, atau Peserta)
+        $isInvolved = ($bimtek->pic_user_id === $user->id) 
+            || $bimtek->panitia()->where('user_id', $user->id)->exists() 
+            || $bimtek->peserta()->where('user_id', $user->id)->exists();
+
         // Check if user is the pengajuan owner
         $isOwner = $bimtek->pengajuan && $bimtek->pengajuan->user_id === $user->id;
 
-        if (!$isInvolved && !$isOwner) {
+        if (! $isInvolved && ! $isOwner) {
             abort(403, 'Anda tidak memiliki akses ke materi bimtek ini.');
         }
     }
@@ -247,7 +250,7 @@ class MateriController extends Controller
         $isPic = $bimtek->pic_user_id === $user->id;
         $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
 
-        if (!$isPic && !$isPanitia) {
+        if (! $isPic && ! $isPanitia) {
             abort(403, 'Hanya PIC atau Panitia yang dapat mengelola materi.');
         }
     }
@@ -261,7 +264,7 @@ class MateriController extends Controller
 
         $isPic = $bimtek->pic_user_id === $user->id;
         $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
-        
+
         return $isPic || $isPanitia;
     }
 

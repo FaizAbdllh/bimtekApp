@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan Kegiatan - {{ $bimtek->judul_final }}</title>
+    <title>Laporan Kegiatan - {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</title>
     <style>
         @page {
             margin: 2cm 1.5cm;
@@ -143,7 +143,8 @@
 
     <div class="title">
         <h3>LAPORAN KEGIATAN BIMBINGAN TEKNIS</h3>
-        <p>{{ $bimtek->judul_final }}</p>
+        {{-- REFAKTORISASI: Menambahkan jaring pengaman fallback jika judul aktual belum diisi --}}
+        <p>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</p>
     </div>
 
     {{-- Informasi Umum --}}
@@ -152,29 +153,49 @@
         <table class="info-table">
             <tr>
                 <td>Nama Kegiatan</td>
-                <td>: {{ $bimtek->judul_final }}</td>
+                <td>: {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</td>
             </tr>
             <tr>
                 <td>Tanggal Pelaksanaan</td>
-                <td>: {{ $bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->locale('id')->isoFormat('D MMMM Y') : '-' }} - {{ $bimtek->tanggal_selesai_final ? $bimtek->tanggal_selesai_final->locale('id')->isoFormat('D MMMM Y') : '-' }}</td>
+                {{-- REFAKTORISASI WAKTU: Mengalihkan dari tanggal_mulai_final lama ke kolom aktual baru dengan fallback rencana awal --}}
+                <td>: 
+                    {{ $bimtek->tanggal_mulai_aktual ? $bimtek->tanggal_mulai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_mulai_rencana ? $bimtek->tanggal_mulai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }} 
+                    s/d 
+                    {{ $bimtek->tanggal_selesai_aktual ? $bimtek->tanggal_selesai_aktual->locale('id')->isoFormat('D MMMM Y') : ($bimtek->tanggal_selesai_rencana ? $bimtek->tanggal_selesai_rencana->locale('id')->isoFormat('D MMMM Y') : '-') }}
+                </td>
             </tr>
             <tr>
-                <td>Tempat</td>
-                <td>: {{ $bimtek->lokasi_final ?? '-' }}</td>
+                <td>Tempat / Lokasi Aktual</td>
+                {{-- REFAKTORISASI LOKASI: Mengalihkan dari lokasi_final ke lokasi_aktual baru --}}
+                <td>: {{ $bimtek->lokasi_aktual ?? $bimtek->tempat_kegiatan_rencana ?? '-' }}</td>
             </tr>
             <tr>
-                <td>Narasumber</td>
-                <td>: {{ is_array($bimtek->narasumber ?? null)
-                    ? ($bimtek->narasumber['name'] ?? $bimtek->narasumber['nama'] ?? '-')
-                    : (($bimtek->narasumber->name ?? $bimtek->narasumber->nama ?? '-') ?? '-') }}</td>
+                <td>Narasumber / Pemateri</td>
+                {{-- REFAKTORISASI NARASUMBER: Mengurai array JSON daftar_pemateri baru menjadi string list terpisah koma --}}
+                @php
+                    $pemateriList = '-';
+                    if (is_array($bimtek->daftar_pemateri) && count($bimtek->daftar_pemateri) > 0) {
+                        $names = [];
+                        foreach($bimtek->daftar_pemateri as $pm) {
+                            if(!empty($pm['nama'])) {
+                                $names[] = $pm['nama'] . (!empty($pm['asal_instansi']) ? ' ('.$pm['asal_instansi'].')' : '');
+                            }
+                        }
+                        if(count($names) > 0) {
+                            $pemateriList = implode(', ', $names);
+                        }
+                    }
+                @endphp
+                <td>: {{ $pemateriList }}</td>
             </tr>
             <tr>
-                <td>Koordinator/PIC</td>
-                <td>: {{ $pic ? $pic->name : '-' }}</td>
+                <td>Koordinator / PIC Pelaksana</td>
+                <td>: {{ $pic ? $pic->name : ($bimtek->pic->name ?? '-') }}</td>
             </tr>
             <tr>
-                <td>Status Kegiatan</td>
-                <td>: {{ ucfirst($bimtek->status_pelaksanaan ?? $bimtek->status ?? '-') }}</td>
+                <td>Status Akhir Kelas</td>
+                {{-- REFAKTORISASI STATUS: Menyelaraskan ke kolom status tunggal baru --}}
+                <td>: {{ $bimtek->status === 'disetujui_final' ? 'Disetujui (Siap)' : ucfirst($bimtek->status ?? '-') }}</td>
             </tr>
         </table>
     </div>
@@ -206,43 +227,44 @@
 
     {{-- Daftar Peserta --}}
     <div class="section">
-        <div class="section-title">III. Daftar Peserta</div>
+        <div class="section-title">III. Daftar Peserta Terdaftar</div>
         <table class="data">
             <thead>
                 <tr>
                     <th style="width: 25px;">No</th>
-                    <th>Nama</th>
-                    <th>NIP</th>
-                    <th>Instansi</th>
+                    <th>Nama Lengkap Peserta</th>
+                    <th>NIP / Identitas</th>
+                    <th>Asal Instansi Sekolah / Lembaga</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($peserta as $index => $p)
                 <tr>
                     <td class="center">{{ $index + 1 }}</td>
-                    <td>{{ $p->name }}</td>
+                    <td><strong>{{ $p->name }}</strong></td>
                     <td class="center">{{ $p->nip ?? '-' }}</td>
                     <td>{{ $p->asal_instansi ?? '-' }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="center">Tidak ada peserta</td>
+                    <td colspan="4" class="center">Tidak ada peserta yang terdaftar dalam kelas ini</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    @if($panitia->count() > 0)
+    {{-- Daftar Panitia Kerja Pokja --}}
+    @if(isset($panitia) && $panitia->count() > 0)
     <div class="section">
-        <div class="section-title">IV. Daftar Panitia</div>
+        <div class="section-title">IV. Daftar Jajaran Panitia Tim Kerja</div>
         <table class="data">
             <thead>
                 <tr>
                     <th style="width: 25px;">No</th>
-                    <th>Nama</th>
+                    <th>Nama Lengkap Panitia</th>
                     <th>NIP</th>
-                    <th>Jabatan</th>
+                    <th>Fungsi Penugasan Kedinasan</th>
                 </tr>
             </thead>
             <tbody>
@@ -251,7 +273,8 @@
                     <td class="center">{{ $index + 1 }}</td>
                     <td>{{ $p->name }}</td>
                     <td class="center">{{ $p->nip ?? '-' }}</td>
-                    <td>Panitia</td>
+                    {{-- REFAKTORISASI: Membaca penugasan panitia kedinasan dari kolom pivot bimtek_panitias --}}
+                    <td>{{ $p->pivot->fungsi_panitia ?? 'Anggota Pelaksana' }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -262,7 +285,7 @@
     {{-- Penutup --}}
     <div class="footer">
         <div class="section-title">Penutup</div>
-        <p>Demikian laporan kegiatan Bimbingan Teknis ini dibuat sebagai pertanggungjawaban pelaksanaan kegiatan.</p>
+        <p style="text-align: justify;">Demikian draf dokumen laporan komplit pelaksanaan kegiatan Bimbingan Teknis ini disusun dengan sebenar-benarnya sebagai berkas pertanggungjawaban administratif dan bukti akuntabilitas realisasi anggaran belanja unit kerja.</p>
         
         <div class="signature-container">
             <div class="signature-left">
@@ -273,11 +296,15 @@
                 <small>NIP. ____________________</small>
             </div>
             <div class="signature-right">
-                <p>Padang, {{ $tanggal_cetak }}</p>
-                <p>Koordinator/PIC Bimtek</p>
+                <p>Padang, {{ $tanggal_cetak ?? now()->locale('id')->isoFormat('D MMMM Y') }}</p>
+                <p>Koordinator / PIC Bimtek</p>
                 <div class="signature-line"></div>
-                <p><strong>{{ $pic ? $pic->name : '____________________' }}</strong></p>
-                <small>NIP. {{ $pic ? $pic->nip ?? '-' : '____________________' }}</small>
+                @php
+                    $picName = $pic ? $pic->name : ($bimtek->pic->name ?? '____________________');
+                    $picNip = $pic ? ($pic->nip ?? '-') : ($bimtek->pic->nip ?? '____________________');
+                @endphp
+                <p><strong>{{ $picName }}</strong></p>
+                <small>NIP. {{ $picNip }}</small>
             </div>
             <div class="clearfix"></div>
         </div>

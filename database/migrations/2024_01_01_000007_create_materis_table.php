@@ -15,8 +15,11 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
             $table->string('judul');
-            $table->string('file_path')->notNull();
-            $table->enum('tipe', ['materi', 'panduan'])->notNull()->comment('Membedakan materi dan panduan');
+            
+            // Perbaikan: Menghapus ->notNull() karena default Laravel sudah NOT NULL
+            $table->string('file_path');
+            $table->enum('tipe', ['materi', 'panduan'])->comment('Membedakan materi dan panduan');
+            
             $table->timestamps();
         });
     }

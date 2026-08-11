@@ -6,60 +6,69 @@ use App\Models\Bimtek;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckVerifiedPeserta
 {
     /**
      * Handle an incoming request.
-     * 
+     *
      * Middleware ini memblokir akses peserta yang belum verified dokumen
      * untuk fitur absensi, tugas, dan sertifikat jika Bimtek butuh verifikasi.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Get bimtek from route parameter
+        // 1. Ambil data bimtek dari parameter URL
         $bimtek = $request->route('bimtek');
-        
-        if (!$bimtek instanceof Bimtek) {
+
+        if (! $bimtek instanceof Bimtek) {
             return $next($request);
         }
-        
-        // Skip check if bimtek doesn't require verification
-        if (!$bimtek->butuh_verifikasi_dokumen) {
+
+        // 2. Jika bimtek bebas dokumen, langsung persilakan masuk
+        if (! $bimtek->butuh_verifikasi_dokumen) {
             return $next($request);
         }
-        
+
         $user = Auth::user();
-        
-        // Skip check if user is not authenticated
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
-        
-        // Check if user is peserta in this bimtek
-        $pivot = $bimtek->users()
-            ->where('users.id', $user->id)
-            ->where('bimtek_user.peran_kontekstual', 'peserta')
+
+        // 3. Jika yang akses adalah Panitia / PIC / Admin, biarkan lewat (Bypass)
+        $roleName = $user->role->nama_peran ?? '';
+        if (!in_array($roleName, ['Peserta', 'Peserta Eksternal'])) {
+            return $next($request);
+        }
+
+        // 4. Cek status peserta di tabel pivot terbaru (bimtek_pesertas)
+        $pivot = DB::table('bimtek_pesertas')
+            ->where('bimtek_id', $bimtek->id)
+            ->where('user_id', $user->id)
             ->first();
-        
-        // Skip check if user is not a peserta (maybe PIC or panitia)
-        if (!$pivot) {
-            return $next($request);
+
+        if (! $pivot) {
+            return redirect()->route('dashboard')->with('error', 'Anda tidak terdaftar di kelas Bimtek ini.');
         }
-        
-        // Get verification status from pivot
-        $statusVerifikasi = $pivot->pivot->status_verifikasi ?? 'invited';
-        
-        // Block access if not verified
-        if ($statusVerifikasi !== 'verified') {
-            return redirect()
-                ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek)
-                ->with('warning', 'Anda harus menyelesaikan verifikasi dokumen terlebih dahulu sebelum mengakses fitur ini.');
+
+        $statusVerifikasi = $pivot->status_verifikasi ?? 'invited';
+
+        // 5. Logika Gembok Cerdas
+        if ($statusVerifikasi === 'pending') {
+            // Jika masih antre, kembalikan ke Dasbor
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses dikunci! Anda harus menunggu panitia menyetujui berkas Anda sebelum bisa masuk ke kelas.');
+        } elseif ($statusVerifikasi === 'rejected') {
+            // Jika ditolak, paksa lari ke form perbaikan (upload ulang)
+            return redirect()->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
+                ->with('error', 'Berkas Anda sebelumnya ditolak panitia. Silakan unggah perbaikan dokumen untuk masuk ke kelas.');
+        } elseif ($statusVerifikasi !== 'verified') {
+            // Pengaman darurat untuk status tidak dikenal
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak.');
         }
-        
+
+        // Jika statusnya 'verified', gembok terbuka!
         return $next($request);
     }
 }

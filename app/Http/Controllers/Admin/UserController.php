@@ -36,8 +36,8 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nip', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('nip', 'like', "%{$search}%");
             });
         }
 
@@ -53,6 +53,7 @@ class UserController extends Controller
     public function create(): View
     {
         $roles = Role::orderBy('nama_peran')->get();
+
         return view('admin.users.create', compact('roles'));
     }
 
@@ -77,6 +78,7 @@ class UserController extends Controller
     public function show(User $user): View
     {
         $user->load(['role', 'bimteks']);
+
         return view('admin.users.show', compact('user'));
     }
 
@@ -86,6 +88,7 @@ class UserController extends Controller
     public function edit(User $user): View
     {
         $roles = Role::orderBy('nama_peran')->get();
+
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
@@ -97,7 +100,7 @@ class UserController extends Controller
         $validated = $request->validated();
 
         // Only update password if provided
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
@@ -122,11 +125,11 @@ class UserController extends Controller
                 ->with('error', 'Anda tidak dapat menghapus akun sendiri.');
         }
 
-        $deletedUserInfo = $user->name . ' (' . $user->email . ')';
+        $deletedUserInfo = $user->name.' ('.$user->email.')';
         $user->delete();
 
         // Log penghapusan user
-        \App\Models\LogSistem::info('User dihapus: ' . $deletedUserInfo, auth()->id());
+        \App\Models\LogSistem::info('User dihapus: '.$deletedUserInfo, auth()->id());
 
         return redirect()
             ->route('admin.users.index')
@@ -148,7 +151,7 @@ class UserController extends Controller
             Mail::to($user->email)->send(new PasswordResetMail($user, $newPassword));
             $emailSent = true;
         } catch (\Exception $e) {
-            Log::error('Failed to send password reset email: ' . $e->getMessage());
+            Log::error('Failed to send password reset email: '.$e->getMessage());
             \App\Models\LogSistem::warning(
                 "Gagal mengirim email reset password ke {$user->email}: {$e->getMessage()}",
                 Auth::id()

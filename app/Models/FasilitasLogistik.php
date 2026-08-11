@@ -14,7 +14,7 @@ class FasilitasLogistik extends Model
     protected $table = 'fasilitas_logistiks';
 
     protected $fillable = [
-        'pengajuan_id',
+        'bimtek_id', // Mengarah langsung ke tabel induk kegiatan baru
         'nama_fasilitas',
         'jumlah',
         'satuan',
@@ -27,10 +27,10 @@ class FasilitasLogistik extends Model
     ];
 
     /**
-     * Get the pengajuan that owns the fasilitas.
+     * Relasi ke tabel induk Bimtek
      */
-    public function pengajuan(): BelongsTo
+    public function bimtek(): BelongsTo
     {
-        return $this->belongsTo(Pengajuan::class);
+        return $this->belongsTo(Bimtek::class, 'bimtek_id');
     }
 }

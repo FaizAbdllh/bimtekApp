@@ -1,14 +1,21 @@
+<x-app-layout>
+    <x-slot name="header">
+        Edit Pengajuan Kegiatan
+    </x-slot>
+
 @php
-    // Prepare anggaran items for JavaScript
+    // REFAKTORISASI: Menyelaraskan pemetaan draf data anggaran ke properti kolom baru satuan_1 & satuan_2
     $anggaranData = $pengajuan->kebutuhanAnggarans->map(function($item) {
         return [
             'sbm_master_id' => $item->sbm_master_id ?? '',
             'nama_item' => $item->nama_item,
             'kategori' => $item->kategori,
             'volume_1' => $item->volume_1,
-            'satuan_primary' => $item->satuan_primary,
+            'satuan_primary' => $item->satuan_1 ?? $item->satuan_primary ?? '',
+            'satuan_primary_suggestion' => '',
             'volume_2' => $item->volume_2,
-            'satuan_secondary' => $item->satuan_secondary,
+            'satuan_secondary' => $item->satuan_2 ?? $item->satuan_secondary ?? '',
+            'satuan_secondary_suggestion' => '',
             'harga_satuan' => $item->harga_satuan,
             'harga_satuan_sbm' => $item->harga_satuan_sbm ?? 0,
             'total_biaya' => $item->total_biaya
@@ -22,15 +29,17 @@
             'kategori' => 'lainnya',
             'volume_1' => '',
             'satuan_primary' => '',
+            'satuan_primary_suggestion' => '',
             'volume_2' => '',
             'satuan_secondary' => '',
+            'satuan_secondary_suggestion' => '',
             'harga_satuan' => '',
             'harga_satuan_sbm' => '',
-            'total_biaya' => ''
+            'total_biaya' => 0
         ]];
     }
     
-    // Prepare fasilitas items for JavaScript
+    // Memetakan riwayat draf fasilitas logistik Rumah Tangga
     $predefinedSatuans = ['Unit', 'Buah', 'Set', 'Ruang', 'Meter', 'Paket', 'Lembar'];
     $fasilitasData = [];
     
@@ -50,11 +59,14 @@
     if (empty($fasilitasData)) {
         $fasilitasData = [['nama' => '', 'jumlah' => 1, 'satuan' => 'Unit', 'satuanCustom' => '']];
     }
+    
+    // 💡 PERBAIKAN 1: Membaca dari relasi tabel syaratDokumens
+    $docTypesData = $pengajuan->syaratDokumens ? $pengajuan->syaratDokumens->pluck('nama_dokumen')->toArray() : [];
 @endphp
 
 @push('head-scripts')
 <style>
-    /* Hide number spinners so more space is available for digits in volume fields. */
+    /* Sembunyikan tombol spinner bawaan browser agar input volume angka terlihat rapi */
     .no-spin::-webkit-outer-spin-button,
     .no-spin::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -68,16 +80,28 @@
 <script>
     window.initialAnggaranData = @json($anggaranData);
     window.initialFasilitasData = @json($fasilitasData);
+    window.initialDocTypes = @json($docTypesData);
     
-    function pengajuanForm() {
+    window.pengajuanForm = function() {
         return {
             jenisKegiatan: @json(old('jenis_kegiatan', $pengajuan->jenis_kegiatan)),
             butuhVerifikasi: @json((bool) old('butuh_verifikasi_dokumen', $pengajuan->butuh_verifikasi_dokumen)),
             anggaranItems: JSON.parse(JSON.stringify(window.initialAnggaranData)),
             fasilitasItems: JSON.parse(JSON.stringify(window.initialFasilitasData)),
+            // 💡 PERBAIKAN 2: Sinkronisasi draf syarat dokumen
+            docTypes: JSON.parse(JSON.stringify(window.initialDocTypes)),
+            newDocType: '',
+            predefinedDocType: '',
+            predefinedOptions: ['Surat Tugas', 'SPPD', 'Sertifikat Pendidikan', 'Izin Atasan', 'Surat Keterangan Sehat'],
             
             get grandTotal() {
                 return this.anggaranItems.reduce((sum, item) => sum + (parseFloat(item.total_biaya) || 0), 0);
+            },
+            
+            syncVerifikasiByJenis() {
+                if (this.jenisKegiatan === 'internal') {
+                    this.butuhVerifikasi = false;
+                }
             },
             
             formatRupiah(amount) {
@@ -95,8 +119,13 @@
                     item.sbm_master_id = selectedOption.value;
                     item.nama_item = selectedOption.dataset.nama || '';
                     item.kategori = selectedOption.dataset.kategori || 'lainnya';
-                    item.satuan_primary = selectedOption.dataset.satuanPrimary || '';
-                    item.satuan_secondary = selectedOption.dataset.satuanSecondary || '';
+                    const suggestedPrimary = selectedOption.dataset.satuanPrimary || '';
+                    const suggestedSecondary = selectedOption.dataset.satuanSecondary || '';
+                    
+                    item.satuan_primary = suggestedPrimary;
+                    item.satuan_secondary = suggestedSecondary;
+                    item.satuan_primary_suggestion = '';
+                    item.satuan_secondary_suggestion = '';
                     item.harga_satuan = parseFloat(selectedOption.dataset.harga) || 0;
                     item.harga_satuan_sbm = parseFloat(selectedOption.dataset.harga) || 0;
                     this.calculateTotal(item);
@@ -111,51 +140,45 @@
                     return;
                 }
 
-                const vol1 = parseFloat(item.volume_1) || 0;
-                const vol2 = parseFloat(item.volume_2) || 0;
-                const harga = parseFloat(item.harga_satuan) || 0;
-                item.total_biaya = vol1 * vol2 * harga;
+                const vol1 = Number(item.volume_1) || 0;
+                const vol2 = Number(item.volume_2) || 1;
+                const harga = Number(item.harga_satuan) || 0;
+                item.total_biaya = vol1 * (vol2 > 0 ? vol2 : 1) * harga;
             },
-            
-            templateAnggaran() {
-                return {
+
+            addAnggaran() {
+                this.anggaranItems.push({
                     sbm_master_id: '',
                     nama_item: '',
                     kategori: 'lainnya',
                     volume_1: '',
                     satuan_primary: '',
+                    satuan_primary_suggestion: '',
                     volume_2: '',
                     satuan_secondary: '',
+                    satuan_secondary_suggestion: '',
                     harga_satuan: '',
                     harga_satuan_sbm: '',
-                    total_biaya: ''
-                };
+                    total_biaya: 0
+                });
             },
-            
-            addItem() {
-                this.anggaranItems.push(this.templateAnggaran());
-            },
-            
-            removeItem(index) {
+
+            removeAnggaran(index) {
                 if (this.anggaranItems.length > 1) {
                     this.anggaranItems.splice(index, 1);
                 }
             },
-            
-            templateFasilitas() {
-                return { nama: '', jumlah: 1, satuan: 'Unit', satuanCustom: '' };
-            },
-            
+
             addFasilitas() {
-                this.fasilitasItems.push(this.templateFasilitas());
+                this.fasilitasItems.push({ nama: '', jumlah: 1, satuan: 'Unit', satuanCustom: '' });
             },
-            
+
             removeFasilitas(index) {
                 if (this.fasilitasItems.length > 1) {
                     this.fasilitasItems.splice(index, 1);
                 }
             },
-            
+
             addFasilitasSuggestion(nama, satuan = 'Unit') {
                 const exists = this.fasilitasItems.some(f => f.nama === nama);
                 if (!exists) {
@@ -171,38 +194,51 @@
                 }
             },
 
-            syncVerifikasiByJenis() {
-                if (this.jenisKegiatan === 'internal') {
-                    this.butuhVerifikasi = false;
+            getSatuan(item) {
+                return item.satuan === 'Lainnya' ? item.satuanCustom : item.satuan;
+            },
+
+            addDocType() {
+                const value = this.newDocType.trim();
+                if (!value) return;
+
+                const exists = this.docTypes.some((item) => item.toLowerCase() === value.toLowerCase());
+                if (!exists) {
+                    this.docTypes.push(value);
                 }
+                this.newDocType = '';
+            },
+
+            addPredefinedDocType() {
+                const value = this.predefinedDocType.trim();
+                if (!value) return;
+
+                const exists = this.docTypes.some((item) => item.toLowerCase() === value.toLowerCase());
+                if (!exists) {
+                    this.docTypes.push(value);
+                }
+                this.predefinedDocType = '';
+            },
+
+            removeDocType(index) {
+                this.docTypes.splice(index, 1);
             },
 
             init() {
-                if (!this.anggaranItems || this.anggaranItems.length === 0) {
-                    this.anggaranItems = [this.templateAnggaran()];
-                }
-                if (!this.fasilitasItems || this.fasilitasItems.length === 0) {
-                    this.fasilitasItems = [this.templateFasilitas()];
-                }
                 this.syncVerifikasiByJenis();
             }
-        }
-    }
+        };
+    };
 </script>
 @endpush
 
-<x-app-layout>
-    <x-slot name="header">
-        Edit Pengajuan
-    </x-slot>
-
-    <div class="py-6" x-data="pengajuanForm()" x-init="init()">
+    <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-            {{-- Breadcrumb --}}
+            {{-- Breadcrumb Navigasi --}}
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="{{ route('pengajuan.index') }}" class="text-gray-500 hover:text-primary-600">
+                        <a href="{{ route('pengajuan.index') }}" class="text-gray-500 hover:text-primary-600 text-sm font-medium">
                             Pengajuan
                         </a>
                     </li>
@@ -211,78 +247,81 @@
                             <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="ml-1 text-gray-700 font-medium">Edit</span>
+                            <span class="ml-1 text-sm text-gray-700 font-medium">Edit Pengajuan</span>
                         </div>
                     </li>
                 </ol>
             </nav>
 
-            {{-- Draft Info --}}
-            @if($pengajuan->status_pengajuan === 'draft')
-            <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div class="flex">
-                    <svg class="h-5 w-5 text-yellow-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    <div>
-                        <h4 class="text-sm font-medium text-yellow-800">Pengajuan ini masih berupa Draft</h4>
-                        <p class="mt-1 text-sm text-yellow-700">Pengajuan belum diajukan. Lengkapi data dan klik "Ajukan Telaah Staf" untuk mengajukan.</p>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            {{-- Revisi Warning --}}
-            @if($pengajuan->status_pengajuan === 'perlu_revisi' && $pengajuan->catatan_kepala)
-            <div class="mb-6 p-4 bg-orange-100 border border-orange-400 rounded-lg">
+            @if($pengajuan->status === 'perlu_revisi' && $pengajuan->catatan_kepala)
+            <div class="mb-6 p-4 bg-orange-100 border border-orange-400 rounded-xl shadow-sm">
                 <div class="flex">
                     <svg class="h-5 w-5 text-orange-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                     <div>
-                        <h4 class="text-sm font-medium text-orange-800">Catatan Revisi dari Kepala:</h4>
-                        <p class="mt-1 text-sm text-orange-700">{{ $pengajuan->catatan_kepala }}</p>
+                        <h4 class="text-sm font-bold text-orange-800">Catatan Koreksi Hasil Telaah Kepala:</h4>
+                        <p class="mt-1 text-sm text-orange-700 font-medium">{{ $pengajuan->catatan_kepala }}</p>
                     </div>
                 </div>
             </div>
             @endif
 
-            <form action="{{ route('pengajuan.update', $pengajuan) }}" method="POST" id="pengajuanForm">
+            <form action="{{ route('pengajuan.update', $pengajuan->id) }}" method="POST" id="pengajuanForm" x-data="pengajuanForm()" x-init="init()">
                 @csrf
                 @method('PUT')
 
                 {{-- Section 1: Informasi Umum Kegiatan --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6 border-b border-gray-200 bg-primary-50">
-                        <h3 class="text-lg font-semibold text-primary-800">1. Informasi Umum Kegiatan</h3>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 mb-6">
+                    <div class="p-5 border-b border-gray-200 bg-primary-50">
+                        <h3 class="text-lg font-bold text-primary-800">1. Informasi Umum Perencanaan</h3>
                     </div>
-                    <div class="p-6 space-y-6">
-                        {{-- Jenis Kegiatan --}}
-                        <div>
-                            <label for="jenis_kegiatan" class="block text-sm font-medium text-gray-700">
-                                Jenis Kegiatan <span class="text-red-500">*</span>
-                            </label>
-                            <select name="jenis_kegiatan" id="jenis_kegiatan" 
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('jenis_kegiatan') border-red-500 @enderror"
-                                x-model="jenisKegiatan"
-                                @change="syncVerifikasiByJenis()">
-                                <option value="">Pilih Jenis Kegiatan</option>
-                                <option value="internal" {{ old('jenis_kegiatan', $pengajuan->jenis_kegiatan) == 'internal' ? 'selected' : '' }}>Internal (Peserta dari BBPMP)</option>
-                                <option value="eksternal" {{ old('jenis_kegiatan', $pengajuan->jenis_kegiatan) == 'eksternal' ? 'selected' : '' }}>Eksternal (Peserta dari Luar)</option>
-                            </select>
-                            @error('jenis_kegiatan')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                    <div class="p-6 space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {{-- Jenis Kegiatan --}}
+                            <div>
+                                <label for="jenis_kegiatan" class="block text-sm font-semibold text-gray-700">
+                                    Jenis Sasaran Kegiatan <span class="text-red-500">*</span>
+                                </label>
+                                <select name="jenis_kegiatan" id="jenis_kegiatan" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('jenis_kegiatan') border-red-500 @enderror text-sm"
+                                    x-model="jenisKegiatan"
+                                    @change="syncVerifikasiByJenis()">
+                                    <option value="">Pilih Jenis Kegiatan</option>
+                                    <option value="internal" {{ old('jenis_kegiatan', $pengajuan->jenis_kegiatan) == 'internal' ? 'selected' : '' }}>Internal (Peserta dari BBPMP)</option>
+                                    <option value="eksternal" {{ old('jenis_kegiatan', $pengajuan->jenis_kegiatan) == 'eksternal' ? 'selected' : '' }}>Eksternal (Peserta dari Luar)</option>
+                                </select>
+                                @error('jenis_kegiatan')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Mode Pelaksanaan --}}
+                            <div>
+                                <label for="mode_pelaksanaan" class="block text-sm font-semibold text-gray-700">
+                                    Mode Pelaksanaan <span class="text-red-500">*</span>
+                                </label>
+                                <select name="mode_pelaksanaan" id="mode_pelaksanaan" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('mode_pelaksanaan') border-red-500 @enderror text-sm">
+                                    <option value="">Pilih Mode Pelaksanaan</option>
+                                    <option value="offline" {{ old('mode_pelaksanaan', $pengajuan->mode_pelaksanaan) == 'offline' ? 'selected' : '' }}>Offline</option>
+                                    <option value="online" {{ old('mode_pelaksanaan', $pengajuan->mode_pelaksanaan) == 'online' ? 'selected' : '' }}>Online</option>
+                                    <option value="hybrid" {{ old('mode_pelaksanaan', $pengajuan->mode_pelaksanaan) == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                                </select>
+                                @error('mode_pelaksanaan')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {{-- Judul Kegiatan --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {{-- Nama Kegiatan --}}
                             <div>
-                                <label for="judul_rencana" class="block text-sm font-medium text-gray-700">
+                                <label for="judul_rencana" class="block text-sm font-semibold text-gray-700">
                                     Nama Kegiatan <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="judul_rencana" id="judul_rencana" value="{{ old('judul_rencana', $pengajuan->judul_rencana) }}" 
-                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('judul_rencana') border-red-500 @enderror"
+                                <input type="text" name="judul_rencana" id="judul_rencana" value="{{ old('judul_rencana', $pengajuan->judul_rencana) }}" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('judul_rencana') border-red-500 @enderror text-sm"
                                     placeholder="Contoh: Workshop Pengimbasan...">
                                 @error('judul_rencana')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -291,323 +330,279 @@
 
                             {{-- Sumber Pembiayaan --}}
                             <div>
-                                <label for="sumber_pembiayaan" class="block text-sm font-medium text-gray-700">
+                                <label for="sumber_pembiayaan" class="block text-sm font-semibold text-gray-700">
                                     Sumber Pembiayaan <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="sumber_pembiayaan" id="sumber_pembiayaan" value="{{ old('sumber_pembiayaan', $pengajuan->sumber_pembiayaan) }}" 
-                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('sumber_pembiayaan') border-red-500 @enderror"
-                                    placeholder="DIPA BBPMP Prov. Sumatera Barat Tahun 2025">
+                                <input type="text" name="sumber_pembiayaan" id="sumber_pembiayaan" value="{{ old('sumber_pembiayaan', $pengajuan->sumber_pembiayaan) }}" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('sumber_pembiayaan') border-red-500 @enderror text-sm">
                                 @error('sumber_pembiayaan')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
 
-                        {{-- Tanggal --}}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {{-- Tanggal Rencana --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label for="tanggal_mulai_rencana" class="block text-sm font-medium text-gray-700">
-                                    Tanggal Mulai <span class="text-red-500">*</span>
+                                <label for="tanggal_mulai_rencana" class="block text-sm font-semibold text-gray-700">
+                                    Tanggal Mulai Rencana <span class="text-red-500">*</span>
                                 </label>
-                                <input type="date" name="tanggal_mulai_rencana" id="tanggal_mulai_rencana" value="{{ old('tanggal_mulai_rencana', $pengajuan->tanggal_mulai_rencana?->format('Y-m-d')) }}" 
-                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tanggal_mulai_rencana') border-red-500 @enderror">
+                                <input type="date" name="tanggal_mulai_rencana" id="tanggal_mulai_rencana" value="{{ old('tanggal_mulai_rencana', $pengajuan->tanggal_mulai_rencana?->format('Y-m-d')) }}" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tanggal_mulai_rencana') border-red-500 @enderror text-sm">
                                 @error('tanggal_mulai_rencana')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
-                                <label for="tanggal_selesai_rencana" class="block text-sm font-medium text-gray-700">
-                                    Tanggal Selesai <span class="text-red-500">*</span>
+                                <label for="tanggal_selesai_rencana" class="block text-sm font-semibold text-gray-700">
+                                    Tanggal Selesai Rencana <span class="text-red-500">*</span>
                                 </label>
-                                <input type="date" name="tanggal_selesai_rencana" id="tanggal_selesai_rencana" value="{{ old('tanggal_selesai_rencana', $pengajuan->tanggal_selesai_rencana?->format('Y-m-d')) }}" 
-                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tanggal_selesai_rencana') border-red-500 @enderror">
+                                <input type="date" name="tanggal_selesai_rencana" id="tanggal_selesai_rencana" value="{{ old('tanggal_selesai_rencana', $pengajuan->tanggal_selesai_rencana?->format('Y-m-d')) }}" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tanggal_selesai_rencana') border-red-500 @enderror text-sm">
                                 @error('tanggal_selesai_rencana')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
 
-                        {{-- Tempat Kegiatan --}}
+                        {{-- Tempat Kegiatan Rencana --}}
                         <div>
-                            <label for="tempat_kegiatan" class="block text-sm font-medium text-gray-700">
-                                Tempat Kegiatan <span class="text-red-500">*</span>
+                            <label for="tempat_kegiatan_rencana" class="block text-sm font-semibold text-gray-700">
+                                Rencana Tempat Kegiatan <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" name="tempat_kegiatan" id="tempat_kegiatan" value="{{ old('tempat_kegiatan', $pengajuan->tempat_kegiatan) }}" 
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tempat_kegiatan') border-red-500 @enderror"
-                                placeholder="Contoh: Aula BBPMP Prov. Sumbar atau Hotel Axana...">
-                            @error('tempat_kegiatan')
+                            <input type="text" name="tempat_kegiatan_rencana" id="tempat_kegiatan_rencana" value="{{ old('tempat_kegiatan_rencana', $pengajuan->tempat_kegiatan_rencana) }}" required
+                                class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tempat_kegiatan_rencana') border-red-500 @enderror text-sm"
+                                placeholder="Contoh: Aula BBPMP Prov. Sumbar...">
+                            @error('tempat_kegiatan_rencana')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Deskripsi --}}
+                        {{-- Deskripsi Pokok Usulan --}}
                         <div>
-                            <label for="deskripsi_rencana" class="block text-sm font-medium text-gray-700">
+                            <label for="deskripsi_rencana" class="block text-sm font-semibold text-gray-700">
                                 Deskripsi / Latar Belakang
                             </label>
                             <textarea name="deskripsi_rencana" id="deskripsi_rencana" rows="4" 
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('deskripsi_rencana') border-red-500 @enderror"
+                                class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('deskripsi_rencana') border-red-500 @enderror text-sm"
                                 placeholder="Jelaskan dasar pelaksanaan kegiatan...">{{ old('deskripsi_rencana', $pengajuan->deskripsi_rencana) }}</textarea>
                             @error('deskripsi_rencana')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Verifikasi Dokumen --}}
-                        <div class="border-t pt-4">
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        {{-- Target Jumlah Peserta --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="jumlah_peserta" class="block text-sm font-semibold text-gray-700">
+                                    Jumlah Target Peserta <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" name="jumlah_peserta" id="jumlah_peserta" value="{{ old('jumlah_peserta', $pengajuan->jumlah_peserta) }}" min="1" step="1" required
+                                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('jumlah_peserta') border-red-500 @enderror text-sm"
+                                    placeholder="Contoh: 40">
+                                @error('jumlah_peserta')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Panel Aturan Unggah Dokumen Kelulusan Peserta Luar --}}
+                        <div class="border-t border-gray-100 pt-4" x-show="jenisKegiatan === 'eksternal'" x-cloak>
+                            <div class="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
                                 <label class="flex items-start gap-3">
                                     <input type="checkbox" name="butuh_verifikasi_dokumen" value="1"
                                         {{ old('butuh_verifikasi_dokumen', $pengajuan->butuh_verifikasi_dokumen) ? 'checked' : '' }}
-                                        class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+                                        class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         id="toggle_verifikasi"
-                                        x-model="butuhVerifikasi"
-                                        :disabled="jenisKegiatan === 'internal'">
+                                        x-model="butuhVerifikasi">
                                     <span>
-                                        <span class="block text-sm font-medium text-gray-700">Aktifkan verifikasi dokumen persyaratan peserta</span>
-                                        <span class="block text-xs text-gray-500 mt-1">Peserta harus mengupload dan memverifikasi dokumen sebelum dapat mengikuti Absensi, Tugas, dan Sertifikat.</span>
-                                        <template x-if="jenisKegiatan === 'internal'">
-                                            <span class="block text-xs text-amber-700 mt-2">Untuk kegiatan internal, verifikasi dokumen dinonaktifkan otomatis.</span>
-                                        </template>
+                                        <span class="block text-sm font-semibold text-amber-900">Aktifkan verifikasi dokumen persyaratan peserta eksternal</span>
+                                        <span class="block text-xs text-amber-600 mt-1">Peserta dari instansi luar wajib mengunggah berkas persyaratan sebelum diperbolehkan melakukan absensi.</span>
                                     </span>
                                 </label>
 
                                 <div id="dokumen_options" class="mt-4 ml-7" x-show="butuhVerifikasi && jenisKegiatan === 'eksternal'" x-cloak>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Dokumen yang Wajib Diupload:</label>
-                                    <div class="space-y-2" x-show="docTypes.length">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Dokumen yang Wajib Diupload Peserta:</label>
+                                    <div class="space-y-2 mb-3" x-show="docTypes.length">
                                         <template x-for="(jenis, index) in docTypes" :key="jenis">
-                                            <div class="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 bg-white">
+                                            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 bg-white shadow-sm">
                                                 <div class="flex items-center">
-                                                    <input type="hidden" name="jenis_dokumen_wajib[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
-                                                    <span class="text-sm text-gray-700" x-text="jenis"></span>
+                                                    {{-- 💡 PERBAIKAN 3: Disinkronkan ke name="syarat_dokumen[]" --}}
+                                                    <input type="hidden" name="syarat_dokumen[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+                                                    <span class="text-sm font-semibold text-gray-700" x-text="jenis"></span>
                                                 </div>
-                                                <button type="button" class="text-xs text-red-600 hover:text-red-800" @click="removeDocType(index)">Hapus</button>
+                                                <button type="button" class="text-xs font-bold text-red-600 hover:text-red-800" @click="removeDocType(index)">Hapus</button>
                                             </div>
                                         </template>
                                     </div>
                                     <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                         <div class="space-y-2">
                                             <select x-model="predefinedDocType"
-                                                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
-                                                <option value="">Pilih dokumen umum</option>
+                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm">
+                                                <option value="">Pilih dokumen dari master</option>
                                                 <template x-for="option in predefinedOptions" :key="option">
                                                     <option :value="option" x-text="option"></option>
                                                 </template>
                                             </select>
-                                            <button type="button" class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium" @click="addPredefinedDocType()">
-                                                Tambah dari daftar
+                                            <button type="button" class="w-full px-4 py-2 bg-gray-700 text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition" @click="addPredefinedDocType()">
+                                                Tambah dari Master
                                             </button>
                                         </div>
                                         <div class="space-y-2">
-                                            <input type="text" x-model="newDocType" placeholder="Contoh: Kartu Pegawai"
-                                                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                            <input type="text" x-model="newDocType" placeholder="Contoh: Surat Rekomendasi"
+                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
                                                 @keydown.enter.prevent="addDocType()">
-                                            <button type="button" class="w-full px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition font-medium" @click="addDocType()">
-                                                Tambah manual
+                                            <button type="button" class="w-full px-4 py-2 bg-primary-100 text-primary-700 rounded-xl text-xs font-bold hover:bg-primary-200 transition" @click="addDocType()">
+                                                Tambah Manual
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="mt-2 text-xs text-gray-500">Kolom kiri untuk dokumen dari daftar umum, kolom kanan untuk dokumen manual.</div>
-                                    <p class="text-xs text-gray-500 mt-2">Tambahkan minimal 1 jenis dokumen yang harus diverifikasi oleh PIC/Panitia</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Section 2: Rincian Kebutuhan Anggaran (RAB) --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6 border-b border-gray-200 bg-primary-50 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-primary-800">2. Rincian Kebutuhan Anggaran (RAB)</h3>
-                        <span class="text-sm text-primary-600">Sesuai PMK 32/2025</span>
+                {{-- Section 2: Rancangan Anggaran Biaya (RAB) --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 mb-6">
+                    <div class="p-5 border-b border-gray-200 bg-primary-50 flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-primary-800">2. Rancangan Anggaran Biaya (RAB) SBM</h3>
+                        <button type="button" @click="addAnggaran()" class="inline-flex items-center px-3 py-1.5 text-xs font-bold bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Tambah Item Belanja
+                        </button>
                     </div>
                     <div class="p-6">
-                        {{-- Info SBM --}}
-                        <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div class="flex items-start">
-                                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                </svg>
-                                <div>
-                                    <p class="text-sm font-medium text-blue-800 mb-1">Validasi Standar Biaya Masukan (SBM)</p>
-                                    <p class="text-xs text-blue-700">Pilih item SBM dari dropdown untuk auto-fill harga standar. Deviasi &gt;10% memerlukan persetujuan khusus.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Table Header --}}
-                        <div class="border border-gray-200 rounded-lg overflow-hidden">
-                            <table class="w-full table-fixed divide-y divide-gray-200 text-xs sm:text-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full table-fixed min-w-[950px]">
                                 <colgroup>
-                                    <col style="width: 3%;">
-                                    <col style="width: 28%;">
-                                    <col style="width: 6%;">
-                                    <col style="width: 6%;">
-                                    <col style="width: 6%;">
-                                    <col style="width: 6%;">
-                                    <col style="width: 13%;">
-                                    <col style="width: 13%;">
-                                    <col style="width: 17%;">
-                                    <col style="width: 2%;">
+                                    <col style="width: 4%;">
+                                    <col style="width: 22%;">
+                                    <col style="width: 7%;">
+                                    <col style="width: 7%;">
+                                    <col style="width: 7%;">
+                                    <col style="width: 7%;">
+                                    <col style="width: 11%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 20%;">
                                 </colgroup>
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-2 py-2 text-left font-medium text-gray-500 uppercase">No</th>
-                                        <th class="px-2 py-2 text-left font-medium text-gray-500 uppercase">Uraian Kebutuhan</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase whitespace-nowrap">Vol 1</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase whitespace-nowrap">Satuan</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase whitespace-nowrap">Vol 2</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase whitespace-nowrap">Satuan</th>
-                                        <th class="px-2 py-2 text-right font-medium text-gray-500 uppercase whitespace-nowrap">Harga Satuan</th>
-                                        <th class="px-2 py-2 text-right font-medium text-gray-500 uppercase">Total</th>
-                                        <th class="px-2 py-2 text-left font-medium text-gray-500 uppercase">Ref. SBM</th>
-                                        <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase"></th>
+                                <thead>
+                                    <tr class="border-b-2 border-gray-200 bg-gray-50 text-gray-500 font-semibold text-xs uppercase">
+                                        <th class="px-2 py-3 text-center">No</th>
+                                        <th class="px-2 py-3 text-left pl-4">Nama Item Belanja</th>
+                                        <th class="px-2 py-3 text-center">Vol 1</th>
+                                        <th class="px-2 py-3 text-center">Satuan 1</th>
+                                        <th class="px-2 py-3 text-center">Vol 2</th>
+                                        <th class="px-2 py-3 text-center">Satuan 2</th>
+                                        <th class="px-2 py-3 text-right">Harga Satuan</th>
+                                        <th class="px-2 py-3 text-right">Total Biaya</th>
+                                        <th class="px-2 py-3 text-left">Referensi Master SBM</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-100">
                                     <template x-for="(item, index) in anggaranItems" :key="index">
-                                        <tr>
-                                            <td class="px-2 py-2 text-gray-900 font-medium text-center" x-text="index + 1"></td>
-                                            
-                                            {{-- Uraian --}}
-                                            <td class="px-2 py-2">
-                                                <input type="text" :name="'anggaran[' + index + '][nama_item]'" x-model="item.nama_item"
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                                                    placeholder="Contoh: Honor Narasumber">
-                                                <input type="hidden" :name="'anggaran['+index+'][kategori]'" x-model="item.kategori">
-                                                <input type="hidden" :name="'anggaran['+index+'][harga_satuan_sbm]'" x-model="item.harga_satuan_sbm">
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="px-2 py-3 text-sm text-gray-400 text-center align-middle" x-text="index + 1"></td>
+                                            <td class="px-2 py-3 pl-4 align-middle">
+                                                <input type="text" x-model="item.nama_item" :name="'anggaran['+index+'][nama_item]'" required
+                                                    class="w-full rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
+                                                    placeholder="Nama item belanja...">
                                             </td>
-
-                                            {{-- Volume 1 --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" :name="'anggaran[' + index + '][volume_1]'" x-model.number="item.volume_1"
-                                                    @input="calculateTotal(item)" min="0" step="1"
-                                                    class="no-spin block w-full rounded border-gray-300 px-2 py-2 text-center text-sm font-medium tabular-nums shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-3 align-middle">
+                                                <input type="number" x-model.number="item.volume_1" :name="'anggaran['+index+'][volume_1]'" required
+                                                    @input="calculateTotal(item)"
+                                                    class="w-full rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-center no-spin py-1"
+                                                    min="1" placeholder="0">
                                             </td>
-
-                                            {{-- Satuan Primary --}}
-                                                <td class="px-2 py-2">
-                                                <input type="text" :name="'anggaran[' + index + '][satuan_primary]'" x-model="item.satuan_primary"
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-center text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-3 align-middle">
+                                                <input type="text" x-model="item.satuan_primary" :name="'anggaran['+index+'][satuan_primary]'" required
+                                                    :placeholder="item.satuan_primary_suggestion || 'Satuan'"
+                                                    class="w-full rounded border-gray-300 shadow-sm text-sm text-center py-1">
                                             </td>
-
-                                            {{-- Volume 2 --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" :name="'anggaran[' + index + '][volume_2]'" x-model.number="item.volume_2"
-                                                    @input="calculateTotal(item)" min="0" step="1"
-                                                    class="no-spin block w-full rounded border-gray-300 px-2 py-2 text-center text-sm font-medium tabular-nums shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-3 align-middle">
+                                                <input type="number" x-model.number="item.volume_2" :name="'anggaran['+index+'][volume_2]'"
+                                                    @input="calculateTotal(item)"
+                                                    class="w-full rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-center no-spin py-1"
+                                                    min="0" placeholder="Opsi">
                                             </td>
-
-                                            {{-- Satuan Secondary --}}
-                                                <td class="px-2 py-2">
-                                                <input type="text" :name="'anggaran[' + index + '][satuan_secondary]'" x-model="item.satuan_secondary"
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-center text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-3 align-middle">
+                                                <input type="text" x-model="item.satuan_secondary" :name="'anggaran['+index+'][satuan_secondary]'"
+                                                    :placeholder="item.satuan_secondary_suggestion || 'Opsi'"
+                                                    class="w-full rounded border-gray-300 shadow-sm text-sm text-center py-1">
                                             </td>
-
-                                            {{-- Harga Satuan --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" :name="'anggaran[' + index + '][harga_satuan]'" x-model.number="item.harga_satuan"
-                                                    @input="calculateTotal(item)" min="0"
-                                                    class="no-spin block w-full rounded border-gray-300 px-2 py-2 text-right text-sm font-semibold tabular-nums shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                            <td class="px-2 py-3 align-middle">
+                                                <input type="number" x-model.number="item.harga_satuan" :name="'anggaran['+index+'][harga_satuan]'" required
+                                                    @input="calculateTotal(item)"
+                                                    class="w-full rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-right no-spin py-1"
+                                                    min="0" placeholder="0">
+                                                <input type="hidden" x-model="item.harga_satuan_sbm" :name="'anggaran['+index+'][harga_satuan_sbm]'">
                                             </td>
-
-                                            {{-- Total --}}
-                                                <td class="px-2 py-2">
-                                                <input type="number" :name="'anggaran[' + index + '][total_biaya]'" x-model.number="item.total_biaya"
-                                                    readonly
-                                                    class="block w-full rounded border-gray-300 bg-gray-50 px-2 py-2 text-right text-sm font-semibold text-primary-700 tabular-nums">
+                                            <td class="px-2 py-3 text-right font-bold text-gray-900 align-middle">
+                                                <span x-text="formatRupiah(item.total_biaya)"></span>
+                                                <input type="hidden" x-model="item.total_biaya" :name="'anggaran['+index+'][total_biaya]'">
+                                                <input type="hidden" x-model="item.kategori" :name="'anggaran['+index+'][kategori]'">
                                             </td>
-
-                                            {{-- SBM Dropdown --}}
-                                            <td class="px-2 py-2">
-                                                <select @change="onSbmChange(item, $event)" 
-                                                    :name="'anggaran['+index+'][sbm_master_id]'"
-                                                    x-model="item.sbm_master_id"
-                                                    class="block w-full rounded border-gray-300 px-2 py-2 text-xs focus:border-primary-500 focus:ring-primary-500">
-                                                    <option value="">-- Pilih SBM (Opsional) --</option>
-                                                    @foreach($sbmMasters as $kategori => $items)
-                                                        <optgroup label="═══ {{ strtoupper($kategori) }} ═══">
-                                                            @foreach($items as $sbm)
-                                                                <option value="{{ $sbm->id }}" 
-                                                                    data-nama="{{ $sbm->nama_item }}"
-                                                                    data-kategori="{{ $sbm->kategori }}"
-                                                                    data-satuan-primary="{{ $sbm->satuan_primary }}"
-                                                                    data-satuan-secondary="{{ $sbm->satuan_secondary }}"
-                                                                    data-harga="{{ $sbm->harga_satuan }}">
-                                                                    {{ $sbm->nama_item }} - {{ $sbm->formatHarga() }}
-                                                                </option>
-                                                            @endforeach
-                                                        </optgroup>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-
-                                            {{-- Delete --}}
-                                            <td class="px-1 py-2 text-center">
-                                                <button type="button" @click="removeItem(index)" class="text-red-500 hover:text-red-700" x-show="anggaranItems.length > 1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                    </svg>
-                                                </button>
+                                            <td class="px-2 py-3 align-middle">
+                                                <div class="flex items-center gap-1">
+                                                    <select x-model="item.sbm_master_id" :name="'anggaran['+index+'][sbm_master_id]'"
+                                                        @change="onSbmChange(item, $event)"
+                                                        class="w-full rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs py-1 bg-white">
+                                                        <option value="">Pilih Standar SBM</option>
+                                                        @foreach ($sbmMasters as $kategori => $items)
+                                                            <optgroup label="{{ $kategori }}">
+                                                                @foreach ($items as $sbm)
+                                                                    <option value="{{ $sbm->id }}" 
+                                                                        data-nama="{{ $sbm->nama_item }}"
+                                                                        data-kategori="{{ $sbm->kategori }}"
+                                                                        data-satuan-primary="{{ $sbm->satuan_primary }}"
+                                                                        data-satuan-secondary="{{ $sbm->satuan_secondary }}"
+                                                                        data-harga="{{ $sbm->harga_satuan }}">{{ $sbm->nama_item }} (Rp {{ number_format($sbm->harga_satuan, 0, ',', '.') }})</option>
+                                                                @endforeach
+                                                            </optgroup>
+                                                        @endforeach
+                                                    </select>
+                                                    <button type="button" @click="removeAnggaran(index)" x-show="anggaranItems.length > 1"
+                                                        class="shrink-0 text-red-500 hover:text-red-700 transition flex-shrink-0">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
-                                <tfoot class="bg-gray-50">
-                                    <tr>
-                                        <td colspan="7" class="px-2 py-3 text-right text-base font-bold text-gray-900">TOTAL ESTIMASI ANGGARAN</td>
-                                        <td class="px-2 py-3 text-right text-base font-bold text-primary-700 whitespace-nowrap tabular-nums" x-text="formatRupiah(grandTotal)"></td>
-                                        <td colspan="2"></td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
 
-                        {{-- Add Button --}}
-                        <div class="mt-4">
-                            <button type="button" @click="addItem()" class="inline-flex items-center text-primary-600 hover:text-primary-800 text-sm font-medium">
-                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                                Tambah Item Biaya
-                            </button>
-                        </div>
-
-                        {{-- Quick Suggestions --}}
-                        <div class="mt-4 pt-4 border-t border-gray-200">
-                            <p class="text-xs text-gray-500 mb-2">Saran Cepat:</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" @click="addSuggestion('Uang Harian Fullboard', 'akomodasi')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700">+ Uang Harian Fullboard</button>
-                                <button type="button" @click="addSuggestion('Uang Transpor Kab/Kota', 'transportasi')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700">+ Uang Transpor</button>
-                                <button type="button" @click="addSuggestion('Honor Narasumber', 'honor')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700">+ Honor Narasumber</button>
-                                <button type="button" @click="addSuggestion('Honor Panitia', 'honor')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700">+ Honor Panitia</button>
-                                <button type="button" @click="addSuggestion('Konsumsi Rapat', 'konsumsi')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700">+ Konsumsi</button>
-                                <button type="button" @click="addSuggestion('ATK Peserta', 'atk')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700">+ ATK</button>
+                        <div class="mt-4 border-t border-gray-100 pt-4 flex justify-end">
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-right min-w-[240px]">
+                                <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Total Anggaran RAB Usulan:</p>
+                                <p class="text-2xl font-bold text-primary-600" x-text="formatRupiah(grandTotal)"></p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 3: Kebutuhan Fasilitas & Logistik --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6 border-b border-gray-200 bg-primary-50 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-primary-800">3. Kebutuhan Fasilitas & Logistik</h3>
-                        <span class="text-sm text-primary-600">Instruksi untuk Koordinator RT</span>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 mb-6">
+                    <div class="p-5 border-b border-gray-200 bg-primary-50 flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-primary-800">3. Kebutuhan Sarana Fasilitas & Logistik</h3>
                     </div>
                     <div class="p-6">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {{-- Daftar Permintaan Fasilitas --}}
+                            {{-- Checklist Pilihan Fasilitas --}}
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-3">Daftar Permintaan Fasilitas:</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">Daftar Sarana Lapangan yang Diminta:</label>
                                 <div class="space-y-2">
                                     <template x-for="(fasilitas, index) in fasilitasItems" :key="index">
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-sm text-gray-500 w-6" x-text="index + 1"></span>
-                                            <input type="number" :name="'fasilitas[' + index + '][jumlah]'" x-model.number="fasilitas.jumlah" min="1"
-                                                class="w-16 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-center"
-                                                placeholder="Jml">
+                                            <input type="number" :name="'fasilitas[' + index + '][jumlah]'" x-model.number="fasilitas.jumlah" min="1" required
+                                                class="w-16 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-center py-1">
                                             <select x-model="fasilitas.satuan"
-                                                class="w-24 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm">
+                                                class="w-24 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1 bg-white">
                                                 <option value="Unit">Unit</option>
                                                 <option value="Buah">Buah</option>
                                                 <option value="Set">Set</option>
@@ -617,19 +612,22 @@
                                                 <option value="Lembar">Lembar</option>
                                                 <option value="Lainnya">Lainnya...</option>
                                             </select>
-                                            <input type="text" x-model="fasilitas.satuanCustom" x-show="fasilitas.satuan === 'Lainnya'"
-                                                class="w-20 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                                            
+                                            {{-- 💡 PERBAIKAN UTAMA: Mengubah required statis menjadi conditional :required --}}
+                                            <input type="text" x-model="fasilitas.satuanCustom" x-show="fasilitas.satuan === 'Lainnya'" :required="fasilitas.satuan === 'Lainnya'"
+                                                class="w-20 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
                                                 placeholder="Satuan...">
+                                                
                                             <input type="hidden" :name="'fasilitas[' + index + '][satuan]'" :value="fasilitas.satuan === 'Lainnya' ? fasilitas.satuanCustom : fasilitas.satuan">
-                                            <input type="text" :name="'fasilitas[' + index + '][nama]'" x-model="fasilitas.nama"
-                                                class="flex-1 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                                                placeholder="Nama fasilitas (misal: Mic Wireless)...">
-                                            <button type="button" @click="removeFasilitas(index)" class="text-red-500 hover:text-red-700" x-show="fasilitasItems.length > 1">
+                                            <input type="text" :name="'fasilitas[' + index + '][nama]'" x-model="fasilitas.nama" required
+                                                class="flex-1 rounded border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1"
+                                                placeholder="Nama fasilitas (misal: Aula Utama / Proyektor)...">
+                                            <button type="button" @click="removeFasilitas(index)" class="text-red-500 hover:text-red-700 transition" x-show="fasilitasItems.length > 1">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                 </svg>
                                             </button>
-                                            <button type="button" @click="addFasilitas()" class="text-primary-500 hover:text-primary-700" x-show="index === fasilitasItems.length - 1">
+                                            <button type="button" @click="addFasilitas()" class="text-primary-500 hover:text-primary-700 transition" x-show="index === fasilitasItems.length - 1">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                                 </svg>
@@ -638,57 +636,57 @@
                                     </template>
                                 </div>
 
-                                {{-- Quick Fasilitas Suggestions --}}
+                                {{-- Saran Klik Instan --}}
                                 <div class="mt-4">
-                                    <p class="text-xs text-gray-500 mb-2">Saran Cepat:</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        <button type="button" @click="addFasilitasSuggestion('Aula Utama', 'Ruang')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">+ Aula Utama</button>
-                                        <button type="button" @click="addFasilitasSuggestion('Proyektor', 'Unit')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">+ Proyektor</button>
-                                        <button type="button" @click="addFasilitasSuggestion('Layar', 'Unit')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">+ Layar</button>
-                                        <button type="button" @click="addFasilitasSuggestion('Mic Wireless', 'Unit')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">+ Mic Wireless</button>
-                                        <button type="button" @click="addFasilitasSuggestion('Sound System', 'Set')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">+ Sound System</button>
-                                        <button type="button" @click="addFasilitasSuggestion('Kabel Roll', 'Buah')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">+ Kabel Roll</button>
+                                    <p class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Saran Cepat Rumah Tangga:</p>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <button type="button" @click="addFasilitasSuggestion('Aula Utama', 'Ruang')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition">+ Aula Utama</button>
+                                        <button type="button" @click="addFasilitasSuggestion('Proyektor', 'Unit')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition">+ Proyektor</button>
+                                        <button type="button" @click="addFasilitasSuggestion('Layar Proyektor', 'Unit')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition">+ Layar</button>
+                                        <button type="button" @click="addFasilitasSuggestion('Mic Wireless UHF', 'Unit')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition">+ Mic Wireless</button>
+                                        <button type="button" @click="addFasilitasSuggestion('Sound System', 'Set')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition">+ Sound System</button>
+                                        <button type="button" @click="addFasilitasSuggestion('Kabel Roll 10 Meter', 'Buah')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition">+ Kabel Roll</button>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Instruksi / Catatan Khusus --}}
+                            {{-- Catatan Petunjuk Tata Letak RT --}}
                             <div>
-                                <label for="catatan_logistik" class="block text-sm font-medium text-gray-700 mb-3">Instruksi Penataan / Catatan Khusus:</label>
-                                <textarea name="catatan_logistik" id="catatan_logistik" rows="6" 
-                                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                                    placeholder="Contoh:&#10;1. Mohon setup meja bentuk U-Shape di Aula Utama.&#10;2. Snack pagi disajikan jam 10.00 di meja luar ruangan.&#10;3. Pastikan AC dinyalakan 1 jam sebelum acara dimulai.">{{ old('catatan_logistik', $pengajuan->catatan_logistik ?? '') }}</textarea>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">Catatan / Instruksi Khusus Penataan RT:</label>
+                                <textarea name="catatan_logistik" id="catatan_logistik" rows="7" 
+                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                                    placeholder="Contoh:&#10;1. Mohon setup meja bentuk U-Shape di Aula Utama.&#10;2. Snack pagi disajikan jam 10.00 di meja luar ruangan.">{{ old('catatan_logistik', $pengajuan->catatan_logistik ?? '') }}</textarea>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Form Actions --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="px-6 py-4 flex items-center justify-between">
-                        <a href="{{ route('pengajuan.show', $pengajuan) }}" class="inline-flex items-center text-gray-600 hover:text-gray-900">
+                {{-- Action Panel Form Buttons --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-4">
+                    <div class="flex items-center justify-between">
+                        <a href="{{ route('pengajuan.show', $pengajuan->id) }}" class="inline-flex items-center px-4 py-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition">
                             <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                             </svg>
                             Batal
                         </a>
                         <div class="flex items-center space-x-3">
-                            {{-- Save Draft Button --}}
+                            {{-- Simpan Draft --}}
                             <button type="submit" name="save_draft" value="1"
-                                class="inline-flex items-center px-5 py-2.5 bg-gray-500 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition">
+                                class="inline-flex items-center px-5 py-2.5 bg-gray-200 border border-gray-300 rounded-xl font-bold text-sm text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition shadow-sm">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                                 </svg>
                                 Simpan Draft
                             </button>
                             
-                            {{-- Submit for Approval Button --}}
+                            {{-- Kirim Pengajuan --}}
                             <button type="submit"
-                                class="inline-flex items-center px-6 py-2.5 bg-primary-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">
+                                class="inline-flex items-center px-6 py-2.5 bg-primary-600 border border-transparent rounded-xl font-bold text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition shadow-sm">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                @if($pengajuan->status_pengajuan === 'draft')
+                                @if($pengajuan->status === 'draft_pic')
                                     Ajukan Telaah Staf
                                 @else
                                     Simpan & Ajukan Ulang

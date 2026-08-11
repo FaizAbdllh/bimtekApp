@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        Upload Dokumen Persyaratan - {{ $bimtek->judul_final }}
+        Upload Dokumen Persyaratan - {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            {{-- Breadcrumb --}}
+            {{-- Breadcrumb Navigasi --}}
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="{{ route('bimtek.index') }}" class="text-gray-500 hover:text-primary-600">
+                        <a href="{{ route('bimtek.index') }}" class="text-gray-500 hover:text-primary-600 text-sm font-medium">
                             Bimtek
                         </a>
                     </li>
@@ -18,8 +18,8 @@
                             <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <a href="{{ route('bimtek.show', $bimtek) }}" class="ml-1 text-gray-500 hover:text-primary-600">
-                                {{ $bimtek->judul_final }}
+                            <a href="{{ route('bimtek.show', $bimtek->id) }}" class="ml-1 text-gray-500 hover:text-primary-600 text-sm font-medium truncate max-w-[250px]">
+                                {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}
                             </a>
                         </div>
                     </li>
@@ -28,15 +28,15 @@
                             <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="ml-1 text-gray-700 font-medium">Upload Dokumen</span>
+                            <span class="ml-1 text-sm text-gray-700 font-bold">Upload Dokumen</span>
                         </div>
                     </li>
                 </ol>
             </nav>
 
-            {{-- Back Button --}}
-            <div class="mb-6">
-                <a href="{{ route('bimtek.show', $bimtek) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition">
+            {{-- Tombol Kembali --}}
+            <div class="mb-4">
+                <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold text-xs uppercase tracking-wide transition shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
@@ -44,39 +44,45 @@
                 </a>
             </div>
 
-            {{-- Status Banner --}}
+            {{-- Status Banner Pemeriksaan Berkas --}}
             @php
                 $statusColors = [
-                    'invited' => 'bg-blue-100 border-blue-400 text-blue-800',
-                    'pending' => 'bg-yellow-100 border-yellow-400 text-yellow-800',
-                    'verified' => 'bg-green-100 border-green-400 text-green-800',
-                    'rejected' => 'bg-red-100 border-red-400 text-red-800',
+                    'invited' => 'bg-blue-50 border-blue-200 text-blue-800',
+                    'pending' => 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                    'verified' => 'bg-green-50 border-green-200 text-green-800',
+                    'rejected' => 'bg-red-50 border-red-200 text-red-800',
                 ];
                 $statusLabels = [
-                    'invited' => 'Belum Upload Dokumen',
-                    'pending' => 'Menunggu Verifikasi',
-                    'verified' => 'Dokumen Terverifikasi',
-                    'rejected' => 'Dokumen Ditolak - Silakan Upload Ulang',
+                    'invited' => 'Belum Mengunggah Dokumen Persyaratan',
+                    'pending' => 'Dokumen Menunggu Proses Verifikasi Panitia Pokja',
+                    'verified' => 'Seluruh Berkas Dinyatakan Sah & Terverifikasi',
+                    'rejected' => 'Ada Berkas yang Ditolak - Mohon Lakukan Unggah Ulang Berkas',
                 ];
                 
-                // Get rejected documents detail
-                $rejectedDocs = $userDokumen->where('status', 'rejected');
+                $rejectedDocs = $dokumenMap->filter(fn($doc) => $doc->status === 'rejected');
             @endphp
-            <div class="mb-6 p-4 rounded-lg border-l-4 {{ $statusColors[$assignment->status_verifikasi] ?? 'bg-gray-100 border-gray-400 text-gray-800' }}">
+            
+            <div class="mb-6 p-4 rounded-xl border-l-4 bg-white shadow-sm {{ $statusColors[$assignment->status_verifikasi ?? 'pending'] ?? 'bg-gray-100 border-gray-400 text-gray-800' }}">
                 <div class="flex items-start">
                     <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <div class="flex-1">
-                        <span class="font-semibold">Status: {{ $statusLabels[$assignment->status_verifikasi] ?? $assignment->status_verifikasi }}</span>
-                        @if($assignment->status_verifikasi === 'rejected' && $rejectedDocs->count() > 0)
-                            <div class="mt-2 text-sm">
-                                <p class="font-medium mb-1">Dokumen yang ditolak:</p>
-                                <ul class="list-disc list-inside space-y-1">
+                    <div class="flex-1 text-sm">
+                        <span class="font-bold block text-base">Status Kelulusan Berkas: {{ $statusLabels[$assignment->status_verifikasi ?? 'pending'] ?? 'Pending' }}</span>
+                        
+                        {{-- Menampilkan Daftar Catatan Koreksi Jika Ada yang Ditolak --}}
+                        @if(($assignment->status_verifikasi ?? '') === 'rejected' && $rejectedDocs->count() > 0)
+                            <div class="mt-3 p-3 bg-white rounded-xl border border-red-100 text-red-900">
+                                <p class="font-bold mb-1 uppercase tracking-wide text-xs text-red-600">Catatan Koreksi Berkas dari Panitia:</p>
+                                <ul class="list-disc list-inside space-y-1 text-xs font-semibold">
                                     @foreach($rejectedDocs as $doc)
-                                        <li>{{ \Illuminate\Support\Str::of($doc->jenis_dokumen)->replace('_', ' ')->title() }}
+                                        @php
+                                            $syaratItem = $syaratDokumens->firstWhere('id', $doc->syarat_dokumen_id);
+                                        @endphp
+                                        <li>
+                                            <span class="text-gray-900">{{ $syaratItem->nama_dokumen ?? 'Dokumen Syarat' }}</span>
                                             @if($doc->catatan_verifikasi)
-                                                <span class="text-xs italic">- {{ $doc->catatan_verifikasi }}</span>
+                                                <span class="text-red-500 italic block ml-4 mt-0.5 font-medium bg-red-50 px-2 py-0.5 rounded border border-red-100/60 w-fit">Alasan: "{{ $doc->catatan_verifikasi }}"</span>
                                             @endif
                                         </li>
                                     @endforeach
@@ -87,132 +93,112 @@
                 </div>
             </div>
 
-            {{-- Info Bimtek --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+            {{-- Info Ringkas Bimtek --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 mb-6">
                 <div class="p-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Informasi Bimtek</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h3 class="text-base font-bold text-gray-900 uppercase tracking-wider mb-4">Metrik Informasi Pelaksanaan</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
-                            <p class="text-sm text-gray-500">Lokasi</p>
-                            <p class="text-gray-900">{{ $bimtek->lokasi_aktual ?? '-' }}</p>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Lokasi Kegiatan</p>
+                            <p class="text-gray-900 font-bold mt-0.5">{{ $bimtek->lokasi_aktual ?? $bimtek->tempat_kegiatan_rencana ?? '-' }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Tanggal</p>
-                            <p class="text-gray-900">
-                                {{ $bimtek->tanggal_mulai_aktual?->format('d F Y') ?? '-' }}
-                                @if($bimtek->tanggal_selesai_aktual && $bimtek->tanggal_mulai_aktual != $bimtek->tanggal_selesai_aktual)
-                                    - {{ $bimtek->tanggal_selesai_aktual->format('d F Y') }}
-                                @endif
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Jadwal Pelaksanaan</p>
+                            <p class="text-gray-900 font-bold mt-0.5">
+                                {{ $bimtek->tanggal_mulai_aktual ? \Carbon\Carbon::parse($bimtek->tanggal_mulai_aktual)->format('d F Y') : ($bimtek->tanggal_mulai_rencana ? \Carbon\Carbon::parse($bimtek->tanggal_mulai_rencana)->format('d F Y') : '-') }}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Instruksi --}}
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h4 class="font-semibold text-blue-900 mb-2 flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- Instruksi Aturan Unggah --}}
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6 shadow-sm shadow-blue-50">
+                <h4 class="font-bold text-blue-900 mb-2 flex items-center text-sm uppercase tracking-wider">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    Petunjuk Upload Dokumen
+                    Petunjuk Resmi Unggah Berkas Syarat
                 </h4>
-                @php
-                    $jenisDokumenLabel = collect($jenisDokumenWajib)
-                        ->map(fn ($jenis) => \Illuminate\Support\Str::of($jenis)->replace('_', ' ')->title())
-                        ->implode(', ');
-                @endphp
-                <ul class="text-sm text-blue-800 space-y-1 ml-7">
-                    <li>• Format file yang diterima: <strong>PDF, JPG, atau PNG</strong></li>
-                    <li>• Ukuran maksimal file: <strong>2 MB</strong></li>
-                    <li>• Dokumen wajib: <strong>{{ $jenisDokumenLabel }}</strong></li>
-                    <li>• Pastikan dokumen <strong>jelas dan terbaca</strong></li>
-                    <li>• Anda dapat upload ulang jika dokumen ditolak</li>
+                <ul class="text-xs text-blue-800 space-y-1.5 ml-7 font-semibold">
+                    <li>• Ekstensi file digital yang diperbolehkan sistem: <span class="text-blue-950 font-bold">PDF, JPG, JPEG, atau PNG</span></li>
+                    <li>• Batas ukuran maksimal file unggahan: <span class="text-blue-950 font-bold">5 Megabytes (5 MB)</span></li>
+                    <li>• Pastikan lembar pindaian/foto dokumen terlihat <span class="text-blue-950 font-bold">jelas, tajam, dan dapat terbaca</span> panitia pokja.</li>
                 </ul>
             </div>
 
-            {{-- Upload Forms --}}
-            @foreach($jenisDokumenWajib as $jenis)
+            {{-- Daftar Formulir Unggahan Dinamis Berdasarkan Tabel syarat_dokumens --}}
+            @foreach($syaratDokumens as $syarat)
                 @php
-                    $dokumen = $dokumenMap[$jenis] ?? null;
-                    $label = \Illuminate\Support\Str::of($jenis)->replace('_', ' ')->title();
+                    $dokumen = $dokumenMap[$syarat->id] ?? null;
                 @endphp
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 mb-6">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h3 class="text-base font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            {{ $label }}
+                            {{ $syarat->nama_dokumen }} 
+                            @if($syarat->is_wajib) <span class="text-red-500 ml-1">*</span> @endif
                         </h3>
+                        
+                        @if($syarat->deskripsi_syarat)
+                            <p class="text-xs text-gray-500 mb-4">{{ $syarat->deskripsi_syarat }}</p>
+                        @endif
 
+                        {{-- Jika dokumen sudah pernah diunggah --}}
                         @if($dokumen)
-                            <div class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <p class="text-sm font-medium text-gray-900">{{ $dokumen->file_name }}</p>
-                                        <p class="text-xs text-gray-500">Diupload {{ $dokumen->uploaded_at->format('d F Y H:i') }}</p>
+                            <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl mb-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-bold text-gray-900 truncate">{{ $dokumen->file_name }}</p>
+                                        <p class="text-[11px] text-gray-400 font-medium mt-0.5">Diunggah: {{ \Carbon\Carbon::parse($dokumen->uploaded_at)->format('d M Y, H:i') }} WIB</p>
                                         <div class="mt-2">
                                             @if($dokumen->status === 'pending')
-                                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Menunggu Verifikasi</span>
+                                                <span class="px-2.5 py-0.5 bg-yellow-100 text-yellow-800 rounded-md text-[10px] font-bold uppercase tracking-wide border border-yellow-200">Menunggu Verifikasi</span>
                                             @elseif($dokumen->status === 'approved')
-                                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ Disetujui</span>
+                                                <span class="px-2.5 py-0.5 bg-green-100 text-green-800 rounded-md text-[10px] font-bold uppercase tracking-wide border border-green-200">✓ Disetujui</span>
                                             @else
-                                                <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">✗ Ditolak</span>
+                                                <span class="px-2.5 py-0.5 bg-red-100 text-red-800 rounded-md text-[10px] font-bold uppercase tracking-wide border border-red-200">✗ Ditolak</span>
                                             @endif
                                         </div>
-                                        @if($dokumen->catatan_verifikasi)
-                                            <div class="mt-2 p-2 bg-yellow-50 border-l-4 border-yellow-400 text-sm text-yellow-800">
-                                                <p class="font-semibold">Catatan:</p>
-                                                <p>{{ $dokumen->catatan_verifikasi }}</p>
-                                            </div>
-                                        @endif
                                     </div>
-                                    <div class="ml-4 flex gap-2">
+                                    <div class="flex gap-2 shrink-0 font-bold text-xs">
                                         @if(str_ends_with($dokumen->file_path, '.pdf'))
-                                            <a href="{{ route('bimtek.verifikasi-dokumen.preview', $dokumen) }}" 
-                                               target="_blank"
-                                               class="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                                </svg>
-                                                Lihat
-                                            </a>
+                                            <a href="{{ route('bimtek.verifikasi-dokumen.preview', ['bimtek' => $bimtek->id, 'userId' => auth()->id(), 'syaratId' => $syarat->id]) }}" 
+                                               target="_blank" rel="noopener"
+                                               class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-purple-600 rounded-lg hover:bg-gray-50 transition shadow-sm">Pratinjau</a>
                                         @endif
-                                        <a href="{{ route('bimtek.verifikasi-dokumen.download', $dokumen) }}" 
-                                           class="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                            </svg>
-                                            Unduh
-                                        </a>
+                                        <a href="{{ route('bimtek.verifikasi-dokumen.download', ['bimtek' => $bimtek->id, 'userId' => auth()->id(), 'syaratId' => $syarat->id]) }}" 
+                                           class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-primary-600 rounded-lg hover:bg-gray-50 transition shadow-sm">Unduh</a>
                                     </div>
                                 </div>
                             </div>
                         @endif
 
+                        {{-- Tampilkan form unggah ulang jika dokumen belum ada atau ditolak panitia --}}
                         @if(!$dokumen || $dokumen->status === 'rejected')
-                            <form action="{{ route('bimtek.verifikasi-dokumen.upload', $bimtek) }}" method="POST" enctype="multipart/form-data">
+                            <form action="{{ route('bimtek.verifikasi-dokumen.upload', $bimtek->id) }}" method="POST" enctype="multipart/form-data" class="pt-2 border-t border-dashed border-gray-200">
                                 @csrf
-                                <input type="hidden" name="jenis_dokumen" value="{{ $jenis }}">
+                                {{-- 💡 Menggunakan ID syarat dokumen sesuai validasi Controller --}}
+                                <input type="hidden" name="syarat_dokumen_id" value="{{ $syarat->id }}">
                                 
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ $dokumen ? 'Upload Ulang' : 'Upload' }} {{ $label }} <span class="text-red-500">*</span>
+                                <div class="mb-3">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                                        {{ $dokumen ? 'Unggah Perbaikan / Revisi Berkas Baru' : 'Pilih Berkas Lampiran' }} <span class="text-red-500">*</span>
                                     </label>
                                     <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required
-                                           class="w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                                           class="w-full text-sm text-gray-900 border border-gray-300 rounded-xl cursor-pointer bg-gray-50 focus:outline-none p-2 text-xs font-semibold">
                                     @error('file')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-1 text-xs text-red-600 font-semibold">{{ $message }}</p>
                                     @enderror
                                 </div>
 
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold text-sm hover:bg-primary-700 transition">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl font-bold text-xs uppercase tracking-wide hover:bg-primary-700 transition shadow-sm">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
-                                    {{ $dokumen ? 'Upload Ulang' : 'Upload' }}
+                                    Mulai Unggah Berkas
                                 </button>
                             </form>
                         @endif

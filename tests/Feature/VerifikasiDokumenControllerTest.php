@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Mail\DokumenVerifiedRejectedMail;
-use App\Mail\PesertaBimtekInvitedMail;
 use App\Models\Bimtek;
 use App\Models\DokumenPersyaratanPeserta;
 use App\Models\Role;
@@ -21,10 +20,15 @@ class VerifikasiDokumenControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $pic;
+
     protected User $panitia;
+
     protected User $peserta;
+
     protected Bimtek $bimtek;
+
     protected Role $roleAdmin;
+
     protected Role $rolePeserta;
 
     protected function setUp(): void
@@ -329,7 +333,7 @@ class VerifikasiDokumenControllerTest extends TestCase
             ]);
 
         $response->assertSessionHasErrors('catatan_verifikasi');
-        
+
         $dokumen->refresh();
         $this->assertEquals('pending', $dokumen->status); // Status unchanged
     }

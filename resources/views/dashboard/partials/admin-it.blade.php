@@ -90,13 +90,16 @@
                         @foreach($recentPengajuan as $pengajuan)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-4 py-3 text-sm text-gray-800 font-medium">{{ $pengajuan->judul_rencana }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-600">{{ $pengajuan->user->name ?? '-' }}</td>
+                                {{-- REFAKTORISASI: Mengubah relasi user menjadi pic --}}
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ $pengajuan->pic->name ?? '-' }}</td>
                                 <td class="px-4 py-3">
+                                    {{-- REFAKTORISASI: Mengubah status_pengajuan menjadi status dan menyelaraskan warna badge --}}
                                     <span class="px-2.5 py-1 text-xs font-medium rounded-full 
-                                        @if($pengajuan->status_pengajuan == 'disetujui_final') bg-green-100 text-green-700
-                                        @elseif($pengajuan->status_pengajuan == 'ditolak') bg-red-100 text-red-700
+                                        @if($pengajuan->status == 'disetujui_final') bg-green-100 text-green-700
+                                        @elseif($pengajuan->status == 'ditolak') bg-red-100 text-red-700
+                                        @elseif($pengajuan->status == 'perlu_revisi') bg-orange-100 text-orange-700
                                         @else bg-yellow-100 text-yellow-700 @endif">
-                                        {{ ucfirst(str_replace('_', ' ', $pengajuan->status_pengajuan)) }}
+                                        {{ ucfirst(str_replace('_', ' ', $pengajuan->status)) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500">{{ $pengajuan->created_at->format('d/m/Y') }}</td>
@@ -110,7 +113,7 @@
                 <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <p class="mt-2 text-gray-500">Belum ada pengajuan.</p>
+                <p class="mt-2 text-gray-500">Belum ada pengajuan terbaru yang membutuhkan peninjauan.</p>
             </div>
         @endif
     </div>

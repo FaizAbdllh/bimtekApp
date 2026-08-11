@@ -84,6 +84,13 @@
             border-radius: 3px;
             font-size: 8px;
         }
+        .status-disetujui_final {
+            background-color: #e2e3e5;
+            color: #383d41;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8px;
+        }
         .summary {
             margin-top: 20px;
             padding: 15px;
@@ -138,13 +145,23 @@
             @forelse($bimteks as $index => $bimtek)
             <tr>
                 <td class="center">{{ $index + 1 }}</td>
-                <td>{{ $bimtek->judul_final }}</td>
-                <td class="center">{{ $bimtek->tanggal_mulai_final ? $bimtek->tanggal_mulai_final->format('d/m/Y') : '-' }}</td>
-                <td class="center">{{ $bimtek->tanggal_selesai_final ? $bimtek->tanggal_selesai_final->format('d/m/Y') : '-' }}</td>
-                <td>{{ Str::limit($bimtek->lokasi_final ?? '-', 25) }}</td>
+                {{-- REFAKTORISASI: Fallback ke judul usulan awal jika nama kelas aktual belum diubah --}}
+                <td>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</td>
+                
+                {{-- REFAKTORISASI WAKTU: Menyelaraskan ke kolom tanggal_mulai_aktual & tanggal_selesai_aktual baru --}}
+                <td class="center">
+                    {{ $bimtek->tanggal_mulai_aktual ? $bimtek->tanggal_mulai_aktual->format('d/m/Y') : ($bimtek->tanggal_mulai_rencana ? $bimtek->tanggal_mulai_rencana->format('d/m/Y') : '-') }}
+                </td>
+                <td class="center">
+                    {{ $bimtek->tanggal_selesai_aktual ? $bimtek->tanggal_selesai_aktual->format('d/m/Y') : ($bimtek->tanggal_selesai_rencana ? $bimtek->tanggal_selesai_rencana->format('d/m/Y') : '-') }}
+                </td>
+
+                {{-- REFAKTORISASI LOKASI: Mengubah lokasi_final menjadi lokasi_aktual --}}
+                <td>{{ Str::limit($bimtek->lokasi_aktual ?? $bimtek->tempat_kegiatan_rencana ?? '-', 25) }}</td>
                 <td class="center">{{ $bimtek->peserta_count ?? $bimtek->peserta->count() }}</td>
                 <td class="center">
-                    <span class="status-{{ $bimtek->status_pelaksanaan ?? 'persiapan' }}">{{ ucfirst($bimtek->status_pelaksanaan ?? '-') }}</span>
+                    {{-- REFAKTORISASI STATUS: Mengubah status_pelaksanaan menjadi status --}}
+                    <span class="status-{{ $bimtek->status ?? 'persiapan' }}">{{ $bimtek->status == 'disetujui_final' ? 'Disetujui' : ucfirst($bimtek->status ?? '-') }}</span>
                 </td>
             </tr>
             @empty
@@ -158,9 +175,10 @@
     <div class="summary">
         <strong>RINGKASAN:</strong><br><br>
         <div class="summary-row"><strong>Total Kegiatan:</strong> {{ $bimteks->count() }}</div>
-        <div class="summary-row"><strong>Persiapan:</strong> {{ $bimteks->where('status_pelaksanaan', 'persiapan')->count() }}</div>
-        <div class="summary-row"><strong>Berlangsung:</strong> {{ $bimteks->where('status_pelaksanaan', 'berlangsung')->count() }}</div>
-        <div class="summary-row"><strong>Selesai:</strong> {{ $bimteks->where('status_pelaksanaan', 'selesai')->count() }}</div>
+        {{-- REFAKTORISASI LOGIKA AGREGAT: Mengubah pencarian dari kolom status_pelaksanaan menjadi status --}}
+        <div class="summary-row"><strong>Persiapan:</strong> {{ $bimteks->where('status', 'persiapan')->count() }}</div>
+        <div class="summary-row"><strong>Berlangsung:</strong> {{ $bimteks->where('status', 'berlangsung')->count() }}</div>
+        <div class="summary-row"><strong>Selesai:</strong> {{ $bimteks->where('status', 'selesai')->count() }}</div>
         <br>
         <div class="summary-row"><strong>Total Peserta:</strong> {{ $bimteks->sum(function($b) { return $b->peserta_count ?? $b->peserta->count(); }) }} orang</div>
     </div>

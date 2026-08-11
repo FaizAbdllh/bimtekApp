@@ -5,24 +5,24 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">
-                    Log Sistem
+                    Log Sistem Aplikasi
                 </h2>
-                <p class="text-gray-600 text-sm mt-1">Pantau aktivitas dan error di sistem</p>
+                <p class="text-gray-500 text-sm mt-0.5">Pantau rekaman aktivitas berkala dan audit trail error pada sistem DIPA</p>
             </div>
-            <div class="flex gap-2">
-                <a href="{{ route('admin.log-sistem.export', request()->query()) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2 font-bold text-xs uppercase tracking-wide shrink-0">
+                <a href="{{ route('admin.log-sistem.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Export CSV
+                    Ekspor CSV
                 </a>
                 @if($statistics['total'] > 0)
-                <button type="button" onclick="document.getElementById('modal-clear').classList.remove('hidden')" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Hapus Semua
-                </button>
+                    <button type="button" onclick="document.getElementById('modal-clear').classList.remove('hidden')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Kosongkan Log
+                    </button>
                 @endif
             </div>
         </div>
@@ -30,61 +30,58 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {{-- Flash Messages --}}
+            
+            {{-- Flash Message Alerts --}}
             @if(session('success'))
-                <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        <p class="text-green-700 text-sm font-medium">{{ session('success') }}</p>
-                    </div>
+                <div class="mb-6 p-4 bg-green-50 border border-green-100 text-green-800 rounded-xl text-xs font-semibold shadow-sm flex items-start gap-2">
+                    <svg class="w-4 h-4 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if($errors->any())
-                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <p class="text-red-700 text-sm font-medium">{{ $errors->first() }}</p>
-                    </div>
+                <div class="mb-6 p-4 bg-red-50 border border-red-100 text-red-800 rounded-xl text-xs font-semibold shadow-sm flex items-start gap-2">
+                    <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>{{ $errors->first() }}</span>
                 </div>
             @endif
 
-            {{-- Statistics Cards --}}
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Total Log</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($statistics['total']) }}</p>
+            {{-- Widgets Metrik Penghitung Log --}}
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 text-sm">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Record</p>
+                    <p class="text-2xl font-black text-gray-900 mt-0.5">{{ number_format($statistics['total']) }}</p>
                 </div>
-                <div class="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-4">
-                    <p class="text-xs text-blue-600 uppercase tracking-wide">Info</p>
-                    <p class="text-2xl font-bold text-blue-700">{{ number_format($statistics['info']) }}</p>
+                <div class="bg-blue-50/50 rounded-xl shadow-sm border border-blue-100 p-5">
+                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Metrik Info</p>
+                    <p class="text-2xl font-black text-blue-700 mt-0.5">{{ number_format($statistics['info']) }}</p>
                 </div>
-                <div class="bg-yellow-50 rounded-lg shadow-sm border border-yellow-100 p-4">
-                    <p class="text-xs text-yellow-600 uppercase tracking-wide">Warning</p>
-                    <p class="text-2xl font-bold text-yellow-700">{{ number_format($statistics['warning']) }}</p>
+                <div class="bg-amber-50/50 rounded-xl shadow-sm border border-amber-100 p-5">
+                    <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Peringatan</p>
+                    <p class="text-2xl font-black text-amber-700 mt-0.5">{{ number_format($statistics['warning']) }}</p>
                 </div>
-                <div class="bg-red-50 rounded-lg shadow-sm border border-red-100 p-4">
-                    <p class="text-xs text-red-600 uppercase tracking-wide">Error</p>
-                    <p class="text-2xl font-bold text-red-700">{{ number_format($statistics['error']) }}</p>
+                <div class="bg-red-50/50 rounded-xl shadow-sm border border-red-100 p-5">
+                    <p class="text-xs font-bold text-red-600 uppercase tracking-wider">Sistem Error</p>
+                    <p class="text-2xl font-black text-red-700 mt-0.5">{{ number_format($statistics['error']) }}</p>
                 </div>
-                <div class="bg-green-50 rounded-lg shadow-sm border border-green-100 p-4">
-                    <p class="text-xs text-green-600 uppercase tracking-wide">Hari Ini</p>
-                    <p class="text-2xl font-bold text-green-700">{{ number_format($statistics['today']) }}</p>
+                <div class="bg-green-50/50 rounded-xl shadow-sm border border-green-100 p-5">
+                    <p class="text-xs font-bold text-green-600 uppercase tracking-wider">Log Hari Ini</p>
+                    <p class="text-2xl font-black text-green-700 mt-0.5">{{ number_format($statistics['today']) }}</p>
                 </div>
             </div>
 
-            {{-- Filter Section --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                <form action="{{ route('admin.log-sistem.index') }}" method="GET" class="flex flex-wrap gap-4">
-                    <div class="flex-1 min-w-[200px]">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pesan..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500">
+            {{-- Panel Parameter Penyaringan (Filter Form) --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+                <form action="{{ route('admin.log-sistem.index') }}" method="GET" class="flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-700">
+                    <div class="flex-1 min-w-[240px]">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari potongan deskripsi pesan..." class="w-full px-4 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-primary-500 focus:border-primary-500 shadow-sm">
                     </div>
-                    <div class="w-36">
-                        <select name="level" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500">
+                    <div class="w-40">
+                        <select name="level" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs bg-white focus:ring-primary-500 shadow-sm">
                             <option value="">Semua Level</option>
                             <option value="info" {{ request('level') == 'info' ? 'selected' : '' }}>Info</option>
                             <option value="warning" {{ request('level') == 'warning' ? 'selected' : '' }}>Warning</option>
@@ -92,109 +89,102 @@
                         </select>
                     </div>
                     <div class="w-48">
-                        <select name="user_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500">
-                            <option value="">Semua User</option>
+                        <select name="user_id" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs bg-white focus:ring-primary-500 shadow-sm">
+                            <option value="">Semua Aktor User</option>
                             @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ Str::limit($user->name, 20) }}</option>
+                                <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ Str::limit($user->name, 22) }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="w-36">
-                        <input type="date" name="dari_tanggal" value="{{ request('dari_tanggal') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500" placeholder="Dari">
+                        <input type="date" name="dari_tanggal" value="{{ request('dari_tanggal') }}" class="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs font-medium focus:ring-primary-500 shadow-sm">
                     </div>
                     <div class="w-36">
-                        <input type="date" name="sampai_tanggal" value="{{ request('sampai_tanggal') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500" placeholder="Sampai">
+                        <input type="date" name="sampai_tanggal" value="{{ request('sampai_tanggal') }}" class="w-full px-3 py-1.5 border border-gray-300 rounded-xl text-xs font-medium focus:ring-primary-500 shadow-sm">
                     </div>
-                    <div class="flex gap-2">
-                        <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition">
-                            Filter
+                    <div class="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wide shrink-0">
+                        <button type="submit" class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition shadow-sm">
+                            Terapkan
                         </button>
-                        <a href="{{ route('admin.log-sistem.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition">
+                        <a href="{{ route('admin.log-sistem.index') }}" class="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition">
                             Reset
                         </a>
                     </div>
                 </form>
             </div>
 
-            {{-- Logs Table --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {{-- TABEL UTAMA REKAMAN AUDIT LOG --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 @if($logs->isEmpty())
-                    <div class="p-8 text-center">
-                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="p-12 text-center text-gray-400 font-medium">
+                        <svg class="w-14 h-14 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <p class="text-gray-500">Tidak ada log ditemukan</p>
+                        <p class="text-xs text-gray-400">Tidak ditemukan adanya rekaman jejak log sistem yang sesuai kriteria.</p>
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-500 font-semibold text-xs uppercase tracking-wider border-b border-gray-100">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Waktu</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Level</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">User</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pesan</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Aksi</th>
+                                    <th class="px-6 py-3 text-left w-44">Waktu Kejadian</th>
+                                    <th class="px-4 py-3 text-center w-28">Tingkat Urgensi</th>
+                                    <th class="px-6 py-3 text-left w-48">Aktor Eksekutor</th>
+                                    <th class="px-6 py-3 text-left">Pesan Log / Jejak Error</th>
+                                    <th class="px-6 py-3 text-right pr-6 w-24">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
                                 @foreach($logs as $log)
-                                    <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-4 py-3 text-sm text-gray-600">
-                                            <div>{{ $log->created_at->format('d/m/Y') }}</div>
-                                            <div class="text-xs text-gray-400">{{ $log->created_at->format('H:i:s') }}</div>
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
+                                            <div class="font-bold text-gray-800">{{ $log->created_at->format('d/m/Y') }}</div>
+                                            <div class="text-[10px] text-gray-400 font-semibold mt-0.5">{{ $log->created_at->format('H:i:s') }} WIB</div>
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-4 text-center whitespace-nowrap align-middle">
                                             @if($log->level == 'info')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                                    </svg>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 border border-blue-100 text-blue-700">
                                                     INFO
                                                 </span>
                                             @elseif($log->level == 'warning')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                    WARNING
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-100 text-amber-700">
+                                                    WARN
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                    ERROR
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 border border-red-100 text-red-700 animate-pulse">
+                                                    CRIT ERROR
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-sm">
+                                        <td class="px-6 py-4 whitespace-nowrap whitespace-nowrap font-semibold">
                                             @if($log->user)
                                                 <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-medium">
-                                                        {{ substr($log->user->name, 0, 1) }}
+                                                    <div class="w-6 h-6 rounded-full bg-primary-50 text-primary-700 border border-primary-100/40 flex items-center justify-center text-[10px] font-bold">
+                                                        {{ strtoupper(substr($log->user->name, 0, 1)) }}
                                                     </div>
-                                                    <span class="text-gray-900">{{ Str::limit($log->user->name, 20) }}</span>
+                                                    <span class="text-gray-900 truncate max-w-[140px]">{{ $log->user->name }}</span>
                                                 </div>
                                             @else
-                                                <span class="text-gray-400 italic">System</span>
+                                                <span class="text-gray-400 italic font-medium">Automated System</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">
-                                            {{ Str::limit($log->pesan, 80) }}
+                                        <td class="px-6 py-4 text-gray-600 font-medium break-all max-w-md">
+                                            {{ Str::limit($log->pesan, 90) }}
                                         </td>
-                                        <td class="px-4 py-3 text-center">
-                                            <div class="flex items-center justify-center gap-1">
-                                                <a href="{{ route('admin.log-sistem.show', $log) }}" class="p-1 text-gray-500 hover:text-primary-600 transition" title="Detail">
+                                        <td class="px-6 py-4 text-right pr-6 whitespace-nowrap align-middle">
+                                            <div class="flex items-center justify-end gap-1.5 font-bold text-xs uppercase tracking-wide">
+                                                {{-- REFAKTORISASI: Kestabilan ID parameter rute detail log --}}
+                                                <a href="{{ route('admin.log-sistem.show', $log->id) }}" class="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition" title="Lihat Rincian Parameter">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                     </svg>
                                                 </a>
-                                                <form action="{{ route('admin.log-sistem.destroy', $log) }}" method="POST" class="inline" onsubmit="return confirm('Hapus log ini?')">
+                                                {{-- REFAKTORISASI: Kestabilan ID parameter rute hapus log --}}
+                                                <form action="{{ route('admin.log-sistem.destroy', $log->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus baris rekam jejak log audit ini?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="p-1 text-gray-500 hover:text-red-600 transition" title="Hapus">
+                                                    <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded-lg transition" title="Hapus Record">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                         </svg>
@@ -208,8 +198,8 @@
                         </table>
                     </div>
 
-                    {{-- Pagination --}}
-                    <div class="px-6 py-4 border-t border-gray-200">
+                    {{-- Pagination Footer Navigator --}}
+                    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/20">
                         {{ $logs->links() }}
                     </div>
                 @endif
@@ -217,39 +207,39 @@
         </div>
     </div>
 
-    {{-- Modal Clear All --}}
-    <div id="modal-clear" class="fixed inset-0 z-50 hidden">
-        <div class="fixed inset-0 bg-black bg-opacity-50" onclick="document.getElementById('modal-clear').classList.add('hidden')"></div>
+    {{-- MODAL COMPONENT WINDOW: Pembersihan Total Record Log (Zona Bahaya Mandatori) --}}
+    <div id="modal-clear" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm" onclick="document.getElementById('modal-clear').classList.add('hidden')"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
-                <button type="button" onclick="document.getElementById('modal-clear').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-100 relative text-left">
+                <button type="button" onclick="document.getElementById('modal-clear').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
                 
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center mb-5">
+                    <div class="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Hapus Semua Log?</h3>
-                    <p class="text-gray-600 text-sm">Tindakan ini akan menghapus semua <strong>{{ number_format($statistics['total']) }}</strong> log dari sistem dan tidak dapat dikembalikan.</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Wipe-Out Semua Data Log?</h3>
+                    <p class="text-xs text-gray-400 font-medium leading-relaxed">Tindakan ini akan mengosongkan total keseluruhan <strong>{{ number_format($statistics['total']) }}</strong> baris log audit dari basis data. Data yang terhapus tidak dapat dikembalikan lagi.</p>
                 </div>
 
-                <form action="{{ route('admin.log-sistem.clear-all') }}" method="POST">
+                <form action="{{ route('admin.log-sistem.clear-all') }}" method="POST" class="space-y-4">
                     @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Ketik <strong class="text-red-600">HAPUS SEMUA LOG</strong> untuk konfirmasi:</label>
-                        <input type="text" name="confirm" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-red-500 focus:border-red-500" placeholder="HAPUS SEMUA LOG">
+                    <div>
+                        <label for="confirm-text" class="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Ketik teks <strong class="text-red-600 font-black">HAPUS SEMUA LOG</strong> untuk konfirmasi:</label>
+                        <input type="text" name="confirm" id="confirm-text" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-bold tracking-wide focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center uppercase" placeholder="HAPUS SEMUA LOG">
                     </div>
-                    <div class="flex gap-3">
-                        <button type="button" onclick="document.getElementById('modal-clear').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition">
+                    <div class="flex gap-3 font-bold text-xs uppercase tracking-wide">
+                        <button type="button" onclick="document.getElementById('modal-clear').classList.add('hidden')" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition">
                             Batal
                         </button>
-                        <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition">
-                            Hapus Semua
+                        <button type="submit" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition shadow-sm shadow-red-50">
+                            Wipe-Out Log
                         </button>
                     </div>
                 </form>

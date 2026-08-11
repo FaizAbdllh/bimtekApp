@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,33 +12,35 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('dokumen_persyaratan_peserta', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
-            
-            // For SQLite compatibility
-            if (DB::connection()->getDriverName() === 'sqlite') {
-                $table->string('jenis_dokumen'); // surat_tugas, sppd
-                $table->string('status')->default('pending'); // pending, approved, rejected
-            }
-            
+            // 1. Relasi Induk ke Komponen Syarat Dokumen (Fase 3)
+            $table->foreignUuid('syarat_dokumen_id')->constrained('syarat_dokumens')->onDelete('cascade');
+
+            // 2. COMPOSITE FOREIGN KEY (Menembak langsung ke tabel pendaftaran peserta)
+            // Memastikan berkas ini hanya diunggah oleh user yang berstatus peserta resmi di Bimtek tersebut
+            $table->uuid('bimtek_id');
+            $table->uuid('user_id');
+            $table->foreign(['bimtek_id', 'user_id'])
+                  ->references(['bimtek_id', 'user_id'])
+                  ->on('bimtek_pesertas')
+                  ->onDelete('cascade');
+
+            // 3. Atribut File & Transaksi Upload
             $table->string('file_path');
             $table->string('file_name');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamp('uploaded_at')->useCurrent();
-            $table->foreignUuid('verified_by')->nullable()->constrained('users')->onDelete('set null');
+
+            // 4. Atribut Verifikasi & Validasi Dokumen oleh Panitia
+            $table->foreignUuid('verified_by')->nullable()->constrained('users')->onDelete('set null')->comment('Panitia yang memverifikasi');
             $table->timestamp('verified_at')->nullable();
             $table->text('catatan_verifikasi')->nullable();
+
             $table->timestamps();
-            
-            // Indexes
-            $table->index(['bimtek_id', 'user_id']);
+
+            // 5. COMPOSITE PRIMARY KEY
+            // Mengunci agar satu peserta hanya bisa mengunggah satu berkas per satu item persyaratan
+            $table->primary(['syarat_dokumen_id', 'user_id']);
         });
-        
-        // Add ENUMs using raw SQL for MySQL
-        if (DB::connection()->getDriverName() !== 'sqlite') {
-            DB::statement("ALTER TABLE dokumen_persyaratan_peserta ADD COLUMN jenis_dokumen ENUM('surat_tugas', 'sppd') NOT NULL AFTER user_id");
-            DB::statement("ALTER TABLE dokumen_persyaratan_peserta ADD COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL AFTER file_name");
-        }
     }
 
     /**

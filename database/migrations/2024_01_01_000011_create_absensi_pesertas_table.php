@@ -12,13 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('absensi_pesertas', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            // 1. Relasi ke Sesi Absensi
             $table->foreignUuid('sesi_absensi_id')->constrained('sesi_absensis')->onDelete('cascade');
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+
+            // 2. COMPOSITE FOREIGN KEY
+            // Mengikat langsung ke tabel pendaftaran baru (bimtek_pesertas)
+            $table->uuid('bimtek_id');
+            $table->uuid('user_id');
+            $table->foreign(['bimtek_id', 'user_id'])
+                  ->references(['bimtek_id', 'user_id'])
+                  ->on('bimtek_pesertas')
+                  ->onDelete('cascade');
+
+            // KONSOLIDASI PATCH 2026: Kolom bukti presensi daring (diletakkan setelah user_id sesuai patch)
+            $table->string('bukti_hadir_online_path')->nullable();
+
+            // 3. Atribut Status Kehadiran Utama
+            $table->enum('status_kehadiran', ['hadir', 'izin', 'sakit', 'alfa'])->default('alfa');
+            $table->timestamp('waktu_presensi')->nullable();
+
             $table->timestamps();
 
-            // Satu user hanya bisa absen sekali per sesi
-            $table->unique(['sesi_absensi_id', 'user_id']);
+            // 4. COMPOSITE PRIMARY KEY
+            // Satu peserta hanya boleh memiliki satu baris status kehadiran per satu sesi absen
+            $table->primary(['sesi_absensi_id', 'user_id']);
         });
     }
 

@@ -12,9 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
+            // Primary Key menggunakan UUID
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('nip')->nullable()->unique();
+            $table->string('asal_instansi')->nullable();
+            
+            // Peran Global User
+            $table->uuid('role_id')->nullable();
+
+            // Status Akun Langsung Aktif (Tanpa Token Aktivasi Email)
+            $table->boolean('is_active')->default(true);
+            
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
@@ -29,6 +39,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
+            // Default Laravel sudah tepat menggunakan foreignUuid untuk membaca ID tabel user di atas
             $table->foreignUuid('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();

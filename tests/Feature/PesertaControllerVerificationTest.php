@@ -17,11 +17,17 @@ class PesertaControllerVerificationTest extends TestCase
     use RefreshDatabase;
 
     protected User $pic;
+
     protected User $panitia;
+
     protected User $existingUser;
+
     protected Bimtek $bimtekWithVerification;
+
     protected Bimtek $bimtekWithoutVerification;
+
     protected Role $roleAdmin;
+
     protected Role $rolePeserta;
 
     protected function setUp(): void
@@ -41,7 +47,7 @@ class PesertaControllerVerificationTest extends TestCase
             'butuh_verifikasi_dokumen' => true,
             'jenis_dokumen_wajib' => ['surat_tugas', 'sppd'],
         ]);
-        
+
         // Assign panitia to bimtek
         $this->bimtekWithVerification->users()->attach($this->panitia->id, [
             'id' => (string) \Illuminate\Support\Str::uuid(),
@@ -54,7 +60,7 @@ class PesertaControllerVerificationTest extends TestCase
             'butuh_verifikasi_dokumen' => false,
             'jenis_dokumen_wajib' => null,
         ]);
-        
+
         // Assign panitia to bimtek
         $this->bimtekWithoutVerification->users()->attach($this->panitia->id, [
             'id' => (string) \Illuminate\Support\Str::uuid(),

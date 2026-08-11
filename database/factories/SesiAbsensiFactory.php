@@ -22,7 +22,7 @@ class SesiAbsensiFactory extends Factory
     {
         return [
             'bimtek_id' => Bimtek::factory(),
-            'nama_sesi' => 'Sesi ' . fake()->numberBetween(1, 10),
+            'nama_sesi' => 'Sesi '.fake()->numberBetween(1, 10),
             'status' => 'ditutup',
             'user_id' => null,
         ];

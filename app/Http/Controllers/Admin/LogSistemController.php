@@ -36,7 +36,7 @@ class LogSistemController extends Controller
 
         // Search by pesan
         if ($request->filled('search')) {
-            $query->where('pesan', 'like', '%' . $request->search . '%');
+            $query->where('pesan', 'like', '%'.$request->search.'%');
         }
 
         $logs = $query->paginate(25)->withQueryString();
@@ -62,7 +62,7 @@ class LogSistemController extends Controller
     public function show(LogSistem $logSistem): View
     {
         $logSistem->load('user');
-        
+
         return view('admin.log-sistem.show', compact('logSistem'));
     }
 
@@ -120,12 +120,12 @@ class LogSistemController extends Controller
             $query->whereDate('created_at', '<=', $request->sampai_tanggal);
         }
         if ($request->filled('search')) {
-            $query->where('pesan', 'like', '%' . $request->search . '%');
+            $query->where('pesan', 'like', '%'.$request->search.'%');
         }
 
         $logs = $query->get();
 
-        $filename = 'Log_Sistem_' . date('Y-m-d_His') . '.csv';
+        $filename = 'Log_Sistem_'.date('Y-m-d_His').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -134,10 +134,10 @@ class LogSistemController extends Controller
 
         $callback = function () use ($logs) {
             $file = fopen('php://output', 'w');
-            
+
             // BOM for Excel UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             // Header
             fputcsv($file, ['No', 'Waktu', 'Level', 'User', 'Pesan']);
 

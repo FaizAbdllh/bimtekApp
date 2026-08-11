@@ -17,7 +17,9 @@ class BimtekGovernanceWorkflowTest extends TestCase
     use RefreshDatabase;
 
     protected User $pic;
+
     protected User $panitia;
+
     protected Bimtek $bimtek;
 
     protected function setUp(): void

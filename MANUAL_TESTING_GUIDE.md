@@ -200,6 +200,27 @@ Server sudah running di: http://127.0.0.1:8000
 - [ ] Login sebagai peserta bimtek tersebut
 - [ ] Coba akses Absensi/Tugas/Sertifikat
 - [ ] Verify: Bisa akses langsung tanpa upload dokumen
+---
+
+### 8. Test Estimasi Jumlah Peserta & Pembatasan Panitia
+
+#### 8.1 Estimasi Jumlah Peserta di Pengajuan
+- [ ] Saat mengisi pengajuan, isi `Estimasi Jumlah Peserta` (angka). Ini wajib saat submit.
+- [ ] Submit pengajuan dan verifikasi bahwa nilai tersimpan pada detail pengajuan.
+
+#### 8.4 Ringkasan Kebutuhan (Telaah Staf)
+- [ ] Saat mengisi pengajuan, isi kolom `Ringkasan Kebutuhan / Telaah Staf` dengan daftar kebutuhan singkat seperti: Transport, Uang Harian, Honor Panitia, Konsumsi, Penginapan, ATK.
+- [ ] Submit pengajuan dan verifikasi bahwa ringkasan kebutuhan tersimpan dan tampil di halaman detail pengajuan.
+- [ ] Verify: Tidak ada form RAB detail pada halaman pengajuan baru.
+
+#### 8.2 Pembatasan Panitia (≤10% dari jumlah peserta)
+- [ ] Masuk ke Bimtek yang memiliki estimasi peserta.
+- [ ] Tambahkan Panitia melalui fitur Tambah Panitia sampai batas tercapai.
+- [ ] Verify: Sistem menolak penambahan panitia jika melampaui batas maksimum (ceil(jumlah_peserta * 0.1)).
+
+#### 8.3 Surat Undangan
+- [ ] Upload surat undangan PDF pada halaman Bimtek (fitur generate file tersedia).
+- [ ] Verify: Sistem hanya menyimpan file; pengiriman email dilakukan manual oleh panitia.
 
 ---
 

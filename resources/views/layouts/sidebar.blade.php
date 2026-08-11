@@ -1,5 +1,6 @@
 {{-- Sidebar --}}
 <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0">
+    @auth
     <div class="h-full flex flex-col bg-primary-600 text-white">
         {{-- Logo & Brand --}}
         <div class="flex items-center justify-center px-4 py-5 border-b border-primary-500">
@@ -107,14 +108,10 @@
 
             {{-- Menu Bimtek - Untuk yang terlibat dalam bimtek --}}
             @php
-                // Cek apakah user terlibat dalam bimtek (sebagai PIC, Panitia, Pemateri - BUKAN Peserta)
+                // Cek keterlibatan berdasarkan kolom pic_user_id riil atau keanggotaan di tabel bimtek_panitias
                 $terlibatDiBimtek = \App\Models\Bimtek::where('pic_user_id', $user->id)
-                    ->orWhereHas('users', function($q) use ($user) {
-                        $q->where('user_id', $user->id)
-                          ->whereIn('peran_kontekstual', ['pic', 'panitia', 'pemateri']);
-                    })
-                    ->orWhereHas('pengajuan', function($q) use ($user) {
-                        $q->where('user_id', $user->id);
+                    ->orWhereHas('panitia', function($q) use ($user) {
+                        $q->where('users.id', $user->id);
                     })
                     ->exists();
             @endphp
@@ -165,4 +162,5 @@
             </div>
         </div>
     </div>
+    @endauth
 </aside>

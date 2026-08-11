@@ -6,7 +6,7 @@
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 00-2 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
                 </div>
                 <div class="ml-4">
@@ -44,7 +44,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm text-gray-500">Total Anggaran</p>
+                    <p class="text-sm text-gray-500">Total Anggaran Disetujui</p>
                     <p class="text-2xl font-semibold text-gray-700">Rp {{ number_format($totalAnggaran ?? 0, 0, ',', '.') }}</p>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Judul Bimtek</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pengaju</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Anggaran</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Anggaran Usulan</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                         </tr>
@@ -74,11 +74,16 @@
                         @foreach($recentPengajuan as $pengajuan)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $pengajuan->judul_rencana }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->user->name ?? '-' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp {{ number_format($pengajuan->estimasi_anggaran ?? 0, 0, ',', '.') }}</td>
+                                {{-- REFAKTORISASI: Mengubah relasi user menjadi pic --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->pic->name ?? '-' }}</td>
+                                {{-- REFAKTORISASI: Menghitung total anggaran rencana secara dinamis dari relasi kebutuhanAnggarans --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya') ?? 0, 0, ',', '.') }}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->created_at->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <a href="#" class="text-blue-600 hover:text-blue-900">Review</a>
+                                    {{-- REFAKTORISASI: Mengarahkan tombol review langsung menuju rute detail PPK --}}
+                                    <a href="{{ route('approval.ppk.show', $pengajuan->id) }}" class="text-blue-600 hover:text-blue-900 font-medium">Review</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -86,7 +91,9 @@
                 </table>
             </div>
         @else
-            <p class="text-gray-500">Tidak ada pengajuan yang menunggu persetujuan anggaran.</p>
+            <div class="text-center py-6">
+                <p class="text-gray-500">Tidak ada pengajuan usulan biaya yang memerlukan peninjauan anggaran saat ini.</p>
+            </div>
         @endif
     </div>
 </div>

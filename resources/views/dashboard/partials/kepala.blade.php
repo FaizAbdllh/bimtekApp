@@ -57,7 +57,6 @@
     <div class="p-6">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-semibold">Pengajuan Menunggu Persetujuan</h3>
-            {{-- <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Lihat Semua →</a> --}}
         </div>
         @if(isset($recentPengajuan) && $recentPengajuan->count() > 0)
             <div class="overflow-x-auto">
@@ -73,9 +72,10 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($recentPengajuan as $pengajuan)
-                            <tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $pengajuan->judul_rencana }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->user->name ?? '-' }}</td>
+                                {{-- REFAKTORISASI: Mengubah relasi user menjadi pic --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->pic->name ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                         {{ $pengajuan->jenis_kegiatan == 'internal' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
@@ -84,7 +84,8 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pengajuan->created_at->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <a href="#" class="text-blue-600 hover:text-blue-900">Review</a>
+                                    {{-- REFAKTORISASI: Mengarahkan tautan ke route riil milik Kepala --}}
+                                    <a href="{{ route('approval.kepala.show', $pengajuan->id) }}" class="text-blue-600 hover:text-blue-900 font-medium">Review</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -92,7 +93,9 @@
                 </table>
             </div>
         @else
-            <p class="text-gray-500">Tidak ada pengajuan yang menunggu persetujuan.</p>
+            <div class="text-center py-6">
+                <p class="text-gray-500">Tidak ada pengajuan yang menunggu persetujuan saat ini.</p>
+            </div>
         @endif
     </div>
 </div>

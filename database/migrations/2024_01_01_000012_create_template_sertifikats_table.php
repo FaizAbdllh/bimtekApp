@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('template_sertifikats', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nama_template');
-            $table->string('file_path')->notNull();
+            $table->string('nama_template')->comment('Contoh: Template Sertifikat internal, Template Luar');
+            
+            // Perbaikan: Menghapus ->notNull() agar tidak melempar BadMethodCallException
+            $table->string('file_path');
+            
             $table->timestamps();
         });
     }

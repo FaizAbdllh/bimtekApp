@@ -12,16 +12,32 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sertifikats', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('nomor_sertifikat')->unique()->notNull();
-            $table->date('tanggal_terbit')->notNull();
-            $table->string('file_path')->notNull();
+            // 1. COMPOSITE FOREIGN KEY (Mengunci ke pendaftaran peserta)
+            // Menjamin sertifikat hanya terbit untuk user yang terdaftar resmi di Bimtek tersebut
+            $table->uuid('bimtek_id');
+            $table->uuid('user_id');
+            $table->foreign(['bimtek_id', 'user_id'])
+                  ->references(['bimtek_id', 'user_id'])
+                  ->on('bimtek_pesertas')
+                  ->onDelete('cascade');
+
+            // 2. Relasi ke Template Sertifikat (Hasil Integrasi Fase 5)
+            $table->foreignUuid('template_sertifikat_id')
+                  ->nullable()
+                  ->constrained('template_sertifikats')
+                  ->onDelete('set null')
+                  ->comment('Layout template yang digunakan');
+
+            // 3. Atribut Sertifikat (Bersih dari bug ->notNull())
+            $table->string('nomor_sertifikat')->unique()->comment('Kode unik sertifikat resmi BBPMP');
+            $table->date('tanggal_terbit');
+            $table->string('file_path')->comment('Path file PDF sertifikat yang sudah di-generate');
+            
             $table->timestamps();
 
-            // Satu user hanya bisa punya satu sertifikat per bimtek
-            $table->unique(['bimtek_id', 'user_id']);
+            // 4. COMPOSITE PRIMARY KEY
+            // Mengunci agar satu peserta hanya bisa memiliki satu catatan kelulusan/sertifikat per kegiatan
+            $table->primary(['bimtek_id', 'user_id']);
         });
     }
 

@@ -3,187 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status Verifikasi Dokumen</title>
+    <title>Status Verifikasi Dokumen Persyaratan</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-        }
-        .header-logo {
-            margin-bottom: 15px;
-        }
-        .header-logo img {
-            max-height: 50px;
-        }
-        .header h1 {
-            color: white;
-            margin: 10px 0 5px;
-            font-size: 24px;
-        }
-        .header p {
-            color: #dbeafe;
-            margin: 5px 0 0;
-            font-size: 14px;
-        }
-        .content {
-            background-color: #f8f9fa;
-            padding: 30px;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 10px 20px;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-weight: 600;
-            color: white;
-        }
-        .status-verified {
-            background-color: #10b981;
-        }
-        .status-rejected {
-            background-color: #ef4444;
-        }
-        .info-box {
-            background: white;
-            padding: 20px;
-            border-left: 4px solid #2563eb;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        .info-box h3 {
-            margin: 0 0 10px;
-            color: #1e40af;
-        }
-        .info-box ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        .info-box li {
-            margin: 5px 0;
-            color: #1e3a8a;
-        }
-        .cta-button {
-            display: inline-block;
-            background: #2563eb;
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        .cta-button:hover {
-            background: #1e40af;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px 30px 30px;
-            background: #ffffff;
-            border-top: 1px solid #e5e7eb;
-            margin-top: 20px;
-        }
-        .footer p {
-            color: #9ca3af;
-            font-size: 12px;
-            margin: 5px 0;
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
+        .container { background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .header { background: #1e3a8a; color: white; padding: 24px; text-align: center; }
+        .header h1 { color: white; margin: 10px 0 5px; font-size: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header p { color: #dbeafe; margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .content { padding: 24px; background-color: #ffffff; }
+        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 8px; margin: 15px 0; font-size: 12px; font-weight: bold; color: white; tracking-letters: 0.5px; }
+        .status-verified { background-color: #10b981; }
+        .status-rejected { background-color: #ef4444; }
+        .info-box { background: #f8fafc; padding: 16px; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; margin: 16px 0; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .info-box h3 { margin: 0 0 6px; color: #1e3a8a; font-size: 14px; font-weight: bold; }
+        .info-box p { margin: 0; font-size: 12px; color: #475569; font-weight: 600; }
+        .info-box ul, .content ol { margin: 8px 0; padding-left: 20px; font-size: 13px; color: #334155; }
+        .info-box li, .content ol li { margin: 4px 0; }
+        .cta-button { display: inline-block; background: #2563eb; color: white !important; padding: 10px 24px; text-decoration: none; border-radius: 8px; margin: 15px 0; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+        .footer { text-align: center; padding: 20px 24px; background: #f1f5f9; border-top: 1px solid #e2e8f0; }
+        .footer p { color: #64748b; font-size: 11px; margin: 4px 0; }
     </style>
 </head>
 <body>
     <div class="container">
+        {{-- Header Kertas Branding Lembaga --}}
         <div class="header">
-            <div class="header-logo">
-                <img src="{{ asset('images/logo-bbpmp.png') }}" alt="Logo BBPMP" style="max-height: 50px;">
+            <div style="margin-bottom: 10px;">
+                <img src="{{ asset('images/logo-bbpmp.png') }}" alt="Logo BBPMP" style="max-height: 45px; width: auto;">
             </div>
-            <h1>Status Verifikasi Dokumen</h1>
-            <p>Balai Bimbingan dan Pelatihan Masyarakat Provinsi Sumatera Barat</p>
+            <h1>Status Hasil Verifikasi Berkas</h1>
+            <p>Balai Besar Penjaminan Mutu Pendidikan (BBPMP) Provinsi Sumatera Barat</p>
         </div>
 
+        {{-- Bodi Surat Pemberitahuan --}}
         <div class="content">
-            <p>Yth. <strong>{{ $peserta->name ?? 'Peserta' }}</strong>,</p>
+            <p style="margin-top: 0; font-size: 14px;">Yth. <strong>{{ $peserta->name ?? 'Peserta' }}</strong>,</p>
             
+            {{-- KONDISI A: BERKAS DINYATAKAN LULUS/VERIFIED --}}
             @if($status === 'verified')
                 <div class="status-badge status-verified">
-                    ✓ DOKUMEN TERVERIFIKASI
+                    ✓ DOKUMEN DISETUJUI
                 </div>
-                <p>Selamat! Semua dokumen persyaratan Anda untuk Bimtek berikut telah diverifikasi dan disetujui:</p>
+                <p style="font-size: 13px; color: #334155;">Selamat, proses pemeriksaan dokumen persyaratan pendaftaran Anda untuk kegiatan bimbingan teknis di bawah ini dinyatakan <strong>Lengkap dan Memenuhi Syarat</strong>:</p>
                 
                 <div class="info-box">
-                    <h3>{{ $bimtek->judul_final ?? $bimtek->judul }}</h3>
-                    <p><strong>Status:</strong> Dokumen Diterima</p>
+                    <h3>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</h3>
+                    <p>Status Kelayakan: <span class="text-green-600">Dokumen Diverifikasi & Disetujui</span></p>
                 </div>
 
-                <p><strong>Anda sekarang dapat mengakses seluruh fitur bimtek:</strong></p>
-                <div class="info-box">
-                    <ul>
-                        <li>📋 Absensi</li>
-                        <li>📚 Materi Pembelajaran</li>
-                        <li>✍️ Tugas</li>
-                        <li>🏆 Sertifikat</li>
+                <p style="font-size: 13px; color: #334155; margin-bottom: 5px;"><strong>Anda kini memegang hak akses penuh untuk memanfaatkan fitur ruang digital kelas:</strong></p>
+                <div class="info-box" style="border-left-color: #10b981; background-color: #f0fdf4;">
+                    <ul style="list-style-type: none; padding-left: 5px; margin: 0; font-weight: 600; font-size: 12px; color: #166534; line-height: 1.8;">
+                        <li>✓ Pengisian Presensi Absensi Harian Sesi</li>
+                        <li>✓ Unduh Modul & Bahan Materi Pembelajaran</li>
+                        <li>✓ Lembar Kerja Pengumpulan Tugas Jawaban</li>
+                        <li>✓ Lembar Unduh Sertifikat Kelulusan Resmi</li>
                     </ul>
                 </div>
 
-                <p style="text-align: center;">
-                    <a href="{{ route('login') }}" class="cta-button">Login ke Sistem</a>
-                </p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="{{ route('login') }}" target="_blank" rel="noopener" class="cta-button">Masuk ke Dasbor Kelas</a>
+                </div>
 
+            {{-- KONDISI B: BERKAS DINYATAKAN REJECTED / PERLU KOREKSI --}}
             @else
                 <div class="status-badge status-rejected">
-                    ✗ DOKUMEN DITOLAK
+                    ✗ DOKUMEN MEMERLUKAN PERBAIKAN
                 </div>
-                <p>Dokumen persyaratan Anda untuk Bimtek berikut memerlukan perbaikan:</p>
+                <p style="font-size: 13px; color: #334155;">Mohon perhatian, berdasarkan hasil kurasi pemeriksaan oleh tim penilai, dokumen persyaratan administrasi Anda untuk kegiatan berikut dinyatakan <strong>Belum Memenuhi Syarat</strong>:</p>
                 
-                <div class="info-box">
-                    <h3>{{ $bimtek->judul_final ?? $bimtek->judul }}</h3>
-                    <p><strong>Status:</strong> Memerlukan Perbaikan</p>
+                <div class="info-box" style="border-left-color: #ef4444;">
+                    <h3>{{ $bimtek->judul_final ?? $bimtek->judul_rencana }}</h3>
+                    <p>Status Kelayakan: <span style="color: #dc2626;">Perlu Perbaikan / Upload Ulang</span></p>
                     
-                    @if(isset($rejectedDocuments) && $rejectedDocuments->count() > 0)
-                        <p style="margin-top: 15px; margin-bottom: 10px;"><strong>Dokumen yang ditolak:</strong></p>
-                        <ul>
-                            @foreach($rejectedDocuments as $doc)
-                                <li>{{ str_replace('_', ' ', ucwords($doc->jenis_dokumen)) }}
-                                    @if(!empty($doc->catatan_verifikasi))
-                                        <br><small style="color: #ef4444;">📝 {{ $doc->catatan_verifikasi }}</small>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
+                    {{-- 💡 PERBAIKAN: Menggunakan variabel tunggal $catatan dari Controller --}}
+                    @if(!empty($catatan))
+                        <p style="margin-top: 12px; margin-bottom: 6px; font-weight: bold; color: #1e293b;">Catatan Koreksi dari Panitia:</p>
+                        <div style="margin-top: 2px; font-size: 12px; color: #ef4444; font-weight: 500; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #fee2e2;">
+                            📝 "{{ $catatan }}"
+                        </div>
                     @endif
                 </div>
 
-                <p><strong>Langkah selanjutnya:</strong></p>
-                <ol style="margin-left: 20px; color: #1e3a8a;">
-                    <li>Cek catatan verifikasi di sistem untuk detail perbaikan yang diperlukan</li>
-                    <li>Perbaiki dan persiapkan dokumen sesuai catatan</li>
-                    <li>Upload ulang dokumen yang sudah diperbaiki</li>
-                    <li>Tim verifikasi akan memeriksa kembali dalam waktu 1x24 jam</li>
+                <p style="font-size: 13px; color: #334155; margin-bottom: 5px;"><strong>Langkah-langkah perbaikan yang harus Anda lakukan:</strong></p>
+                <ol>
+                    <li>Persiapkan lembar dokumen pengganti yang valid sesuai dengan catatan koreksi tim penilai di atas.</li>
+                    <li>Masuk ke dalam platform menggunakan akun Anda, lalu menuju menu verifikasi dokumen.</li>
+                    <li>Lakukan unggah ulang (*upload*) pada form revisi berkas yang tersedia.</li>
+                    <li>Tim pelaksana Pokja akan melakukan peninjauan ulang berkas Anda.</li>
                 </ol>
 
-                <p style="text-align: center;">
-                    <a href="{{ route('login') }}" class="cta-button">Upload Ulang Dokumen</a>
-                </p>
+                <div style="text-align: center; margin: 20px 0;">
+                    {{-- 💡 PERBAIKAN: Menggunakan $uploadUrl agar langsung mengarah ke halaman form revisi --}}
+                    <a href="{{ $uploadUrl ?? route('login') }}" target="_blank" rel="noopener" class="cta-button" style="background: #ef4444;">Unggah Ulang Dokumen</a>
+                </div>
             @endif
 
+            {{-- Footer Tanda Tangan / Informasi Otomatisasi --}}
             <div class="footer">
-                <p>Email ini dikirim secara otomatis oleh Sistem Informasi Bimtek BBPMP Sumbar.</p>
-                <p>Jangan balas email ini. Untuk bantuan, silakan hubungi panitia atau administrator sistem.</p>
+                <p style="font-weight: bold; color: #475569; text-transform: uppercase;">Panitia Pelaksana Kegiatan Bimtek</p>
+                <p style="font-weight: 600; margin-top: 2px;">Balai Besar Penjaminan Mutu Pendidikan (BBPMP) Provinsi Sumatera Barat</p>
+                <p style="margin-top: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 8px; font-style: italic;">Surat pemberitahuan ini diproduksi secara otomatis oleh sistem informasi manajemen, mohon untuk tidak membalas pesan email ini.</p>
             </div>
         </div>
     </div>

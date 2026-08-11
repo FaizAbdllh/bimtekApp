@@ -14,10 +14,17 @@ return new class extends Migration
         Schema::create('log_sistems', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->string('level', 50)->notNull();
-            $table->text('pesan')->notNull();
+            
+            // Perbaikan: Menghapus ->notNull() bawaan lama
+            $table->string('level', 50);
+            $table->text('pesan');
+            
             $table->timestamp('created_at')->nullable()->comment('Menggunakan created_at saja');
             $table->timestamp('updated_at')->nullable();
+
+            // --- KONSOLIDASI INDEX PERFORMA (Dari file penambal 2024) ---
+            $table->index('level');
+            $table->index('created_at');
         });
     }
 
