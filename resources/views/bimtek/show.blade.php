@@ -139,7 +139,7 @@
                             @if($bimtek->butuh_verifikasi_dokumen && $bimtek->syaratDokumens->isNotEmpty())
                                 <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl text-xs">
                                     <h4 class="font-bold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                        📋 Berkas Syarat Masuk Kelas:
+                                        Berkas Syarat Masuk Kelas:
                                     </h4>
                                     <ul class="space-y-1.5 font-semibold text-gray-600">
                                         @foreach($bimtek->syaratDokumens as $syarat)
@@ -217,7 +217,60 @@
                             </div>
                         </div>
                     @endif
+                    {{-- 💡 KONFIGURASI KELAS: Switcher Penugasan (has_tugas) AUTO-SUBMIT --}}
+                    @if($canManage)
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-6">
+                            <form action="{{ route('bimtek.toggle-tugas', $bimtek->id) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                    <div class="flex-1">
+                                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-1">Konfigurasi Penugasan Peserta</h3>
+                                        <p class="text-xs text-gray-500 max-w-2xl leading-relaxed">
+                                            Tentukan apakah kegiatan Bimbingan Teknis ini mewajibkan peserta untuk mengerjakan tugas/RTL. 
+                                            Pengaturan ini hanya dapat diubah selama kelas masih berada di fase <span class="font-bold text-yellow-600">Persiapan</span>.
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="flex items-center shrink-0">
+                                        {{-- Toggle Switcher Bawaan HTML & Tailwind (Anti Gagal) --}}
+                                        <label class="relative inline-flex items-center cursor-pointer {{ $bimtek->status !== 'persiapan' ? 'opacity-50' : '' }}">
+                                            
+                                            {{-- Input Checkbox Asli (Disembunyikan tapi menjadi otak utama) --}}
+                                            <input type="checkbox" name="has_tugas" value="1" class="sr-only peer" 
+                                                   {{ $bimtek->has_tugas ? 'checked' : '' }}
+                                                   {{ $bimtek->status !== 'persiapan' ? 'disabled' : '' }}
+                                                   onchange="this.form.submit()">
+                                            
+                                            {{-- Desain Visual Sakelar --}}
+                                            <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-600"></div>
+                                            
+                                            {{-- Indikator Teks di Kanan Sakelar --}}
+                                            <span class="ml-3 text-sm font-bold {{ $bimtek->has_tugas ? 'text-primary-600' : 'text-gray-400' }}">
+                                                {{ $bimtek->has_tugas ? 'AKTIF' : 'NONAKTIF' }}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
 
+                                {{-- Pesan Peringatan Saat Penugasan Aktif (Tampil langsung dari Backend) --}}
+                                @if($bimtek->has_tugas)
+                                    <div class="mt-5 pt-4 border-t border-gray-100">
+                                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
+                                            <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <div class="text-xs text-blue-800 font-medium leading-relaxed">
+                                                <span class="font-bold block mb-1">Tab Kelola Tugas Telah Terbuka</span>
+                                                Pastikan Anda telah mengunggah minimal 1 (satu) formulir penugasan mandiri pada tab <strong>Lembar Tugas Belajar</strong> di bawah sebelum memulai acara.
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </form>
+                        </div>
+                    @endif
                     {{-- Manajemen Transisi State Aksi PIC/Panitia --}}
                     @if($canManage)
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-6">

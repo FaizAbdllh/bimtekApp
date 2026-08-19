@@ -21,21 +21,14 @@ return new class extends Migration
                   ->on('bimtek_pesertas')
                   ->onDelete('cascade');
 
-            // 2. Relasi ke Template Sertifikat (Hasil Integrasi Fase 5)
-            $table->foreignUuid('template_sertifikat_id')
-                  ->nullable()
-                  ->constrained('template_sertifikats')
-                  ->onDelete('set null')
-                  ->comment('Layout template yang digunakan');
-
-            // 3. Atribut Sertifikat (Bersih dari bug ->notNull())
+            // 2. Atribut Sertifikat (Bersih dari bug ->notNull() dan template_id)
             $table->string('nomor_sertifikat')->unique()->comment('Kode unik sertifikat resmi BBPMP');
             $table->date('tanggal_terbit');
             $table->string('file_path')->comment('Path file PDF sertifikat yang sudah di-generate');
             
             $table->timestamps();
 
-            // 4. COMPOSITE PRIMARY KEY
+            // 3. COMPOSITE PRIMARY KEY
             // Mengunci agar satu peserta hanya bisa memiliki satu catatan kelulusan/sertifikat per kegiatan
             $table->primary(['bimtek_id', 'user_id']);
         });

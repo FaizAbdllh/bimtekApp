@@ -489,7 +489,27 @@ class BimtekController extends Controller
 
         return back()->with('success', "Aktor berhasil dikeluarkan dari kegiatan.");
     }
+    
+    public function toggleTugas(Request $request, Bimtek $bimtek)
+    {
+        // Kunci Validasi: Hanya bisa diubah saat fase persiapan
+        if ($bimtek->status !== 'persiapan') {
+            return back()->with('error', 'Konfigurasi penugasan tidak dapat diubah karena kelas sudah melewati fase persiapan.');
+        }
 
+        // Ambil nilai dari input hidden alpine.js (1 atau 0)
+        $hasTugas = $request->input('has_tugas') == 1 ? true : false;
+
+        $bimtek->update([
+            'has_tugas' => $hasTugas
+        ]);
+
+        $pesan = $hasTugas 
+            ? 'Konfigurasi disimpan: Kegiatan ini sekarang mewajibkan Penugasan.' 
+            : 'Konfigurasi disimpan: Kegiatan ini tidak memiliki Penugasan.';
+
+        return back()->with('success', $pesan);
+    }
     /**
      * Access Gate Protections (Refaktorisasi Basis Relasi Terpisah)
      */

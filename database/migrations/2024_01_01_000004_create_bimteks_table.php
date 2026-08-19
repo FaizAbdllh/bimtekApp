@@ -34,6 +34,8 @@ return new class extends Migration
             $table->enum('mode_pelaksanaan', ['offline', 'online', 'hybrid'])->default('offline');
             $table->string('virtual_meeting_url', 500)->nullable(); 
             $table->string('invite_code', 64)->nullable()->unique(); 
+            // 💡 TAMBAHAN BARU: Batas waktu untuk mengunci pendaftaran otomatis
+            $table->dateTime('batas_waktu_pendaftaran')->nullable()->comment('Batas akhir registrasi publik/mandiri');
             $table->decimal('anggaran_disetujui', 15, 2)->nullable();
             $table->text('deskripsi_jadwal')->nullable();
             $table->json('daftar_pemateri')->nullable(); 
@@ -43,9 +45,9 @@ return new class extends Migration
             $table->foreignUuid('file_surat_undangan_uploaded_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('file_surat_undangan_uploaded_at')->nullable();
 
-            // 5. Aturan Kelulusan & Verifikasi (Sesuai Perancangan Baru)
+            // 5. Aturan Kelulusan & Verifikasi
             $table->boolean('butuh_verifikasi_dokumen')->default(false); 
-            $table->boolean('has_tugas')->default(true);
+            $table->boolean('has_tugas')->default(true); // 💡 Ini akan kita gunakan untuk mengecek apakah butuh tugas
             $table->boolean('has_sertifikat')->default(true);
             $table->integer('syarat_kehadiran_persen')->default(80);
             $table->integer('syarat_tugas_persen')->default(70);
@@ -59,6 +61,7 @@ return new class extends Migration
                 'disetujui_ppk',
                 'disetujui_final',
                 'persiapan',
+                'siap_dilaksanakan', // 💡 TAMBAHAN BARU: Fase fiksasi/ready
                 'berlangsung',
                 'selesai',
                 'dibatalkan',
@@ -66,17 +69,18 @@ return new class extends Migration
                 'perlu_revisi'
             ])->default('draft_pic');
 
-            // 7. Catatan Log & Validasi Pejabat/Rumah Tangga (Update Kelompok 3)
+            // 7. Catatan Log & Validasi Pejabat/Rumah Tangga
             $table->text('catatan_kepala')->nullable();
             $table->timestamp('kepala_approved_at')->nullable();
             $table->text('catatan_ppk')->nullable();
             $table->timestamp('ppk_approved_at')->nullable();
+            // 💡 Ini akan kita gunakan sebagai validasi kesiapan logistik
             $table->enum('status_rt', ['belum_dipenuhi', 'sebagian_dipenuhi', 'telah_dipenuhi'])->default('belum_dipenuhi');
             $table->text('catatan_rt')->nullable();
 
             $table->timestamps();
 
-            // --- TAMBAHAN INDEX PERFORMA (Dari file add_performance_indexes) ---
+            // --- TAMBAHAN INDEX PERFORMA ---
             $table->index('status');
             $table->index('status_rt');
         });

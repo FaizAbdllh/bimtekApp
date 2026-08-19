@@ -19,15 +19,13 @@ return new class extends Migration
             $table->string('nip')->nullable()->unique();
             $table->string('asal_instansi')->nullable();
             
-            // Peran Global User
+            // Peran Global User (Pastikan urutan migration 'roles' sudah benar jika ingin di-constrained)
             $table->uuid('role_id')->nullable();
 
             // Status Akun Langsung Aktif (Tanpa Token Aktivasi Email)
             $table->boolean('is_active')->default(true);
             
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->rememberToken();
             $table->timestamps();
         });
 

@@ -35,9 +35,38 @@
                     </div>
                 </div>
                 
-                {{-- Aksi Sisi Kanan Header: Hanya menyisakan Ekspor CSV untuk kebutuhan SPJ/DIPA --}}
+                {{-- Aksi Sisi Kanan Header: Tambah Manual & Ekspor CSV --}}
                 <div class="flex flex-wrap items-center gap-2 font-bold text-xs uppercase tracking-wide">
                     @if($canManage)
+                        
+                        {{-- 1. TOMBOL DROPDOWN TAMBAH MANUAL (BARU) --}}
+                        <div x-data="{ openDropdown: false }" class="relative">
+                            <button @click="openDropdown = !openDropdown" @click.away="openDropdown = false" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-primary-600 rounded-xl hover:bg-gray-50 transition shadow-sm font-bold text-xs uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Tambah Manual
+                                <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            {{-- Isi Dropdown --}}
+                            <div x-show="openDropdown" x-transition.opacity x-cloak class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden normal-case tracking-normal">
+                                <button type="button" @click="$dispatch('open-modal', 'modal-tambah-eksisting'); openDropdown = false" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition font-medium">
+                                    Pilih dari Database
+                                </button>
+                                <button type="button" @click="$dispatch('open-modal', 'modal-tambah-baru'); openDropdown = false" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition font-medium">
+                                    Daftarkan Peserta Baru
+                                </button>
+                                <div class="border-t border-gray-100"></div>
+                                <button type="button" @click="$dispatch('open-modal', 'modal-import-csv'); openDropdown = false" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition font-medium">
+                                    Import File CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- 2. TOMBOL EKSPOR CSV (Eksisting) --}}
                         <a href="{{ route('bimtek.peserta.export', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm">
                             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -301,6 +330,127 @@
             </div>
 
         </div>
+        {{-- ================= KUMPULAN MODAL TAMBAH MANUAL ================= --}}
+            @if($canManage)
+                
+                {{-- MODAL 1: TAMBAH EKSISTING --}}
+                <div x-data="{ open: false }" @open-modal.window="if ($event.detail === 'modal-tambah-eksisting') open = true" x-cloak>
+                    <div x-show="open" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity" @click="open = false"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            
+                            <div x-show="open" x-transition class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
+                                <form action="{{ route('bimtek.peserta.store', $bimtek->id) }}" method="POST">
+                                    @csrf
+                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <h3 class="text-lg font-bold text-gray-900 mb-4" id="modal-title">Tambah Peserta dari Database</h3>
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-1">Pilih User</label>
+                                            <select name="user_ids[]" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm h-48" multiple required>
+                                                @foreach($availableUsers as $user)
+                                                    <option value="{{ $user->id }}" class="py-1 border-b border-gray-50">{{ $user->name }} - {{ $user->email }}</option>
+                                                @endforeach
+                                            </select>
+                                            <p class="mt-2 text-xs text-gray-500">Tips: Tahan tombol <b>Ctrl</b> (Windows) atau <b>Cmd</b> (Mac) di keyboard untuk memilih lebih dari satu nama sekaligus.</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-primary-600 hover:bg-gray-50 sm:ml-3 sm:w-auto transition uppercase tracking-wide">Tambahkan ke Kelas</button>
+                                        <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto transition">Batal</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- MODAL 2: DAFTARKAN PESERTA BARU --}}
+                <div x-data="{ open: {{ $errors->has('name') || $errors->has('email') || $errors->has('nip') ? 'true' : 'false' }} }" @open-modal.window="if ($event.detail === 'modal-tambah-baru') open = true" x-cloak>
+                    <div x-show="open" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity" @click="open = false"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            
+                            <div x-show="open" x-transition class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
+                                <form action="{{ route('bimtek.peserta.store-new', $bimtek->id) }}" method="POST">
+                                    @csrf
+                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <h3 class="text-lg font-bold text-gray-900 mb-4">Daftarkan Akun Peserta Baru</h3>
+                                        
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                                                <input type="text" name="name" value="{{ old('name') }}" class="w-full border {{ $errors->has('name') ? 'border-red-500' : 'border-gray-300' }} rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary-500 text-sm" required placeholder="Cth: Ahmad Hidayat, M.Pd">
+                                                @error('name') <p class="text-red-500 text-xs mt-1 font-semibold">{{ $message }}</p> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                                                <input type="email" name="email" value="{{ old('email') }}" class="w-full border {{ $errors->has('email') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary-500 text-sm" required placeholder="Cth: ahmad@gmail.com">
+                                                @error('email') <p class="text-red-600 text-xs mt-1.5 font-bold">Peringatan: {{ $message }} Silakan gunakan menu "Pilih dari Database" untuk akun ini.</p> @enderror
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-bold text-gray-700 mb-1">NIP <span class="text-xs font-normal text-gray-400">(Opsional)</span></label>
+                                                    <input type="text" name="nip" value="{{ old('nip') }}" class="w-full border {{ $errors->has('nip') ? 'border-red-500' : 'border-gray-300' }} rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary-500 text-sm">
+                                                    @error('nip') <p class="text-red-500 text-xs mt-1 font-semibold">{{ $message }}</p> @enderror
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-bold text-gray-700 mb-1">Instansi <span class="text-xs font-normal text-gray-400">(Opsional)</span></label>
+                                                    <input type="text" name="asal_instansi" value="{{ old('asal_instansi') }}" class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary-500 text-sm">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100 flex gap-2 text-blue-800 text-xs font-medium">
+                                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <p>Sistem akan otomatis membuatkan password secara acak dan langsung mengirimkannya ke email peserta.</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-primary-600 hover:bg-gray-50 sm:ml-3 sm:w-auto transition uppercase tracking-wide">Buat Akun & Daftarkan</button>
+                                        <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto transition">Batal</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- MODAL 3: IMPORT FILE CSV --}}
+                <div x-data="{ open: false }" @open-modal.window="if ($event.detail === 'modal-import-csv') open = true" x-cloak>
+                    <div x-show="open" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity" @click="open = false"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            
+                            <div x-show="open" x-transition class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
+                                <form action="{{ route('bimtek.peserta.import', $bimtek->id) }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <h3 class="text-lg font-bold text-gray-900 mb-2">Import Daftar Peserta (CSV)</h3>
+                                        <p class="text-xs text-gray-500 mb-4">Pastikan file CSV Anda memiliki format kolom (*Header*): <b>Nama, Email, NIP, Instansi</b>.</p>
+                                        
+                                        <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:bg-gray-50 transition cursor-pointer relative">
+                                            <input type="file" name="file" accept=".csv" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                            <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                            <p class="mt-1 text-sm text-gray-600 font-bold">Klik untuk memilih file CSV</p>
+                                            <p class="mt-1 text-xs text-gray-400">Maksimal ukuran: 2MB</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-primary-600 hover:bg-gray-50 sm:ml-3 sm:w-auto transition uppercase tracking-wide">Mulai Import</button>
+                                        <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto transition">Batal</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            {{-- ================= AKHIR KUMPULAN MODAL ================= --}}
     </div>
 
     {{-- SCRIPT CONTROLLER DRIVER: Alpine.js Real-time Datatable Engine --}}

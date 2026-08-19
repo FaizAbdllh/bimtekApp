@@ -38,7 +38,14 @@ class PesertaController extends Controller
                 [$bimtek->pic_user_id]
             );
 
+            // 💡 Ambil ID untuk role Peserta Eksternal
+            $pesertaRole = Role::where('nama_peran', 'Peserta Eksternal')->first();
+
             $availableUsers = User::whereNotIn('id', $assignedUserIds)
+                ->when($pesertaRole, function ($query) use ($pesertaRole) {
+                    // Pastikan hanya role Peserta Eksternal yang muncul di daftar pilihan
+                    return $query->where('role_id', $pesertaRole->id);
+                })
                 ->orderBy('name')
                 ->get();
         }

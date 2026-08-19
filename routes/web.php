@@ -118,6 +118,7 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::post('/{bimtek}/upload-final', [BimtekController::class, 'uploadFinal'])->name('upload-final');
     Route::get('/{bimtek}/preview-final', [BimtekController::class, 'previewFinal'])->name('preview-final');
     Route::get('/{bimtek}/download-final', [BimtekController::class, 'downloadFinal'])->name('download-final');
+    Route::patch('/{bimtek}/toggle-tugas', [BimtekController::class, 'toggleTugas'])->name('toggle-tugas');
 
     // Verifikasi Dokumen & Manajemen Peserta
     Route::get('/{bimtek}/verifikasi-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'index'])->name('verifikasi-dokumen.index');
@@ -175,7 +176,7 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
         Route::get('/{bimtek}/tugas/{tugas}/pengumpulan/{user}/preview', [TugasController::class, 'previewJawaban'])->name('tugas.preview-jawaban');
         Route::get('/{bimtek}/tugas/{tugas}/pengumpulan/{user}/download', [TugasController::class, 'downloadJawaban'])->name('tugas.download-jawaban');
         Route::post('/{bimtek}/tugas/{tugas}/pengumpulan/{user}/grade', [TugasController::class, 'grade'])->name('tugas.grade');
-
+        
         // Absensi
         Route::get('/{bimtek}/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
         Route::get('/{bimtek}/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');

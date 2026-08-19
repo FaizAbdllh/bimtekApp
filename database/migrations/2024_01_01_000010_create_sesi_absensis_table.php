@@ -16,16 +16,19 @@ return new class extends Migration
             $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
             $table->string('nama_sesi');
             
-            // Perbaikan: Menghapus ->notNull() karena default Laravel sudah NOT NULL
+            // Status tunggal penentu aktif/tidaknya absensi
             $table->enum('status', ['terbuka', 'ditutup'])->default('ditutup');
             
-            // KONSOLIDASI PATCH QR CODE 2026 (Presisi sesuai tipe data berkas Anda)
+            // Payload string QR Code (Hanya menyimpan data string QR-nya saja)
             $table->text('qr_code')->nullable();
-            $table->timestamp('qr_generated_at')->nullable();
-            $table->timestamp('qr_expires_at')->nullable();
             
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null')->comment('FK ke users (PIC/Panitia yang membuka sesi)');
+            // FK ke users (PIC/Panitia yang membuka sesi)
+            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
+            
             $table->timestamps();
+            
+            // Index performa
+            $table->index('status');
         });
     }
 
