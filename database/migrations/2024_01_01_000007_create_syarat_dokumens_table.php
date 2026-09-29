@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignUuid('bimtek_id')->constrained('bimteks')->onDelete('cascade');
             
             $table->string('nama_dokumen')->comment('Contoh: Surat Tugas, KTP, Pakta Integritas');
+            $table->text('deskripsi_syarat')->nullable()->comment('Keterangan atau penjelasan detail syarat dokumen');
+            $table->boolean('is_wajib')->default(true);
             
             $table->timestamps();
         });

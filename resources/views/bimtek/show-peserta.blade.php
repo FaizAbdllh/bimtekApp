@@ -24,6 +24,8 @@
                             $statusColors = [
                                 'disetujui_final' => 'bg-gray-100 text-gray-800',
                                 'persiapan' => 'bg-yellow-100 text-yellow-800',
+                                'registrasi' => 'bg-indigo-100 text-indigo-800',
+                                'persiapan_selesai' => 'bg-teal-100 text-teal-800',
                                 'berlangsung' => 'bg-blue-100 text-blue-800',
                                 'selesai' => 'bg-green-100 text-green-800',
                                 'dibatalkan' => 'bg-red-100 text-red-800',
@@ -31,6 +33,8 @@
                             $statusLabels = [
                                 'disetujui_final' => 'Disetujui',
                                 'persiapan' => 'Persiapan',
+                                'registrasi' => 'Registrasi',
+                                'persiapan_selesai' => 'Persiapan Selesai',
                                 'berlangsung' => 'Berlangsung',
                                 'selesai' => 'Selesai',
                                 'dibatalkan' => 'Dibatalkan',
@@ -101,7 +105,7 @@
                 } else {
                     $statusVerifikasi = null;
                 }
-                $isVerified = (!$bimtek->butuh_verifikasi_dokumen || $statusVerifikasi === 'verified' || $statusVerifikasi === 'diverifikasi');
+                $isVerified = (!$bimtek->butuh_verifikasi_dokumen || $statusVerifikasi === 'verified');
             @endphp
 
             @if($bimtek->butuh_verifikasi_dokumen && !$isVerified && $isPeserta)

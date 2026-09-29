@@ -115,9 +115,6 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::post('/{bimtek}/upload-undangan', [BimtekController::class, 'uploadDraft'])->name('upload-undangan');
     Route::get('/{bimtek}/preview-draft', [BimtekController::class, 'previewDraft'])->name('preview-draft');
     Route::get('/{bimtek}/download-draft', [BimtekController::class, 'downloadDraft'])->name('download-draft');
-    Route::post('/{bimtek}/upload-final', [BimtekController::class, 'uploadFinal'])->name('upload-final');
-    Route::get('/{bimtek}/preview-final', [BimtekController::class, 'previewFinal'])->name('preview-final');
-    Route::get('/{bimtek}/download-final', [BimtekController::class, 'downloadFinal'])->name('download-final');
     Route::patch('/{bimtek}/toggle-tugas', [BimtekController::class, 'toggleTugas'])->name('toggle-tugas');
 
     // Verifikasi Dokumen & Manajemen Peserta

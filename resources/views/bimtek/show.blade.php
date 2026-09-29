@@ -26,6 +26,8 @@
                                     $statusColors = [
                                         'disetujui_final' => 'bg-gray-100 text-gray-800',
                                         'persiapan' => 'bg-yellow-100 text-yellow-800',
+                                        'registrasi' => 'bg-indigo-100 text-indigo-800',
+                                        'persiapan_selesai' => 'bg-teal-100 text-teal-800',
                                         'berlangsung' => 'bg-blue-100 text-blue-800',
                                         'selesai' => 'bg-green-100 text-green-800',
                                         'dibatalkan' => 'bg-red-100 text-red-800',
@@ -33,6 +35,8 @@
                                     $statusLabels = [
                                         'disetujui_final' => 'Disetujui',
                                         'persiapan' => 'Persiapan',
+                                        'registrasi' => 'Registrasi',
+                                        'persiapan_selesai' => 'Persiapan Selesai',
                                         'berlangsung' => 'Berlangsung',
                                         'selesai' => 'Selesai',
                                         'dibatalkan' => 'Dibatalkan',
@@ -127,7 +131,7 @@
                                         <p class="text-xs text-gray-500 my-2 font-medium">Belum ada berkas surat undangan yang diunggah.</p>
                                     @endif
 
-                                    @if($canManage && in_array($bimtek->status, ['disetujui_final', 'persiapan']))
+                                    @if($canManage && in_array($bimtek->status, ['disetujui_final', 'persiapan', 'registrasi', 'persiapan_selesai']))
                                         <button type="button" x-data @click="$dispatch('open-modal', 'upload-undangan-modal')" class="w-full mt-3 text-center text-xs py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition font-bold">
                                             {{ $bimtek->file_surat_undangan_path ? 'Ganti Berkas Surat Undangan' : 'Unggah Surat Undangan' }}
                                         </button>
@@ -137,16 +141,41 @@
 
                             {{-- 💡 DINAMIS: Menampilkan daftar syarat berkas yang aktif di halaman detail Bimtek --}}
                             @if($bimtek->butuh_verifikasi_dokumen && $bimtek->syaratDokumens->isNotEmpty())
-                                <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl text-xs">
-                                    <h4 class="font-bold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                        Berkas Syarat Masuk Kelas:
+                                <div class="mt-4 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                                    {{-- Header Section --}}
+                                    <h4 class="text-sm font-bold text-gray-800 tracking-wide mb-4 flex items-center gap-2 uppercase">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Persyaratan Berkas Masuk Kelas
                                     </h4>
-                                    <ul class="space-y-1.5 font-semibold text-gray-600">
+                                    
+                                    {{-- List Section (Berbentuk Grid Card) --}}
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         @foreach($bimtek->syaratDokumens as $syarat)
-                                            <li class="flex items-center gap-2">
-                                                <span class="w-1.5 h-1.5 rounded-full {{ $syarat->is_wajib ? 'bg-red-500' : 'bg-gray-400' }}"></span>
-                                                {{ $syarat->nama_dokumen }}
-                                                <span class="text-[10px] text-gray-400 font-normal">({{ $syarat->is_wajib ? 'Wajib' : 'Opsional' }})</span>
+                                            <li class="flex items-center justify-between p-3 rounded-lg border {{ $syarat->is_wajib ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-gray-50' }}">
+                                                <div class="flex items-center gap-3">
+                                                    {{-- Ikon Dokumen --}}
+                                                    <svg class="w-5 h-5 {{ $syarat->is_wajib ? 'text-red-500' : 'text-gray-400' }} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                                    </svg>
+                                                    
+                                                    {{-- Nama Syarat --}}
+                                                    <span class="text-sm font-semibold text-gray-700">
+                                                        {{ $syarat->nama_dokumen }}
+                                                    </span>
+                                                </div>
+                                                
+                                                {{-- Badge Status --}}
+                                                @if($syarat->is_wajib)
+                                                    <span class="px-2.5 py-1 text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 rounded-full uppercase tracking-wider whitespace-nowrap">
+                                                        Wajib
+                                                    </span>
+                                                @else
+                                                    <span class="px-2.5 py-1 text-[10px] font-bold text-gray-600 bg-gray-200 border border-gray-300 rounded-full uppercase tracking-wider whitespace-nowrap">
+                                                        Opsional
+                                                    </span>
+                                                @endif
                                             </li>
                                         @endforeach
                                     </ul>
@@ -273,45 +302,92 @@
                     @endif
                     {{-- Manajemen Transisi State Aksi PIC/Panitia --}}
                     @if($canManage)
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-6">
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-6 mb-6">
                             <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">Panel Kontrol Operasional Kegiatan</h3>
+                            
+                            {{-- Tangkap Pesan Error/Success dari Controller --}}
+                            @if(session('error'))
+                                <div class="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded">
+                                    <strong><i class="fas fa-exclamation-circle mr-1"></i> Transisi Ditolak:</strong> {!! session('error') !!}
+                                </div>
+                            @endif
+
+                            {{-- 💡 TAMBAHAN: Tangkap Array Error Validasi dari Model Bimtek --}}
+                            @if(session('error_validasi'))
+                                <div class="mb-4 rounded-lg bg-red-50 p-4 border border-red-200 text-red-700">
+                                    <span class="font-bold"><i class="fas fa-clipboard-list mr-1"></i> Peralihan status ditolak karena beberapa syarat berikut belum terpenuhi:</span>
+                                    <ul class="mt-2 list-disc list-inside text-sm space-y-1">
+                                        @foreach(session('error_validasi') as $errorMessage)
+                                            <li>{{ $errorMessage }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @if(session('success'))
+                                <div class="mb-4 p-3 bg-green-50 border-l-4 border-green-500 text-green-700 text-sm rounded">
+                                    <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
+                                </div>
+                            @endif
+
                             <div class="flex flex-wrap gap-3">
+                                
+                                {{-- TAHAP 1: PERSIAPAN -> REGISTRASI --}}
                                 @if($bimtek->status === 'persiapan')
                                     <form action="{{ route('bimtek.update-status', $bimtek->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
+                                        <input type="hidden" name="status" value="registrasi">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Apakah Anda yakin ingin membuka fase pendaftaran peserta?')">
+                                            Buka Registrasi Peserta
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- TAHAP 2: REGISTRASI -> PERSIAPAN SELESAI --}}
+                                @if($bimtek->status === 'registrasi')
+                                    <form action="{{ route('bimtek.update-status', $bimtek->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="status" value="persiapan_selesai">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Kunci pendaftaran dan selesaikan tahapan persiapan?')">
+                                            Selesaikan Persiapan
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- TAHAP 3: PERSIAPAN SELESAI -> BERLANGSUNG --}}
+                                @if($bimtek->status === 'persiapan_selesai')
+                                    <form action="{{ route('bimtek.update-status', $bimtek->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('PATCH')
                                         <input type="hidden" name="status" value="berlangsung">
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Apakah Anda yakin ingin mengubah status kelas menjadi BERLANGSUNG?')">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Mulai pelaksanaan kegiatan Bimtek sekarang?')">
                                             Mulai Kick-Off Kegiatan
                                         </button>
                                     </form>
-                                    @if($isPic)
-                                        <form action="{{ route('bimtek.update-status', $bimtek->id) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="status" value="dibatalkan">
-                                            <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Apakah Anda yakin ingin MEMBATALKAN pelaksanaan bimtek ini?')">
-                                                Batalkan Pelaksanaan
-                                            </button>
-                                        </form>
-                                    @endif
                                 @endif
 
+                                {{-- TAHAP 4: BERLANGSUNG -> SELESAI --}}
                                 @if($bimtek->status === 'berlangsung')
                                     <form action="{{ route('bimtek.update-status', $bimtek->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
-                                        <input type="hidden" name="status" value="persiapan">
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs rounded-lg transition">
-                                            Kembalikan ke Fase Persiapan
+                                        <input type="hidden" name="status" value="selesai">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Selesaikan kelas? Seluruh rekap matriks nilai akan dikunci untuk penerbitan sertifikat.')">
+                                            Tutup & Selesaikan Kelas
                                         </button>
                                     </form>
+                                @endif
+
+                                {{-- TOMBOL PEMBATALAN (Hanya untuk PIC Utama, tidak bisa jika sudah selesai/batal) --}}
+                                @if($isPic && !in_array($bimtek->status, ['selesai', 'dibatalkan']))
                                     <form action="{{ route('bimtek.update-status', $bimtek->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
-                                        <input type="hidden" name="status" value="selesai">
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Selesaikan kelas? Seluruh rekap matriks nilai akan dikunci untuk penerbitan sertifikat.')">
-                                            Tutup & Selesaikan Kelas
+                                        <input type="hidden" name="status" value="dibatalkan">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition" onclick="return confirm('Apakah Anda yakin ingin MEMBATALKAN pelaksanaan bimtek ini?')">
+                                            Batalkan Pelaksanaan
                                         </button>
                                     </form>
                                 @endif

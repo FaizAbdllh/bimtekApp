@@ -146,6 +146,27 @@
                             <p class="text-xs text-gray-500 mb-4">{{ $syarat->deskripsi_syarat }}</p>
                         @endif
 
+                        <h3 class="text-base font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center">
+                            {{-- ... (ikon dan nama dokumen) ... --}}
+                            {{ $syarat->nama_dokumen }} 
+                            @if($syarat->is_wajib) <span class="text-red-500 ml-1">*</span> @endif
+                        </h3>
+                        
+                        {{-- Deskripsi Khusus (Hanya tampil jika diisi admin) --}}
+                        @if($syarat->deskripsi_syarat)
+                            <div class="mb-3 p-3 bg-gray-50 border-l-4 border-gray-400 rounded-r-lg">
+                                <p class="text-xs text-gray-700 font-medium">
+                                    <span class="font-bold uppercase tracking-wider text-[10px]">Catatan Panitia:</span><br>
+                                    {{ $syarat->deskripsi_syarat }}
+                                </p>
+                            </div>
+                        @endif
+
+                        {{-- 💡 TAMBAHAN: Aturan Upload Umum (Selalu tampil untuk semua dokumen) --}}
+                        <div class="mb-4 text-[11px] text-blue-700 bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                            <strong>Aturan unggah:</strong> Pastikan dokumen terlihat jelas. Format wajib PDF/JPG/PNG dengan ukuran maksimal 5MB.
+                        </div>
+
                         {{-- Jika dokumen sudah pernah diunggah --}}
                         @if($dokumen)
                             <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl mb-4">

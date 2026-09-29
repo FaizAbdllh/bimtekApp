@@ -6,12 +6,12 @@ use App\Mail\DokumenVerifiedRejectedMail;
 use App\Models\Bimtek;
 use App\Models\DokumenPersyaratanPeserta;
 use App\Models\Role;
+use App\Models\SyaratDokumen;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -26,6 +26,10 @@ class VerifikasiDokumenControllerTest extends TestCase
     protected User $peserta;
 
     protected Bimtek $bimtek;
+
+    protected SyaratDokumen $suratTugas;
+
+    protected SyaratDokumen $sppd;
 
     protected Role $roleAdmin;
 
@@ -48,17 +52,22 @@ class VerifikasiDokumenControllerTest extends TestCase
         $this->bimtek = Bimtek::factory()->create([
             'pic_user_id' => $this->pic->id,
             'butuh_verifikasi_dokumen' => true,
-            'jenis_dokumen_wajib' => ['surat_tugas', 'sppd'],
+        ]);
+
+        $this->suratTugas = SyaratDokumen::create([
+            'bimtek_id' => $this->bimtek->id,
+            'nama_dokumen' => 'Surat Tugas',
+        ]);
+        $this->sppd = SyaratDokumen::create([
+            'bimtek_id' => $this->bimtek->id,
+            'nama_dokumen' => 'SPPD',
         ]);
 
         // Assign panitia and peserta
-        $this->bimtek->users()->attach($this->panitia->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'panitia',
+        $this->bimtek->panitia()->attach($this->panitia->id, [
+            'fungsi_panitia' => 'Koordinator',
         ]);
-        $this->bimtek->users()->attach($this->peserta->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'peserta',
+        $this->bimtek->peserta()->attach($this->peserta->id, [
             'status_verifikasi' => 'invited',
             'notified_at' => now(),
         ]);
@@ -95,7 +104,7 @@ class VerifikasiDokumenControllerTest extends TestCase
 
         $response = $this->actingAs($this->peserta)
             ->post(route('bimtek.verifikasi-dokumen.upload', $this->bimtek), [
-                'jenis_dokumen' => 'surat_tugas',
+                'syarat_dokumen_id' => $this->suratTugas->id,
                 'file' => $file,
             ]);
 
@@ -106,7 +115,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $this->assertDatabaseHas('dokumen_persyaratan_peserta', [
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'status' => 'pending',
         ]);
 
@@ -115,7 +124,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         Storage::disk('public')->assertExists($dokumen->file_path);
 
         // Check peserta status updated
-        $this->assertDatabaseHas('bimtek_user', [
+        $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
             'status_verifikasi' => 'pending',
@@ -129,7 +138,7 @@ class VerifikasiDokumenControllerTest extends TestCase
 
         $response = $this->actingAs($this->peserta)
             ->post(route('bimtek.verifikasi-dokumen.upload', $this->bimtek), [
-                'jenis_dokumen' => 'surat_tugas',
+                'syarat_dokumen_id' => $this->suratTugas->id,
                 'file' => $file,
             ]);
 
@@ -140,11 +149,11 @@ class VerifikasiDokumenControllerTest extends TestCase
     #[Test]
     public function upload_validates_file_size()
     {
-        $file = UploadedFile::fake()->create('large.pdf', 3000, 'application/pdf'); // 3MB
+        $file = UploadedFile::fake()->create('large.pdf', 6000, 'application/pdf'); // 6MB
 
         $response = $this->actingAs($this->peserta)
             ->post(route('bimtek.verifikasi-dokumen.upload', $this->bimtek), [
-                'jenis_dokumen' => 'surat_tugas',
+                'syarat_dokumen_id' => $this->suratTugas->id,
                 'file' => $file,
             ]);
 
@@ -189,7 +198,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/surat_tugas.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -197,7 +206,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->pic)
-            ->post(route('bimtek.verifikasi-dokumen.approve', $dokumen), [
+            ->post(route('bimtek.verifikasi-dokumen.approve', [$this->bimtek, $this->peserta->id, $this->suratTugas->id]), [
                 'catatan_verifikasi' => 'Dokumen sudah sesuai',
             ]);
 
@@ -217,7 +226,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/surat_tugas.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -225,7 +234,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->panitia)
-            ->post(route('bimtek.verifikasi-dokumen.approve', $dokumen));
+            ->post(route('bimtek.verifikasi-dokumen.approve', [$this->bimtek, $this->peserta->id, $this->suratTugas->id]));
 
         $response->assertRedirect();
         $dokumen->refresh();
@@ -241,7 +250,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/surat_tugas.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'approved',
@@ -251,7 +260,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'sppd',
+            'syarat_dokumen_id' => $this->sppd->id,
             'file_path' => 'test/sppd.pdf',
             'file_name' => 'sppd.pdf',
             'status' => 'pending',
@@ -259,10 +268,10 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $this->actingAs($this->pic)
-            ->post(route('bimtek.verifikasi-dokumen.approve', $dokumen));
+            ->post(route('bimtek.verifikasi-dokumen.approve', [$this->bimtek, $this->peserta->id, $this->sppd->id]));
 
         // Check peserta status
-        $this->assertDatabaseHas('bimtek_user', [
+        $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
             'status_verifikasi' => 'verified',
@@ -282,7 +291,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/surat_tugas.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -290,7 +299,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->pic)
-            ->post(route('bimtek.verifikasi-dokumen.reject', $dokumen), [
+            ->post(route('bimtek.verifikasi-dokumen.reject', [$this->bimtek, $this->peserta->id, $this->suratTugas->id]), [
                 'catatan_verifikasi' => 'Format tidak sesuai',
             ]);
 
@@ -302,7 +311,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $this->assertEquals('Format tidak sesuai', $dokumen->catatan_verifikasi);
 
         // Check peserta status
-        $this->assertDatabaseHas('bimtek_user', [
+        $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
             'status_verifikasi' => 'rejected',
@@ -320,7 +329,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/surat_tugas.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -328,7 +337,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->pic)
-            ->post(route('bimtek.verifikasi-dokumen.reject', $dokumen), [
+            ->post(route('bimtek.verifikasi-dokumen.reject', [$this->bimtek, $this->peserta->id, $this->suratTugas->id]), [
                 'catatan_verifikasi' => '', // Empty catatan
             ]);
 
@@ -346,7 +355,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/doc.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -354,7 +363,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->peserta)
-            ->get(route('bimtek.verifikasi-dokumen.download', $dokumen));
+            ->get(route('bimtek.verifikasi-dokumen.download', [$this->bimtek, $this->peserta->id, $this->suratTugas->id]));
 
         $response->assertOk();
         $response->assertDownload('surat_tugas.pdf');
@@ -364,11 +373,14 @@ class VerifikasiDokumenControllerTest extends TestCase
     public function peserta_cannot_download_others_document()
     {
         $otherPeserta = User::factory()->create(['role_id' => $this->rolePeserta->id]);
+        $this->bimtek->peserta()->attach($otherPeserta->id, [
+            'status_verifikasi' => 'pending',
+        ]);
 
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $otherPeserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/doc.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -376,7 +388,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->peserta)
-            ->get(route('bimtek.verifikasi-dokumen.download', $dokumen));
+            ->get(route('bimtek.verifikasi-dokumen.download', [$this->bimtek, $otherPeserta->id, $this->suratTugas->id]));
 
         $response->assertForbidden();
     }
@@ -389,7 +401,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $dokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/doc.pdf',
             'file_name' => 'surat_tugas.pdf',
             'status' => 'pending',
@@ -397,7 +409,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->pic)
-            ->get(route('bimtek.verifikasi-dokumen.download', $dokumen));
+            ->get(route('bimtek.verifikasi-dokumen.download', [$this->bimtek, $this->peserta->id, $this->suratTugas->id]));
 
         $response->assertOk();
     }
@@ -409,7 +421,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         $oldDokumen = DokumenPersyaratanPeserta::create([
             'bimtek_id' => $this->bimtek->id,
             'user_id' => $this->peserta->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'syarat_dokumen_id' => $this->suratTugas->id,
             'file_path' => 'test/old.pdf',
             'file_name' => 'old.pdf',
             'status' => 'rejected',
@@ -423,7 +435,7 @@ class VerifikasiDokumenControllerTest extends TestCase
 
         $response = $this->actingAs($this->peserta)
             ->post(route('bimtek.verifikasi-dokumen.upload', $this->bimtek), [
-                'jenis_dokumen' => 'surat_tugas',
+                'syarat_dokumen_id' => $this->suratTugas->id,
                 'file' => $newFile,
             ]);
 
@@ -433,7 +445,7 @@ class VerifikasiDokumenControllerTest extends TestCase
         Storage::disk('public')->assertMissing($oldDokumen->file_path);
 
         // New document should exist
-        $newDokumen = DokumenPersyaratanPeserta::where('jenis_dokumen', 'surat_tugas')
+        $newDokumen = DokumenPersyaratanPeserta::where('syarat_dokumen_id', $this->suratTugas->id)
             ->where('user_id', $this->peserta->id)
             ->latest()
             ->first();

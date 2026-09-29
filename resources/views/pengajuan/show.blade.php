@@ -24,33 +24,31 @@
                 </ol>
             </nav>
 
-            {{-- Status Banner --}}
+            {{-- Status Banner (Stepper Visual Alur Birokrasi) --}}
             @php
-                // REFAKTORISASI: Menyesuaian peta status alur kerja (BPMN State Machine)
-                $statusColors = [
-                    'draft_pic' => 'bg-gray-100 border-gray-400 text-gray-800',
-                    'diajukan' => 'bg-yellow-100 border-yellow-400 text-yellow-800',
-                    'disetujui_kepala' => 'bg-blue-100 border-blue-400 text-blue-800',
-                    'disetujui_ppk' => 'bg-indigo-100 border-indigo-400 text-indigo-800',
-                    'disetujui_final' => 'bg-green-100 border-green-400 text-green-800',
-                    'persiapan' => 'bg-emerald-100 border-emerald-400 text-emerald-800',
-                    'berlangsung' => 'bg-teal-100 border-teal-400 text-teal-800',
-                    'selesai' => 'bg-green-100 border-green-400 text-green-800',
-                    'ditolak' => 'bg-red-100 border-red-400 text-red-800',
-                    'perlu_revisi' => 'bg-orange-100 border-orange-400 text-orange-800',
+                // 1. Definisikan urutan alur persetujuan logis
+                $birokrasiSteps = [
+                    'diajukan' => 'Diajukan',
+                    'disetujui_kepala' => 'Persetujuan Kepala',
+                    'disetujui_ppk' => 'Persetujuan PPK',
+                    'disetujui_final' => 'Disetujui Final'
                 ];
-                $statusLabels = [
-                    'draft_pic' => 'Draft - Belum Diajukan',
-                    'diajukan' => 'Menunggu Persetujuan Kepala Balai',
-                    'disetujui_kepala' => 'Disetujui Kepala Balai - Menunggu Review PPK',
-                    'disetujui_ppk' => 'Disetujui PPK',
-                    'disetujui_final' => 'Disetujui Final - Kelas Bimtek Terbentuk',
-                    'persiapan' => 'Tahap Persiapan Pelaksanaan',
-                    'berlangsung' => 'Kegiatan Sedang Berlangsung',
-                    'selesai' => 'Kegiatan Selesai',
-                    'ditolak' => 'Usulan Ditolak',
-                    'perlu_revisi' => 'Perlu Revisi Dokumen',
-                ];
+
+                $currentStatus = $pengajuan->status;
+                
+                // 2. Tentukan level aktif (0 sampai 3)
+                $activeIndex = -1;
+                if (in_array($currentStatus, ['draft_pic'])) $activeIndex = -1;
+                elseif (in_array($currentStatus, ['diajukan'])) $activeIndex = 0;
+                elseif (in_array($currentStatus, ['disetujui_kepala'])) $activeIndex = 1;
+                elseif (in_array($currentStatus, ['disetujui_ppk'])) $activeIndex = 2;
+                elseif (in_array($currentStatus, ['disetujui_final', 'persiapan', 'registrasi', 'persiapan_selesai', 'berlangsung', 'selesai'])) $activeIndex = 3;
+
+                // 3. Deteksi jika ada penolakan atau revisi
+                $isDitolak = $currentStatus === 'ditolak';
+                $isRevisi = $currentStatus === 'perlu_revisi';
+
+                // 4. Setup label verifikasi (INI YANG HILANG SEBELUMNYA)
                 $verificationLabel = $pengajuan->butuh_verifikasi_dokumen
                     ? 'Verifikasi Dokumen Aktif'
                     : 'Verifikasi Dokumen Nonaktif';
@@ -59,14 +57,81 @@
                     : 'bg-gray-100 border-gray-400 text-gray-700';
             @endphp
             
-            {{-- REFAKTORISASI: Mengubah properti status_pengajuan menjadi status --}}
-            <div class="mb-6 p-4 rounded-xl border-l-4 bg-white shadow-sm {{ $statusColors[$pengajuan->status] ?? 'bg-gray-100 border-gray-400 text-gray-800' }}">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="font-semibold">Alur Birokrasi: {{ $statusLabels[$pengajuan->status] ?? $pengajuan->status }}</span>
+            <div class="mb-8 w-full bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h3 class="text-sm font-bold text-gray-700 mb-6 uppercase tracking-wider">Status Alur Birokrasi</h3>
+                
+                {{-- Container Stepper --}}
+                <div class="flex w-full mt-2">
+                    @foreach($birokrasiSteps as $key => $label)
+                        @php
+                            $stepIndex = $loop->index;
+                            $isLast = $loop->last;
+                            
+                            // Pewarnaan solid agar garis di belakang tidak tembus
+                            if ($isDitolak) {
+                                $colorClass = 'bg-red-500 text-white border-2 border-red-500'; 
+                            } elseif ($isRevisi) {
+                                $colorClass = 'bg-yellow-500 text-white border-2 border-yellow-500'; 
+                            } elseif ($stepIndex < $activeIndex) {
+                                $colorClass = 'bg-blue-600 text-white border-2 border-blue-600'; 
+                            } elseif ($stepIndex === $activeIndex) {
+                                $colorClass = 'bg-white text-blue-600 border-4 border-blue-600 shadow-sm'; 
+                            } else {
+                                $colorClass = 'bg-white text-gray-400 border-2 border-gray-300'; 
+                            }
+                        @endphp
+
+                        {{-- Pembungkus flex-1 menjamin lebar setiap langkah seimbang dan sejajar --}}
+                        <div class="relative flex-1 flex flex-col items-center">
+                            
+                            {{-- Garis Penghubung (Digambar dari titik tengah item saat ini menembus ke item berikutnya) --}}
+                            @if(!$isLast)
+                                {{-- Garis Background Abu-abu --}}
+                                <div class="absolute left-1/2 top-5 w-full h-1 bg-gray-200 transform -translate-y-1/2 z-0"></div>
+                                
+                                {{-- Garis Progres Aktif (Biru) --}}
+                                @if($activeIndex > $stepIndex && !$isDitolak && !$isRevisi)
+                                    <div class="absolute left-1/2 top-5 w-full h-1 bg-blue-600 transform -translate-y-1/2 z-0 transition-all duration-500"></div>
+                                @endif
+                            @endif
+
+                            {{-- Lingkaran Angka/Ikon --}}
+                            <div class="relative z-10 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm {{ $colorClass }}">
+                                @if($isDitolak && $stepIndex === 0)
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                @elseif($isRevisi && $stepIndex === $activeIndex)
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                @elseif($stepIndex < $activeIndex || $activeIndex === 3)
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                @else
+                                    {{ $stepIndex + 1 }}
+                                @endif
+                            </div>
+                            
+                            {{-- Teks Label dijamin rata tengah tepat di bawah lingkaran --}}
+                            <span class="mt-3 text-xs md:text-sm font-semibold {{ $stepIndex <= $activeIndex && !$isDitolak && !$isRevisi ? 'text-gray-800' : 'text-gray-400' }} text-center px-1">
+                                {{ $label }}
+                            </span>
+                        </div>
+                    @endforeach
                 </div>
+
+                {{-- Pesan Khusus Jika Ditolak/Revisi --}}
+                @if($isDitolak)
+                    <div class="mt-8 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-start">
+                        <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                        <div>
+                            <strong>Pengajuan Ditolak.</strong> Silakan lihat catatan pimpinan pada bagian log untuk detail penolakan.
+                        </div>
+                    </div>
+                @elseif($isRevisi)
+                    <div class="mt-8 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-lg flex items-start">
+                        <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <div>
+                            <strong>Perlu Revisi.</strong> Pimpinan meminta perbaikan pada dokumen atau data pengajuan ini sebelum dapat diproses lebih lanjut.
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">

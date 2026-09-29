@@ -43,9 +43,8 @@ class SertifikatController extends Controller
         // Check verification status for peserta
         $isVerified = false;
         if ($isPeserta && $bimtek->butuh_verifikasi_dokumen) {
-            $pivot = $bimtek->users()
+            $pivot = $bimtek->peserta()
                 ->where('users.id', $user->id)
-                ->where('bimtek_user.peran_kontekstual', 'peserta')
                 ->first();
             $statusVerifikasi = $pivot?->pivot->status_verifikasi ?? 'invited';
             $isVerified = $statusVerifikasi === 'verified';
@@ -529,8 +528,11 @@ class SertifikatController extends Controller
         // 2. Cek apakah user terdaftar sebagai panitia di bimtek ini
         $isPanitia = $bimtek->panitia()->where('users.id', $user->id)->exists();
 
-        // 3. Gabungkan akses (Bisa diakses jika dia PIC ATAU Panitia)
-        $hasAccess = $isPic || $isPanitia;
+        // Peserta boleh melihat sertifikatnya sendiri, tetapi tetap tidak boleh mengelola.
+        $isPeserta = $bimtek->peserta()->where('users.id', $user->id)->exists();
+
+        // 3. Gabungkan akses baca (aksi pengelolaan tetap memakai authorizeManage()).
+        $hasAccess = $isPic || $isPanitia || $isPeserta;
 
         if (! $hasAccess) {
             abort(403, 'Anda tidak memiliki akses ke bimtek ini.');

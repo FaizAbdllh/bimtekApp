@@ -7,7 +7,6 @@ use App\Models\Role;
 use App\Models\SesiAbsensi;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -53,32 +52,24 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $this->bimtekWithVerification = Bimtek::factory()->create([
             'pic_user_id' => $this->pic->id,
             'butuh_verifikasi_dokumen' => true,
-            'jenis_dokumen_wajib' => ['surat_tugas', 'sppd'],
+            'has_tugas' => true,
+            'has_sertifikat' => true,
         ]);
 
         // Assign users with different statuses
-        $this->bimtekWithVerification->users()->attach($this->panitia->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'panitia',
+        $this->bimtekWithVerification->panitia()->attach($this->panitia->id, [
+            'fungsi_panitia' => 'Koordinator',
         ]);
-        $this->bimtekWithVerification->users()->attach($this->pesertaVerified->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'peserta',
+        $this->bimtekWithVerification->peserta()->attach($this->pesertaVerified->id, [
             'status_verifikasi' => 'verified',
         ]);
-        $this->bimtekWithVerification->users()->attach($this->pesertaInvited->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'peserta',
+        $this->bimtekWithVerification->peserta()->attach($this->pesertaInvited->id, [
             'status_verifikasi' => 'invited',
         ]);
-        $this->bimtekWithVerification->users()->attach($this->pesertaPending->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'peserta',
+        $this->bimtekWithVerification->peserta()->attach($this->pesertaPending->id, [
             'status_verifikasi' => 'pending',
         ]);
-        $this->bimtekWithVerification->users()->attach($this->pesertaRejected->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'peserta',
+        $this->bimtekWithVerification->peserta()->attach($this->pesertaRejected->id, [
             'status_verifikasi' => 'rejected',
         ]);
 
@@ -88,10 +79,7 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
             'butuh_verifikasi_dokumen' => false,
         ]);
 
-        $this->bimtekWithoutVerification->users()->attach($this->pesertaInvited->id, [
-            'id' => (string) Str::uuid(),
-            'peran_kontekstual' => 'peserta',
-        ]);
+        $this->bimtekWithoutVerification->peserta()->attach($this->pesertaInvited->id);
     }
 
     #[Test]
@@ -127,8 +115,7 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $response = $this->actingAs($this->pesertaInvited)
             ->get(route('bimtek.absensi.index', $this->bimtekWithVerification));
 
-        $response->assertOk();
-        $response->assertSee('Anda harus menyelesaikan verifikasi dokumen terlebih dahulu untuk mengakses absensi.');
+        $response->assertRedirect(route('dashboard'));
     }
 
     #[Test]
@@ -137,8 +124,7 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $response = $this->actingAs($this->pesertaPending)
             ->get(route('bimtek.tugas.index', $this->bimtekWithVerification));
 
-        $response->assertOk();
-        $response->assertSee('Anda harus menyelesaikan verifikasi dokumen terlebih dahulu untuk mengakses tugas.');
+        $response->assertRedirect(route('dashboard'));
     }
 
     #[Test]
@@ -147,8 +133,7 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $response = $this->actingAs($this->pesertaRejected)
             ->get(route('bimtek.sertifikat.index', $this->bimtekWithVerification));
 
-        $response->assertOk();
-        $response->assertSee('Anda harus menyelesaikan verifikasi dokumen terlebih dahulu untuk mengakses sertifikat.');
+        $response->assertRedirect(route('bimtek.verifikasi-dokumen.upload-form', $this->bimtekWithVerification));
     }
 
     #[Test]
@@ -189,7 +174,7 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $response = $this->actingAs($this->pesertaInvited)
             ->get(route('bimtek.tugas.show', [$this->bimtekWithVerification, $tugas]));
 
-        $response->assertRedirect(route('bimtek.verifikasi-dokumen.upload-form', $this->bimtekWithVerification));
+        $response->assertRedirect(route('dashboard'));
     }
 
     #[Test]
@@ -205,7 +190,7 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
                 'qr_code' => 'dummy-code',
             ]);
 
-        $response->assertRedirect(route('bimtek.verifikasi-dokumen.upload-form', $this->bimtekWithVerification));
+        $response->assertRedirect(route('dashboard'));
     }
 
     #[Test]

@@ -6,12 +6,19 @@ use App\Models\Bimtek;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         $user = Auth::user();
+        
+        // 1. Proteksi Auth: Mencegah crash jika session expired
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $data = $this->getDashboardData($user);
         return view('dashboard', $data);
     }
@@ -83,7 +90,7 @@ class DashboardController extends Controller
 
     protected function getRtData(): array
     {
-        $stats = Bimtek::whereIn('status', ['disetujui_final', 'persiapan', 'berlangsung'])
+        $stats = Bimtek::whereIn('status', ['persiapan', 'registrasi', 'persiapan_selesai', 'berlangsung'])
             ->selectRaw("
                 SUM(CASE WHEN status_rt = 'belum_dipenuhi' THEN 1 ELSE 0 END) as belum_dipenuhi,
                 SUM(CASE WHEN status_rt = 'telah_dipenuhi' THEN 1 ELSE 0 END) as telah_dipenuhi
@@ -93,7 +100,8 @@ class DashboardController extends Controller
         return [
             'kebutuhanBelumDipenuhi' => $stats->belum_dipenuhi ?? 0,
             'kebutuhanTerpenuhi' => $stats->telah_dipenuhi ?? 0,
-            'recentPengajuan' => Bimtek::whereIn('status', ['disetujui_final', 'persiapan'])
+            // 2. Data RT Terurut: Ditambahkan latest() agar menampilkan prioritas logistik terbaru
+            'recentPengajuan' => Bimtek::whereIn('status', ['persiapan', 'registrasi', 'persiapan_selesai'])
                 ->latest()
                 ->take(5)
                 ->get(),
@@ -102,34 +110,31 @@ class DashboardController extends Controller
 
     protected function getPegawaiInternalData(User $user): array
     {
+        // 3. Perbaikan Logika Pengajuan Disetujui:
+        // Menangkap seluruh fase setelah pengajuan disetujui (disetujui_final hingga selesai)
         $pengajuanStats = Bimtek::where('pic_user_id', $user->id)
             ->selectRaw("
                 COUNT(*) as total,
-                SUM(CASE WHEN status = 'disetujui_final' THEN 1 ELSE 0 END) as disetujui
+                SUM(CASE WHEN status IN ('disetujui_final', 'persiapan', 'registrasi', 'persiapan_selesai', 'berlangsung', 'selesai') THEN 1 ELSE 0 END) as disetujui
             ")
             ->first();
 
-        $bimtekPanitiaCount = $user->bimteksSebagaiPanitia()->count();
+        // 4. Cegah Penghitungan Ganda PIC & Panitia:
+        // Menggunakan distinct relasi (jika PIC ATAU menjadi bagian dari Panitia, hitung 1 kali saja)
+        $bimtekSayaCount = Bimtek::where('pic_user_id', $user->id)
+            ->orWhereHas('panitia', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
+            })->count();
+
         $bimtekPicCount = $user->bimteksSebagaiPic()->count();
 
         return [
             'pengajuanSaya' => $pengajuanStats->total ?? 0,
-            'pengajuanDisetujui' => $pengajuanStats->disetujui ?? 0,
-            'bimtekSaya' => $bimtekPanitiaCount + $bimtekPicCount,
+            'pengajuanDisetujui' => (int) ($pengajuanStats->disetujui ?? 0),
+            'bimtekSaya' => $bimtekSayaCount,
             'bimtekSebagaiPic' => $bimtekPicCount,
             'recentPengajuan' => Bimtek::where('pic_user_id', $user->id)->latest()->take(5)->get(),
-            'bimtekAktif' => $user->bimteksSebagaiPanitia()->where('status', 'berlangsung')->take(5)->get(),
-        ];
-    }
-
-    protected function getPersuratanData(): array
-    {
-        return [
-            // Persuratan mengurus berkas surat undangan yang belum diunggah pasca finalisasi
-            'bimtekMenungguFinal' => Bimtek::where('status', 'disetujui_final')->whereNull('file_surat_undangan_path')->count(),
-            'bimtekSuratSelesai' => Bimtek::whereNotNull('file_surat_undangan_path')->count(),
-            'recentBimtekMenunggu' => Bimtek::where('status', 'disetujui_final')->whereNull('file_surat_undangan_path')->latest()->take(5)->get(),
-            'recentBimtekSelesai' => Bimtek::whereNotNull('file_surat_undangan_path')->latest()->take(5)->get(),
+            'bimtekAktif' => $user->bimteksSebagaiPanitia()->where('status', 'berlangsung')->latest()->take(5)->get(),
         ];
     }
 
@@ -139,7 +144,13 @@ class DashboardController extends Controller
             'bimtekDiikuti' => $user->bimteksSebagaiPeserta()->count(),
             'bimtekSelesai' => $user->bimteksSebagaiPeserta()->where('status', 'selesai')->count(),
             'sertifikatDiperoleh' => $user->sertifikats()->count(),
-            'bimtekAktif' => $user->bimteksSebagaiPeserta()->whereIn('status', ['persiapan', 'berlangsung'])->take(5)->get(),
+            // 5. Perbaikan Status Peserta Eksternal:
+            // Peserta eksternal hanya terlibat saat fase registrasi, persiapan selesai, dan berlangsung
+            'bimtekAktif' => $user->bimteksSebagaiPeserta()
+                ->whereIn('status', ['registrasi', 'persiapan_selesai', 'berlangsung'])
+                ->latest()
+                ->take(5)
+                ->get(),
             'tugasMenunggu' => 0,
         ];
     }

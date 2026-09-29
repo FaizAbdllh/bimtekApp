@@ -116,7 +116,8 @@ class User extends Authenticatable
      */
     public function hasRole(string|array $roleNames): bool
     {
-        if (!$this->role) {
+        // 💡 TAMBAHAN KEAMANAN: Tolak akses jika user nonaktif atau tidak punya role
+        if (!$this->is_active || !$this->role) {
             return false;
         }
 
@@ -128,7 +129,6 @@ class User extends Authenticatable
     public function isKepala(): bool { return $this->hasRole('Kepala'); }
     public function isPpk(): bool { return $this->hasRole('PPK'); }
     public function isRt(): bool { return $this->hasRole('Koordinator RT'); }
-    public function isPersuratan(): bool { return $this->hasRole('Persuratan'); }
     public function isPegawaiInternal(): bool { return $this->hasRole('Pegawai Internal'); }
     public function isPesertaEksternal(): bool { return $this->hasRole('Peserta Eksternal'); }
 
@@ -137,16 +137,22 @@ class User extends Authenticatable
      */
     public function isPicDiBimtek(Bimtek $bimtek): bool
     {
-        return $this->bimteksSebagaiPic()->where('id', $bimtek->id)->exists();
+        return $this->is_active && $this->bimteksSebagaiPic()->whereKey($bimtek->getKey())->exists();
     }
 
     public function isPanitiaDiBimtek(Bimtek $bimtek): bool
     {
-        return $this->bimteksSebagaiPanitia()->where('bimtek_id', $bimtek->id)->exists();
+        return $this->is_active
+            && $this->bimteksSebagaiPanitia()
+                ->whereKey($bimtek->getKey())
+                ->exists();
     }
 
     public function isPesertaDiBimtek(Bimtek $bimtek): bool
     {
-        return $this->bimteksSebagaiPeserta()->where('bimtek_id', $bimtek->id)->exists();
+        return $this->is_active
+            && $this->bimteksSebagaiPeserta()
+                ->whereKey($bimtek->getKey())
+                ->exists();
     }
 }

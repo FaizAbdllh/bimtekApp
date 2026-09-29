@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Bimtek;
-use App\Models\Pengajuan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,8 +20,10 @@ class BimtekFactory extends Factory
     public function definition(): array
     {
         return [
-            'pengajuan_id' => Pengajuan::factory(),
             'pic_user_id' => null,
+            'judul_rencana' => fake()->sentence(4),
+            'tanggal_mulai_rencana' => fake()->dateTimeBetween('now', '+1 month'),
+            'tanggal_selesai_rencana' => fake()->dateTimeBetween('+1 month', '+2 months'),
             'judul_final' => fake()->sentence(4),
             'tanggal_mulai_aktual' => fake()->dateTimeBetween('now', '+1 month'),
             'tanggal_selesai_aktual' => fake()->dateTimeBetween('+1 month', '+2 months'),
@@ -30,13 +31,14 @@ class BimtekFactory extends Factory
             'anggaran_disetujui' => fake()->randomFloat(2, 5000000, 50000000),
             'deskripsi_jadwal' => fake()->paragraph(),
             'daftar_pemateri' => null,
-            'file_surat_final_path' => null,
-            'status_pelaksanaan' => 'persiapan',
+            'file_surat_undangan_path' => null,
+            'status' => 'persiapan',
             'syarat_kehadiran_persen' => 80,
             'syarat_tugas_persen' => 70,
             'syarat_tugas_wajib' => false,
             'butuh_verifikasi_dokumen' => false,
-            'jenis_dokumen_wajib' => null,
+            'has_tugas' => false,
+            'has_sertifikat' => false,
         ];
     }
 
@@ -68,7 +70,7 @@ class BimtekFactory extends Factory
     public function status(string $status): static
     {
         return $this->state(fn (array $attributes) => [
-            'status_pelaksanaan' => $status,
+            'status' => $status,
         ]);
     }
 }

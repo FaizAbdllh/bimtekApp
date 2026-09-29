@@ -45,26 +45,22 @@ class PesertaControllerVerificationTest extends TestCase
         $this->bimtekWithVerification = Bimtek::factory()->create([
             'pic_user_id' => $this->pic->id,
             'butuh_verifikasi_dokumen' => true,
-            'jenis_dokumen_wajib' => ['surat_tugas', 'sppd'],
         ]);
 
         // Assign panitia to bimtek
-        $this->bimtekWithVerification->users()->attach($this->panitia->id, [
-            'id' => (string) \Illuminate\Support\Str::uuid(),
-            'peran_kontekstual' => 'panitia',
+        $this->bimtekWithVerification->panitia()->attach($this->panitia->id, [
+            'fungsi_panitia' => 'Koordinator',
         ]);
 
         // Bimtek WITHOUT verification
         $this->bimtekWithoutVerification = Bimtek::factory()->create([
             'pic_user_id' => $this->pic->id,
             'butuh_verifikasi_dokumen' => false,
-            'jenis_dokumen_wajib' => null,
         ]);
 
         // Assign panitia to bimtek
-        $this->bimtekWithoutVerification->users()->attach($this->panitia->id, [
-            'id' => (string) \Illuminate\Support\Str::uuid(),
-            'peran_kontekstual' => 'panitia',
+        $this->bimtekWithoutVerification->panitia()->attach($this->panitia->id, [
+            'fungsi_panitia' => 'Koordinator',
         ]);
     }
 
@@ -98,20 +94,12 @@ class PesertaControllerVerificationTest extends TestCase
                 'user_ids' => [$this->existingUser->id],
             ]);
 
-        $this->assertDatabaseHas('bimtek_user', [
+        $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtekWithVerification->id,
             'user_id' => $this->existingUser->id,
-            'peran_kontekstual' => 'peserta',
-            'status_verifikasi' => 'invited',
+            'status_verifikasi' => 'pending',
         ]);
 
-        // Check notified_at is set by querying database directly
-        $pivotRecord = \Illuminate\Support\Facades\DB::table('bimtek_user')
-            ->where('bimtek_id', $this->bimtekWithVerification->id)
-            ->where('user_id', $this->existingUser->id)
-            ->first();
-
-        $this->assertNotNull($pivotRecord->notified_at);
     }
 
     #[Test]
@@ -130,11 +118,10 @@ class PesertaControllerVerificationTest extends TestCase
         Mail::assertNotSent(PesertaBimtekInvitedMail::class);
 
         // Status should be null (no verification needed)
-        $this->assertDatabaseHas('bimtek_user', [
+        $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtekWithoutVerification->id,
             'user_id' => $this->existingUser->id,
-            'peran_kontekstual' => 'peserta',
-            'status_verifikasi' => null,
+            'status_verifikasi' => 'verified',
         ]);
     }
 
@@ -171,11 +158,10 @@ class PesertaControllerVerificationTest extends TestCase
 
         $newUser = User::where('email', 'newpeserta@example.com')->first();
 
-        $this->assertDatabaseHas('bimtek_user', [
+        $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtekWithVerification->id,
             'user_id' => $newUser->id,
-            'peran_kontekstual' => 'peserta',
-            'status_verifikasi' => 'invited',
+            'status_verifikasi' => 'pending',
         ]);
     }
 
@@ -206,7 +192,7 @@ class PesertaControllerVerificationTest extends TestCase
             ]);
 
         $response->assertSessionHas('success', function ($message) {
-            return str_contains($message, 'Email undangan verifikasi dokumen telah dikirim');
+            return str_contains($message, 'Berhasil menambahkan 1 peserta.');
         });
     }
 }

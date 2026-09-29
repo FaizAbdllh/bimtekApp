@@ -59,6 +59,8 @@ class BimtekController extends Controller
         // Opsi disesuaikan dengan transisi status pelaksanaan pasca-approval
         $statusOptions = [
             'persiapan' => 'Persiapan',
+            'registrasi' => 'Registrasi',
+            'persiapan_selesai' => 'Persiapan Selesai',
             'berlangsung' => 'Berlangsung',
             'selesai' => 'Selesai',
             'dibatalkan' => 'Dibatalkan',
@@ -102,7 +104,7 @@ class BimtekController extends Controller
             // Ambil status berkas kelulusan langsung dari tabel bridge peserta
             $pivot = $bimtek->peserta()->where('user_id', $user->id)->first();
             $statusVerifikasi = $pivot?->pivot->status_verifikasi ?? 'invited';
-            $isVerified = $statusVerifikasi === 'verified' || $statusVerifikasi === 'diverifikasi';
+            $isVerified = $statusVerifikasi === 'verified';
 
             return view('bimtek.show-peserta', compact('bimtek', 'isVerified', 'statusVerifikasi'));
         }
@@ -164,6 +166,8 @@ class BimtekController extends Controller
 
         $statusOptions = [
             'persiapan' => 'Persiapan',
+            'registrasi' => 'Registrasi',
+            'persiapan_selesai' => 'Persiapan Selesai',
             'berlangsung' => 'Berlangsung',
             'selesai' => 'Selesai',
             'dibatalkan' => 'Dibatalkan',
@@ -191,7 +195,7 @@ class BimtekController extends Controller
             'tanggal_mulai_aktual' => 'nullable|date',
             'tanggal_selesai_aktual' => 'nullable|date|after_or_equal:tanggal_mulai_aktual',
             'deskripsi_jadwal' => 'nullable|string',
-            'status' => 'nullable|in:persiapan,berlangsung,selesai,dibatalkan', // Diubah dari status_pelaksanaan menjadi status
+            'status' => 'nullable|in:persiapan,registrasi,persiapan_selesai,berlangsung,selesai,dibatalkan',
             'anggaran_disetujui' => 'nullable|numeric|min:0',
             'syarat_kehadiran_persen' => 'nullable|integer|min:0|max:100',
             'syarat_tugas_persen' => 'nullable|integer|min:0|max:100',
@@ -344,41 +348,64 @@ class BimtekController extends Controller
      */
     public function updateStatus(Request $request, Bimtek $bimtek): RedirectResponse
     {
+        // 1. Otorisasi Keamanan (Tetap dipertahankan dari kode Anda sebelumnya)
         $this->authorizePicPanitia($bimtek);
 
+        $targetStatus = $request->input('status');
+        
         $validated = $request->validate([
-            'status' => 'required|in:persiapan,berlangsung,selesai,dibatalkan',
+            'status' => 'required|in:registrasi,persiapan_selesai,berlangsung,selesai,dibatalkan',
         ]);
 
+        $targetStatus = $validated['status'];
+        
         $oldStatus = $bimtek->status;
-        $newStatus = $validated['status'];
 
-        if ($newStatus === $oldStatus) {
+        if ($targetStatus === $oldStatus) {
             return back()->with('success', 'Status tidak berubah.');
         }
 
-        // Peta jalur pergerakan status pelaksanaan pasca approval selesai
-        $allowedTransitions = [
-            'disetujui_final' => ['persiapan', 'dibatalkan'],
-            'persiapan' => ['berlangsung', 'dibatalkan'],
-            'berlangsung' => ['persiapan', 'selesai'],
-            'selesai' => [],
-            'dibatalkan' => [],
-        ];
-
-        if (! in_array($newStatus, $allowedTransitions[$oldStatus] ?? [], true)) {
-            return back()->with('error', "Transisi status ilegal dari [{$oldStatus}] ke [{$newStatus}].");
-        }
-
-        if ($newStatus === 'dibatalkan' && $bimtek->pic_user_id !== Auth::id()) {
+        // 2. Proteksi Ekstra Pembatalan: Hanya PIC Utama (Tetap dipertahankan)
+        if ($targetStatus === 'dibatalkan' && $bimtek->pic_user_id !== Auth::id()) {
             return back()->with('error', 'Hanya PIC utama yang memiliki wewenang membatalkan kegiatan.');
         }
 
-        $bimtek->update(['status' => $newStatus]);
+        $check = ['allowed' => true, 'errors' => []];
 
-        LogSistem::info("Status Bimtek ID {$bimtek->id} diubah dari {$oldStatus} ke {$newStatus}", Auth::id());
+        // 3. Arahkan ke gerbang validasi Model (State Machine) yang baru kita buat
+        switch ($targetStatus) {
+            case 'registrasi':
+                $check = $bimtek->canOpenRegistration();
+                break;
+            case 'persiapan_selesai': 
+                $check = $bimtek->canCompletePreparation();
+                break;
+            case 'berlangsung':
+                $check = $bimtek->canStartEvent();
+                break;
+            case 'selesai':
+                $check = $bimtek->canFinishEvent();
+                break;
+            case 'dibatalkan':
+                $check = $bimtek->canCancel();
+                break;
+        }
 
-        return back()->with('success', "Status sukses diperbarui ke tahap {$newStatus}.");
+        // 4. Jika Model menolak perubahan status karena syarat tidak lengkap
+        if (!$check['allowed']) {
+            // Lewatkan array errors langsung agar bisa diloop menggunakan tag <li> di Blade
+            return back()->with('error_validasi', $check['errors']);
+        }
+
+        // 5. Lolos validasi, eksekusi perubahan status
+        $bimtek->update(['status' => $targetStatus]);
+
+        // 6. Pencatatan Log Sistem (Tetap dipertahankan)
+        if (class_exists(LogSistem::class)) {
+            LogSistem::info("Status Bimtek ID {$bimtek->id} diubah dari {$oldStatus} ke {$targetStatus} menggunakan State Machine", Auth::id());
+        }
+
+        return back()->with('success', "Status sukses diperbarui ke tahap " . strtoupper(str_replace('_', ' ', $targetStatus)) . ".");
     }
 
     /**
@@ -386,15 +413,28 @@ class BimtekController extends Controller
      */
     public function uploadDraft(Request $request, Bimtek $bimtek): RedirectResponse
     {
+        // 1. Otorisasi Keamanan
         $this->authorizePicPanitia($bimtek);
 
-        $request->validate(['surat_draft' => 'required|file|mimes:pdf|max:5120']);
+        // 2. Proteksi State Machine (Mencegah API Bypass)
+        if (!in_array($bimtek->status, ['persiapan', 'registrasi', 'persiapan_selesai'])) {
+            return back()->with('error', 'Gagal: Dokumen surat undangan hanya dapat diunggah atau diubah pada tahap Persiapan, Registrasi, atau Persiapan Selesai.');
+        }
 
+        // 3. Validasi File (Hanya PDF, maks 5MB)
+        $request->validate([
+            'surat_draft' => 'required|file|mimes:pdf|max:5120'
+        ]);
+
+        // 4. Hapus dokumen lama jika ada untuk menghemat storage
         if ($bimtek->file_surat_undangan_path) {
+            
             Storage::disk('public')->delete($bimtek->file_surat_undangan_path);
         }
 
+        // 5. Eksekusi Upload dan Pembaruan Database
         $path = $request->file('surat_draft')->store('surat-undangan', 'public');
+        
         $bimtek->update([
             'file_surat_undangan_path' => $path,
             'file_surat_undangan_uploaded_by' => Auth::id(),
@@ -404,11 +444,6 @@ class BimtekController extends Controller
         return back()->with('success', 'Surat undangan resmi berhasil diterbitkan ke sistem.');
     }
 
-    // Mapping rute upload lama agar menembak ke kolom tunggal baru yang sama tanpa merusak form view
-    public function uploadFinal(Request $request, Bimtek $bimtek): RedirectResponse 
-    {
-        return $this->uploadDraft($request, $bimtek);
-    }
 
     /**
      * Preview & Download Dokumen Surat Undangan Tunggal
@@ -418,12 +453,15 @@ class BimtekController extends Controller
         $this->authorizeAccess($bimtek);
 
         if (! $bimtek->file_surat_undangan_path || ! Storage::disk('public')->exists($bimtek->file_surat_undangan_path)) {
-            return back()->with('error', 'Berkas berkas fisik surat undangan belum diunggah.');
+            return back()->with('error', 'Berkas fisik surat undangan belum diunggah.');
         }
+
+        // PERBAIKAN: Fallback ke judul_rencana jika judul_final belum diisi oleh panitia
+        $namaJudul = $bimtek->judul_final ?? $bimtek->judul_rencana ?? 'Kegiatan Bimtek';
 
         return response()->file(Storage::disk('public')->path($bimtek->file_surat_undangan_path), [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="Surat Undangan - '.$bimtek->judul_final.'.pdf"',
+            'Content-Disposition' => 'inline; filename="Surat Undangan - ' . $namaJudul . '.pdf"',
         ]);
     }
 
@@ -432,15 +470,15 @@ class BimtekController extends Controller
         $this->authorizeAccess($bimtek);
 
         if (! $bimtek->file_surat_undangan_path || ! Storage::disk('public')->exists($bimtek->file_surat_undangan_path)) {
-            return back()->with('error', 'Berkas fisik tidak ditemukan.');
+            return back()->with('error', 'Berkas fisik surat undangan tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($bimtek->file_surat_undangan_path, "Surat Undangan - {$bimtek->judul_final}.pdf");
+        // PERBAIKAN: Fallback ke judul_rencana jika judul_final belum diisi oleh panitia
+        $namaJudul = $bimtek->judul_final ?? $bimtek->judul_rencana ?? 'Kegiatan Bimtek';
+
+        return Storage::disk('public')->download($bimtek->file_surat_undangan_path, "Surat Undangan - {$namaJudul}.pdf");
     }
 
-    // Pemetaan fungsi preview lama agar aman terbaca oleh view bawaan
-    public function previewFinal(Bimtek $bimtek) { return $this->previewDraft($bimtek); }
-    public function downloadFinal(Bimtek $bimtek) { return $this->downloadDraft($bimtek); }
 
     /**
      * Add Peserta (Menyuntikkan baris data langsung ke tabel bridge `bimtek_pesertas`)
@@ -460,22 +498,30 @@ class BimtekController extends Controller
             return $this->assignPanitia($request, $bimtek);
         }
 
+        // 1. PROTEKSI STATE MACHINE (Cegah Penambahan Peserta di Luar Jalur BPMN)
+        if (!in_array($bimtek->status, ['persiapan', 'registrasi'])) {
+            return back()->with('error', 'Gagal: Penambahan peserta manual oleh panitia hanya diizinkan pada fase Persiapan dan Registrasi.');
+        }
+
+        // 2. Cegah Duplikasi
         if ($bimtek->peserta()->where('user_id', $validated['user_id'])->exists()) {
             return back()->with('error', 'User sudah terdaftar sebagai peserta di kelas ini.');
         }
 
+        // 3. Set Status Verifikasi & Eksekusi Relasi
         $pivotData = [
-            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'diverifikasi',
+            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
         ];
 
         $bimtek->peserta()->attach($validated['user_id'], $pivotData);
-        $user = User::find($validated['user_id']);
+        $user = \App\Models\User::find($validated['user_id']); // Gunakan namespace eksplisit jika belum di-import
 
-        // Logika pengiriman email notifikasi otomatis
+        // 4. Logika Pengiriman Email Notifikasi Otomatis
         try {
+        
             Mail::to($user->email)->send(new \App\Mail\PesertaAddedToBimtekMail($bimtek, $user, route('login')));
         } catch (\Exception $e) {
-            // Mencegah crash jika mail server lokal belum di-setup di file .env
+            // Mencegah crash jika mail server lokal (Mailpit/SMTP) belum di-setup di file .env
         }
 
         return back()->with('success', "{$user->name} berhasil didaftarkan sebagai peserta kegiatan.");
@@ -493,7 +539,7 @@ class BimtekController extends Controller
     public function toggleTugas(Request $request, Bimtek $bimtek)
     {
         // Kunci Validasi: Hanya bisa diubah saat fase persiapan
-        if ($bimtek->status !== 'persiapan') {
+        if (!$bimtek->isEditable()) {
             return back()->with('error', 'Konfigurasi penugasan tidak dapat diubah karena kelas sudah melewati fase persiapan.');
         }
 
@@ -516,7 +562,7 @@ class BimtekController extends Controller
     protected function authorizeAccess(Bimtek $bimtek): void
     {
         $user = Auth::user();
-        if ($user->isAdminIt() || $user->isKepala() || $user->isPpk() || $user->isPersuratan()) {
+        if ($user->isAdminIt() || $user->isKepala() || $user->isPpk()) {
             return;
         }
 
@@ -553,7 +599,7 @@ class BimtekController extends Controller
 
     protected function ensurePersiapanForDataChanges(Bimtek $bimtek): ?RedirectResponse
     {
-        if ($bimtek->status !== 'persiapan' && $bimtek->status !== 'disetujui_final') {
+        if (!$bimtek->isEditable()) {
             return back()->with('error', 'Perubahan modifikasi logistik dan data internal hanya diizinkan saat status Persiapan.');
         }
         return null;

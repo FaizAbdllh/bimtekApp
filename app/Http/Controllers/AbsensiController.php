@@ -37,7 +37,7 @@ class AbsensiController extends Controller
         if ($isPeserta && $bimtek->butuh_verifikasi_dokumen) {
             $pivot = $bimtek->peserta()->where('user_id', $user->id)->first();
             $statusVerifikasi = $pivot?->pivot->status_verifikasi ?? 'invited';
-            $isVerified = in_array($statusVerifikasi, ['verified', 'diverifikasi']);
+            $isVerified = $statusVerifikasi === 'verified';
         } else {
             $isVerified = true; 
         }
@@ -277,7 +277,7 @@ class AbsensiController extends Controller
 
         $validated = $request->validate(['qr_code' => 'required|string']);
 
-        if ($bimtek->status !== 'berlangsung') {
+        if (!$bimtek->isRunning()) {
             return redirect()->back()->with('error', 'Absensi hanya dapat dilakukan saat bimtek sedang berlangsung.');
         }
 
@@ -326,7 +326,7 @@ class AbsensiController extends Controller
             return redirect()->back()->with('error', 'Presensi online hanya tersedia untuk bimtek mode online atau hybrid.');
         }
 
-        if ($bimtek->status !== 'berlangsung') {
+        if (! $bimtek->isRunning()) {
             return redirect()->back()->with('error', 'Absensi hanya dapat dilakukan saat bimtek sedang berlangsung.');
         }
 

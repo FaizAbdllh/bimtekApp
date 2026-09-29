@@ -11,6 +11,8 @@ class Role extends Model
 {
     use HasFactory, HasUuids;
 
+    protected $table = 'roles'; // Opsional untuk memastikan ketegasan nama tabel
+
     protected $fillable = [
         'nama_peran',
     ];

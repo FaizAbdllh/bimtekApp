@@ -18,13 +18,29 @@
     </style>
     <script>
         window.pengajuanForm = function() {
+            // Mengambil inputan lama jika form gagal validasi
+            const oldSyarat = @json(old('syarat_dokumen', ['Surat Tugas', 'SPPD']));
+            const oldDeskripsi = @json(old('deskripsi_syarat', []));
+            
+            // Memetakan array string menjadi array object agar sesuai dengan format Alpine yang baru
+            const initialDocTypes = oldSyarat.map((nama, index) => {
+                return {
+                    nama: nama,
+                    deskripsi: oldDeskripsi[index] || ''
+                };
+            });
+
             return {
                 butuhVerifikasi: @json((bool) old('butuh_verifikasi_dokumen', false)),
                 jenisKegiatan: @json(old('jenis_kegiatan', '')),
-                // 💡 PERBAIKAN 1: Mengambil old value dari 'syarat_dokumen'
-                docTypes: @json(old('syarat_dokumen', ['Surat Tugas', 'SPPD'])),
+                
+                // 💡 PERBAIKAN: Menggunakan data yang sudah dipetakan menjadi object
+                docTypes: initialDocTypes,
+                
                 newDocType: '',
+                newDocDesc: '', // 💡 PERBAIKAN: Tambahan state untuk input textarea
                 predefinedDocType: '',
+                
                 predefinedOptions: [
                     'Surat Tugas',
                     'SPPD',
@@ -35,6 +51,7 @@
                     'Sertifikat',
                     'Pas Foto',
                 ],
+                
                 anggaranItems: [
                     { 
                         sbm_master_id: '', 
@@ -109,7 +126,7 @@
                     }
 
                     const vol1 = Number(item.volume_1) || 0;
-                    const vol2 = Number(item.volume_2) || 1; // Default 1 jika tidak diisi agar perkalian manual aman
+                    const vol2 = Number(item.volume_2) || 1; 
                     const harga = Number(item.harga_satuan) || 0;
                     item.total_biaya = vol1 * (vol2 > 0 ? vol2 : 1) * harga;
                 },
@@ -166,26 +183,36 @@
                     return item.satuan === 'Lainnya' ? item.satuanCustom : item.satuan;
                 },
 
+                // 💡 PERBAIKAN: Menambahkan pengecekan item.nama dan push format object
                 addDocType() {
                     const value = this.newDocType.trim();
                     if (!value) return;
 
-                    const exists = this.docTypes.some((item) => item.toLowerCase() === value.toLowerCase());
+                    const exists = this.docTypes.some((item) => item.nama.toLowerCase() === value.toLowerCase());
                     if (!exists) {
-                        this.docTypes.push(value);
+                        this.docTypes.push({
+                            nama: value,
+                            deskripsi: this.newDocDesc // Memasukkan deskripsi dari textarea
+                        });
                     }
                     this.newDocType = '';
+                    this.newDocDesc = ''; // Reset form deskripsi
                 },
 
+                // 💡 PERBAIKAN: Sama dengan addDocType
                 addPredefinedDocType() {
                     const value = this.predefinedDocType.trim();
                     if (!value) return;
 
-                    const exists = this.docTypes.some((item) => item.toLowerCase() === value.toLowerCase());
+                    const exists = this.docTypes.some((item) => item.nama.toLowerCase() === value.toLowerCase());
                     if (!exists) {
-                        this.docTypes.push(value);
+                        this.docTypes.push({
+                            nama: value,
+                            deskripsi: this.newDocDesc
+                        });
                     }
                     this.predefinedDocType = '';
+                    this.newDocDesc = '';
                 },
 
                 removeDocType(index) {
@@ -240,9 +267,12 @@
                                     class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('jenis_kegiatan') border-red-500 @enderror text-sm"
                                     x-model="jenisKegiatan"
                                     @change="syncVerifikasiByJenis()">
-                                    <option value="">Pilih Jenis Kegiatan</option>
-                                    <option value="internal">Internal (Peserta dari lingkungan BBPMP)</option>
-                                    <option value="eksternal">Eksternal (Peserta dari Dinas/Sekolah Luar)</option>
+                                    
+                                    {{-- Tambahkan disabled, hidden, dan logika selected default --}}
+                                    <option value="" disabled {{ old('jenis_kegiatan') ? '' : 'selected' }} hidden>Pilih Jenis Kegiatan</option>
+                                    
+                                    <option value="internal" {{ old('jenis_kegiatan') == 'internal' ? 'selected' : '' }}>Internal (Peserta dari lingkungan BBPMP)</option>
+                                    <option value="eksternal" {{ old('jenis_kegiatan') == 'eksternal' ? 'selected' : '' }}>Eksternal (Peserta dari Dinas/Sekolah Luar)</option>
                                 </select>
                                 @error('jenis_kegiatan')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -256,10 +286,13 @@
                                 </label>
                                 <select name="mode_pelaksanaan" id="mode_pelaksanaan" required
                                     class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('mode_pelaksanaan') border-red-500 @enderror text-sm">
-                                    <option value="">Pilih Mode Pelaksanaan</option>
-                                    <option value="offline" {{ old('mode_pelaksanaan') == 'offline' ? 'selected' : '' }}>Offline (Tatap Muka Fisik)</option>
-                                    <option value="online" {{ old('mode_pelaksanaan') == 'online' ? 'selected' : '' }}>Online (Virtual Rapat)</option>
-                                    <option value="hybrid" {{ old('mode_pelaksanaan') == 'hybrid' ? 'selected' : '' }}>Hybrid (Gabungan Campuran)</option>
+                                    
+                                    {{-- Atribut disabled mencegah user memilih ulang, hidden menyembunyikannya dari daftar dropdown --}}
+                                    <option value="" disabled {{ old('mode_pelaksanaan') ? '' : 'selected' }} hidden>Pilih Mode Pelaksanaan</option>
+                                    
+                                    <option value="offline" {{ old('mode_pelaksanaan') == 'offline' ? 'selected' : '' }}>Offline</option>
+                                    <option value="online" {{ old('mode_pelaksanaan') == 'online' ? 'selected' : '' }}>Online</option>
+                                    <option value="hybrid" {{ old('mode_pelaksanaan') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
                                 </select>
                                 @error('mode_pelaksanaan')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -271,7 +304,7 @@
                             {{-- Nama Kegiatan --}}
                             <div>
                                 <label for="judul_rencana" class="block text-sm font-semibold text-gray-700">
-                                    Nama Kegiatan (Rencana) <span class="text-red-500">*</span>
+                                    Nama Kegiatan<span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" name="judul_rencana" id="judul_rencana" value="{{ old('judul_rencana') }}" required
                                     class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('judul_rencana') border-red-500 @enderror text-sm"
@@ -284,7 +317,7 @@
                             {{-- Sumber Pembiayaan --}}
                             <div>
                                 <label for="sumber_pembiayaan" class="block text-sm font-semibold text-gray-700">
-                                    Sumber Pembiayaan Sesuai Pagu <span class="text-red-500">*</span>
+                                    Sumber Pembiayaan<span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" name="sumber_pembiayaan" id="sumber_pembiayaan" value="{{ old('sumber_pembiayaan', 'DIPA BBPMP Prov. Sumatera Barat Tahun ' . date('Y')) }}" required
                                     class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('sumber_pembiayaan') border-red-500 @enderror text-sm">
@@ -325,7 +358,7 @@
                             </label>
                             <input type="text" name="tempat_kegiatan_rencana" id="tempat_kegiatan_rencana" value="{{ old('tempat_kegiatan_rencana') }}" required
                                 class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('tempat_kegiatan_rencana') border-red-500 @enderror text-sm"
-                                placeholder="Contoh: Aula Utama BBPMP Prov. Sumbar atau Hotel Axana Padang...">
+                                placeholder="Contoh: Aula BBPMP Prov. Sumbar atau Zoom Meeting">
                             @error('tempat_kegiatan_rencana')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -376,38 +409,57 @@
 
                                 <div id="dokumen_options" class="mt-4 ml-7" x-show="butuhVerifikasi && jenisKegiatan === 'eksternal'" x-cloak>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Checklist Berkas Wajib:</label>
-                                    <div class="space-y-2 mb-3" x-show="docTypes.length">
-                                        <template x-for="(jenis, index) in docTypes" :key="jenis">
-                                            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 bg-white shadow-sm">
-                                                <div class="flex items-center">
-                                                    {{-- 💡 PERBAIKAN 2: Mengubah name="jenis_dokumen_wajib[]" menjadi name="syarat_dokumen[]" --}}
-                                                    <input type="hidden" name="syarat_dokumen[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
-                                                    <span class="text-sm font-medium text-gray-700" x-text="jenis"></span>
+                                    
+                                    {{-- Daftar Dokumen yang Telah Ditambahkan --}}
+                                    <div class="space-y-2 mb-4" x-show="docTypes.length">
+                                        <template x-for="(doc, index) in docTypes" :key="index">
+                                            <div class="flex flex-col rounded-lg border border-gray-200 px-3 py-2 bg-white shadow-sm">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center">
+                                                        {{-- Input hidden array untuk Controller --}}
+                                                        <input type="hidden" name="syarat_dokumen[]" :value="doc.nama" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+                                                        <input type="hidden" name="deskripsi_syarat[]" :value="doc.deskripsi" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+                                                        
+                                                        <span class="text-sm font-medium text-gray-700" x-text="doc.nama"></span>
+                                                    </div>
+                                                    <button type="button" class="text-xs font-bold text-red-600 hover:text-red-800 transition" @click="removeDocType(index)">Hapus</button>
                                                 </div>
-                                                <button type="button" class="text-xs font-bold text-red-600 hover:text-red-800 transition" @click="removeDocType(index)">Hapus</button>
+                                                {{-- Menampilkan deskripsi di bawah nama dokumen jika diisi --}}
+                                                <div class="mt-1 text-xs text-gray-500 italic" x-show="doc.deskripsi" x-text="doc.deskripsi"></div>
                                             </div>
                                         </template>
                                     </div>
-                                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        <div class="space-y-2">
-                                            <select x-model="predefinedDocType"
-                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm">
-                                                <option value="">Pilih berkas umum</option>
-                                                <template x-for="option in predefinedOptions" :key="option">
-                                                    <option :value="option" x-text="option"></option>
-                                                </template>
-                                            </select>
-                                            <button type="button" class="w-full px-4 py-2 bg-gray-700 border border-transparent rounded-xl text-white hover:bg-gray-800 text-xs font-bold transition" @click="addPredefinedDocType()">
-                                                Tambah dari Daftar
-                                            </button>
-                                        </div>
-                                        <div class="space-y-2">
-                                            <input type="text" x-model="newDocType" placeholder="Contoh: Surat Rekomendasi BBPMP"
+
+                                    {{-- Form Tambah Dokumen Baru --}}
+                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                        <div class="mb-3">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Deskripsi Syarat (Opsional)</label>
+                                            <textarea x-model="newDocDesc" rows="2" maxlength="500"
                                                 class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                                                @keydown.enter.prevent="addDocType()">
-                                            <button type="button" class="w-full px-4 py-2 bg-primary-100 text-primary-700 rounded-xl hover:bg-primary-200 text-xs font-bold transition" @click="addDocType()">
-                                                Tambah Jenis Manual
-                                            </button>
+                                                placeholder="Contoh: Dokumen harus dicap basah dan ditandatangani atasan (Maks: 500 karakter)"></textarea>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <div class="space-y-2">
+                                                <select x-model="predefinedDocType"
+                                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm">
+                                                    <option value="">Pilih berkas umum</option>
+                                                    <template x-for="option in predefinedOptions" :key="option">
+                                                        <option :value="option" x-text="option"></option>
+                                                    </template>
+                                                </select>
+                                                <button type="button" class="w-full px-4 py-2 bg-gray-700 border border-transparent rounded-xl text-white hover:bg-gray-800 text-xs font-bold transition" @click="addPredefinedDocType()">
+                                                    Tambah dari Daftar
+                                                </button>
+                                            </div>
+                                            <div class="space-y-2">
+                                                <input type="text" x-model="newDocType" placeholder="Contoh: Surat Rekomendasi BBPMP"
+                                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                                                    @keydown.enter.prevent="addDocType()">
+                                                <button type="button" class="w-full px-4 py-2 bg-primary-100 text-primary-700 rounded-xl hover:bg-primary-200 text-xs font-bold transition" @click="addDocType()">
+                                                    Tambah Jenis Manual
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

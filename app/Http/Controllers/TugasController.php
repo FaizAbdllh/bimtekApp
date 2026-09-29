@@ -34,9 +34,8 @@ class TugasController extends Controller
         // Check verification status for peserta
         $isVerified = false;
         if ($isPeserta && $bimtek->butuh_verifikasi_dokumen) {
-            $pivot = $bimtek->users()
+            $pivot = $bimtek->peserta()
                 ->where('users.id', $user->id)
-                ->where('bimtek_user.peran_kontekstual', 'peserta')
                 ->first();
             $statusVerifikasi = $pivot?->pivot->status_verifikasi ?? 'invited';
             $isVerified = $statusVerifikasi === 'verified';
@@ -281,7 +280,7 @@ class TugasController extends Controller
             abort(403, 'Hanya peserta yang dapat mengumpulkan tugas.');
         }
 
-        if ($bimtek->status !== 'berlangsung') {
+        if ($bimtek->isLocked()) {
             return back()->with('error', 'Pengumpulan tugas hanya dapat dilakukan saat bimtek sedang berlangsung.');
         }
 

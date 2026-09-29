@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUuid('pic_user_id')->nullable()->constrained('users')->onDelete('set null');
 
             // 2. Data Perencanaan Kegiatan (Eks Tabel Pengajuans)
-            $table->string('judul_rencana');
+            $table->string('judul_rencana')->nullable();
             $table->string('tempat_kegiatan_rencana')->nullable();
             $table->string('sumber_pembiayaan')->nullable();
             $table->date('tanggal_mulai_rencana')->nullable();
@@ -60,13 +60,14 @@ return new class extends Migration
                 'disetujui_kepala',
                 'disetujui_ppk',
                 'disetujui_final',
+                'ditolak',
+                'perlu_revisi',
                 'persiapan',
-                'siap_dilaksanakan', // 💡 TAMBAHAN BARU: Fase fiksasi/ready
+                'registrasi',
+                'persiapan_selesai',
                 'berlangsung',
                 'selesai',
-                'dibatalkan',
-                'ditolak',
-                'perlu_revisi'
+                'dibatalkan'
             ])->default('draft_pic');
 
             // 7. Catatan Log & Validasi Pejabat/Rumah Tangga

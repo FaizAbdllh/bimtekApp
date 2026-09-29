@@ -50,5 +50,4 @@
             </div>
         </form>
     </div>
-</div>
-@endsection
+</x-guest-layout>

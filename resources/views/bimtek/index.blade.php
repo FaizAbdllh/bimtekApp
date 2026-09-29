@@ -48,12 +48,11 @@
             {{-- Statistics --}}
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 @php
-                    // REFAKTORISASI: Menyelaraskan query statistik langsung ke nama kolom baru 'status'
                     $stats = [
-                        'persiapan' => App\Models\Bimtek::where('status', 'persiapan')->count(),
+                        'persiapan' => App\Models\Bimtek::whereIn('status', ['persiapan', 'registrasi', 'persiapan_selesai'])->count(),
                         'berlangsung' => App\Models\Bimtek::where('status', 'berlangsung')->count(),
                         'selesai' => App\Models\Bimtek::where('status', 'selesai')->count(),
-                        'total' => App\Models\Bimtek::whereIn('status', ['disetujui_final', 'persiapan', 'berlangsung', 'selesai'])->count(),
+                        'total' => App\Models\Bimtek::whereIn('status', ['disetujui_final', 'persiapan', 'registrasi', 'persiapan_selesai', 'berlangsung', 'selesai'])->count(),
                     ];
                 @endphp
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 p-4">
@@ -122,10 +121,11 @@
                                         {{-- Status Badge --}}
                                         <div class="flex justify-between items-center mb-3">
                                             @php
-                                                // REFAKTORISASI: Menyesuaikan status_pelaksanaan menjadi status terpadu baru
                                                 $statusColors = [
                                                     'disetujui_final' => 'bg-gray-100 text-gray-800',
                                                     'persiapan' => 'bg-yellow-100 text-yellow-800',
+                                                    'registrasi' => 'bg-indigo-100 text-indigo-800',
+                                                    'persiapan_selesai' => 'bg-teal-100 text-teal-800',
                                                     'berlangsung' => 'bg-blue-100 text-blue-800',
                                                     'selesai' => 'bg-green-100 text-green-800',
                                                     'dibatalkan' => 'bg-red-100 text-red-800',
@@ -133,6 +133,8 @@
                                                 $statusLabels = [
                                                     'disetujui_final' => 'Disetujui',
                                                     'persiapan' => 'Persiapan',
+                                                    'registrasi' => 'Registrasi',
+                                                    'persiapan_selesai' => 'Siap Kelas',
                                                     'berlangsung' => 'Berlangsung',
                                                     'selesai' => 'Selesai',
                                                     'dibatalkan' => 'Batal',
@@ -147,14 +149,12 @@
                                         </div>
 
                                         {{-- Title --}}
-                                        {{-- REFAKTORISASI: Tambahkan fallback aman jika judul_final belum diisi oleh panitia --}}
                                         <h3 class="font-bold text-gray-900 mb-2 line-clamp-2 h-12 leading-snug">
                                             {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}
                                         </h3>
 
                                         {{-- Info Lokasi & Waktu --}}
                                         <div class="space-y-2 text-sm text-gray-500 mb-4 pt-1">
-                                            {{-- REFAKTORISASI LOKASI: Menggunakan lokasi_aktual, jika kosong fallback ke rencana awal --}}
                                             <div class="flex items-start">
                                                 <svg class="w-4 h-4 mr-2 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -162,7 +162,6 @@
                                                 </svg>
                                                 <span class="truncate">{{ $bimtek->lokasi_aktual ?? $bimtek->tempat_kegiatan_rencana ?? 'Lokasi belum ditentukan' }}</span>
                                             </div>
-                                            {{-- REFAKTORISASI WAKTU: Menggunakan tanggal_mulai_aktual, jika kosong fallback ke rencana awal --}}
                                             <div class="flex items-center">
                                                 <svg class="w-4 h-4 mr-2 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>

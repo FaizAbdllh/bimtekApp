@@ -50,14 +50,21 @@ class StorePengajuanRequest extends FormRequest
             'catatan_logistik' => ['nullable', 'string', 'max:5000'],
         ];
 
-        // 💡 DISINKRONKAN: Validasi verifikasi dokumen menggunakan 'syarat_dokumen'
+        // 💡 DISINKRONKAN: Validasi verifikasi dokumen
         $verif = [
             'butuh_verifikasi_dokumen' => ['nullable', 'boolean'],
             'syarat_dokumen' => ['nullable', 'array'],
+            // Validasi elemen array dokumen: masing-masing nama dokumen maks 255 karakter
+            'syarat_dokumen.*' => ['nullable', 'string', 'max:255'],
+            
+            // 💡 TAMBAHAN: Validasi untuk deskripsi_syarat yang dikirim berpasangan
+            'deskripsi_syarat' => ['nullable', 'array'],
+            'deskripsi_syarat.*' => ['nullable', 'string', 'max:500'],
         ];
 
         if (! $isDraft && $this->boolean('butuh_verifikasi_dokumen')) {
             $verif['syarat_dokumen'] = ['required', 'array', 'min:1'];
+            $verif['syarat_dokumen.*'] = ['required', 'string', 'max:255'];
         }
 
         return array_merge($base, $verif);
@@ -108,6 +115,7 @@ class StorePengajuanRequest extends FormRequest
             'jenis_kegiatan.required' => 'Jenis kegiatan wajib dipilih.',
             'jenis_kegiatan.in' => 'Jenis kegiatan tidak valid.',
             'syarat_dokumen.required' => 'Minimal cantumkan 1 dokumen persyaratan jika verifikasi dokumen diaktifkan.',
+            'deskripsi_syarat.*.max' => 'Deskripsi tiap syarat maksimal 500 karakter.',
         ];
     }
 }
