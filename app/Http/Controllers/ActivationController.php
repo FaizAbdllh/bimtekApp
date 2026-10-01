@@ -59,7 +59,7 @@ class ActivationController extends Controller
 
         // 2. PROTEKSI STATE MACHINE (Mencegah Akses Pendaftaran di Luar Fase Registrasi)
         if ($bimtek->status !== 'registrasi') {
-            return back()->withInput()->with('error', 'Pendaftaran gagal: Kelas bimbingan teknis ini belum dibuka untuk publik atau masa registrasi telah ditutup.');
+            return back()->withInput()->with('error', 'Pendaftaran gagal, bimtek ini belum dibuka untuk publik atau masa registrasi telah ditutup.');
         }
 
         // Gunakan DB Transaction untuk menjaga konsistensi data antara tabel users dan bimtek_pesertas

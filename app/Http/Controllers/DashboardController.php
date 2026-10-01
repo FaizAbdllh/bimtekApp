@@ -90,9 +90,11 @@ class DashboardController extends Controller
 
     protected function getRtData(): array
     {
+        // 1. Hitung statistik HANYA untuk kegiatan yang meminta fasilitas logistik
         $stats = Bimtek::whereIn('status', ['persiapan', 'registrasi', 'persiapan_selesai', 'berlangsung'])
+            ->whereHas('fasilitasLogistiks') // <-- KUNCI 1: Cegah kebocoran data kosong
             ->selectRaw("
-                SUM(CASE WHEN status_rt = 'belum_dipenuhi' THEN 1 ELSE 0 END) as belum_dipenuhi,
+                SUM(CASE WHEN status_rt IN ('belum_dipenuhi', 'sebagian_dipenuhi') THEN 1 ELSE 0 END) as belum_dipenuhi,
                 SUM(CASE WHEN status_rt = 'telah_dipenuhi' THEN 1 ELSE 0 END) as telah_dipenuhi
             ")
             ->first();
@@ -100,9 +102,13 @@ class DashboardController extends Controller
         return [
             'kebutuhanBelumDipenuhi' => $stats->belum_dipenuhi ?? 0,
             'kebutuhanTerpenuhi' => $stats->telah_dipenuhi ?? 0,
-            // 2. Data RT Terurut: Ditambahkan latest() agar menampilkan prioritas logistik terbaru
-            'recentPengajuan' => Bimtek::whereIn('status', ['persiapan', 'registrasi', 'persiapan_selesai'])
-                ->latest()
+            
+            // 2. Data Tabel "Menunggu Pemenuhan" (To-Do List Harian)
+            'recentPengajuan' => Bimtek::with('pic')
+                ->whereIn('status', ['persiapan', 'registrasi', 'persiapan_selesai', 'berlangsung'])
+                ->whereHas('fasilitasLogistiks') // <-- KUNCI 2: Pastikan tabel juga sinkron
+                ->whereIn('status_rt', ['belum_dipenuhi', 'sebagian_dipenuhi']) // <-- KUNCI 3: Sembunyikan yang sudah selesai agar meja kerja RT bersih
+                ->orderBy('tanggal_mulai_rencana', 'asc') // <-- KUNCI 4: Urutkan dari tanggal acara yang paling dekat, bukan yang paling baru dibuat
                 ->take(5)
                 ->get(),
         ];

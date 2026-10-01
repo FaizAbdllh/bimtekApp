@@ -7,7 +7,7 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             {{-- Tombol Kembali --}}
             <div class="mb-4">
-                <a href="{{ route('bimtek.absensi.show', [$bimtek->id, $sesi->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold text-xs uppercase tracking-wide transition shadow-sm">
+                <a href="{{ route('bimtek.absensi.show', [$bimtek->id, $sesi->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold text-xs uppercase tracking-wide transition shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
@@ -84,7 +84,7 @@
                                         </form>
 
                                         <div class="flex gap-3">
-                                            <button id="start-scan" type="button" class="flex-1 inline-flex items-center justify-center px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-xs uppercase tracking-wide transition shadow-sm">
+                                            <button id="start-scan" type="button" class="flex-1 inline-flex items-center justify-center px-4 py-3 bg-primary-600 hover:bg-primary-800 text-white rounded-xl font-bold text-xs uppercase tracking-wide transition shadow-sm">
                                                 Mulai Pemindaian
                                             </button>
                                             <button id="stop-scan" type="button" class="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs uppercase tracking-wide transition shadow-sm hidden">
@@ -112,7 +112,7 @@
                                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
-                                        <button type="submit" class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow">
+                                        <button type="submit" class="w-full py-3.5 bg-primary-600 hover:bg-primary-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow">
                                             Kirim Bukti Kehadiran Online
                                         </button>
                                     </form>
@@ -146,7 +146,7 @@
                                     </form>
 
                                     <div class="flex gap-3">
-                                        <button id="start-scan" type="button" class="flex-1 inline-flex items-center justify-center px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-xs uppercase tracking-wide transition shadow-sm">
+                                        <button id="start-scan" type="button" class="flex-1 inline-flex items-center justify-center px-4 py-3 bg-primary-600 hover:bg-primary-800 text-white rounded-xl font-bold text-xs uppercase tracking-wide transition shadow-sm">
                                             Mulai Pemindaian
                                         </button>
                                         <button id="stop-scan" type="button" class="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs uppercase tracking-wide transition shadow-sm hidden">

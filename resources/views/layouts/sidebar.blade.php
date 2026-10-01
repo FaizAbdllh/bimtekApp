@@ -18,7 +18,7 @@
             {{-- Dashboard - Semua Role --}}
             <div class="mb-4">
                 <a href="{{ route('dashboard') }}" 
-                   class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                   class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary-700' : 'text-primary-100 hover:bg-primary-500' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
@@ -33,13 +33,13 @@
             @if($user->isAdminIt())
                 <div class="mb-4">
                     <p class="px-3 mb-2 text-xs font-semibold text-primary-300 uppercase tracking-wider">Administrasi</p>
-                    <a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                    <a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-primary-700' : 'text-primary-100 hover:bg-primary-500' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
                         Manajemen User
                     </a>
-                    <a href="{{ route('admin.log-sistem.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.log-sistem.*') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                    <a href="{{ route('admin.log-sistem.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.log-sistem.*') ? 'bg-primary-700' : 'text-primary-100 hover:bg-primary-500' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -52,7 +52,7 @@
             @if($user->isKepala())
                 <div class="mb-4">
                     <p class="px-3 mb-2 text-xs font-semibold text-primary-300 uppercase tracking-wider">Persetujuan</p>
-                    <a href="{{ route('approval.kepala.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('approval.kepala.*') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                    <a href="{{ route('approval.kepala.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('approval.kepala.*') ? 'bg-primary-700' : 'text-primary-100 hover:bg-primary-500' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
@@ -65,7 +65,7 @@
             @if($user->isPpk())
                 <div class="mb-4">
                     <p class="px-3 mb-2 text-xs font-semibold text-primary-300 uppercase tracking-wider">Anggaran</p>
-                    <a href="{{ route('approval.ppk.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('approval.ppk.*') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                    <a href="{{ route('approval.ppk.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('approval.ppk.*') ? 'bg-primary-700' : 'text-primary-100 hover:bg-primary-500' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
@@ -78,7 +78,7 @@
             @if($user->isRt())
                 <div class="mb-4">
                     <p class="px-3 mb-2 text-xs font-semibold text-primary-300 uppercase tracking-wider">Rumah Tangga</p>
-                    <a href="{{ route('rt.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('rt.*') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                    <a href="{{ route('rt.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('rt.*') ? 'bg-primary-700' : 'text-primary-100 hover:bg-primary-500' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
@@ -97,7 +97,7 @@
                         </svg>
                         Ajukan Bimtek
                     </a>
-                    <a href="{{ route('pengajuan.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('pengajuan.index') || request()->routeIs('pengajuan.show') || request()->routeIs('pengajuan.edit') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500' }}">
+                    <a href="{{ route('pengajuan.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('pengajuan.index') || request()->routeIs('pengajuan.show') || request()->routeIs('pengajuan.edit') ? 'bg-primary-700 text-white' : 'text-primary-100 hover:bg-primary-500/50' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>

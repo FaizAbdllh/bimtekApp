@@ -190,7 +190,7 @@
                                         @endif
 
                                         {{-- Action Button --}}
-                                        <a href="{{ route('bimtek.show', $bimtek->id) }}" class="block w-full text-center px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition text-sm font-semibold shadow-sm">
+                                        <a href="{{ route('bimtek.show', $bimtek->id) }}" class="block w-full text-center px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-800 transition text-sm font-semibold shadow-sm">
                                             Masuk Ruang Kelas
                                         </a>
                                     </div>

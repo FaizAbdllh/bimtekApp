@@ -46,9 +46,9 @@
                     <div class="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
                         <div>
                             @isset($header)
-                                <h1 class="text-xl font-semibold text-gray-800">{{ $header }}</h1>
+                                <h1 class="text-xl font-bold text-gray-800">{{ $header }}</h1>
                             @else
-                                <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
+                                <h1 class="text-xl font-bold text-gray-800">Dashboard</h1>
                             @endisset
                         </div>
                         <div class="flex items-center space-x-4">

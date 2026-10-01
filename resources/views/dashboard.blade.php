@@ -37,7 +37,7 @@
     @elseif($user->isPesertaEksternal())
         @include('dashboard.partials.peserta-eksternal')
     @else
-        <div class="bg-white overflow-hidden shadow-sm rounded-xl">
+        <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
             <div class="p-6 text-gray-900">
                 {{ __("Selamat datang di Sistem Informasi Bimtek BBPMP Sumbar!") }}
             </div>

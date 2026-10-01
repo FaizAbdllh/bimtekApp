@@ -63,7 +63,7 @@
                         <div>
                             <span class="text-gray-400 font-medium block">Tautan Virtual:</span>
                             @if($bimtek->virtual_meeting_url)
-                                <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-semibold block break-all mt-0.5">Buka Ruang Virtual (Zoom/Teams)</a>
+                                <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-800 font-semibold block break-all mt-0.5">Buka Ruang Virtual (Zoom/Teams)</a>
                             @else
                                 <span class="text-gray-400 block mt-0.5">{{ in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid']) ? 'Belum ditentukan' : '-' }}</span>
                             @endif
@@ -202,7 +202,7 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center shrink-0 ml-4">
-                                            <a href="{{ route('bimtek.materi.download', [$bimtek->id, $materi->id]) }}" class="px-3 py-1 bg-white border border-gray-200 text-xs font-bold text-primary-600 rounded-lg hover:bg-gray-50 transition shadow-sm">Unduh</a>
+                                            <a href="{{ route('bimtek.materi.download', [$bimtek->id, $materi->id]) }}" class="px-3 py-1 bg-white border border-gray-200 text-xs font-bold text-primary-600 rounded-lg hover:bg-gray-100 transition shadow-sm">Unduh</a>
                                         </div>
                                     </div>
                                 @endforeach
@@ -237,7 +237,7 @@
                                                 <a href="{{ route('bimtek.tugas.show', [$bimtek->id, $tugas->id]) }}" class="text-sm font-bold text-gray-900 hover:text-primary-600 transition block truncate">{{ $tugas->judul }}</a>
                                                 <p class="text-[10px] text-gray-400 font-medium mt-0.5">Batas Akhir: {{ $tugas->deadline ? $tugas->deadline->format('d M Y H:i') : 'Tanpa Batas Waktu' }} WIB</p>
                                             </div>
-                                            <a href="{{ route('bimtek.tugas.show', [$bimtek->id, $tugas->id]) }}" class="ml-4 shrink-0 px-3 py-1.5 bg-primary-600 text-white font-bold text-xs rounded-lg hover:bg-primary-700 transition shadow-sm">Buka Tugas</a>
+                                            <a href="{{ route('bimtek.tugas.show', [$bimtek->id, $tugas->id]) }}" class="ml-4 shrink-0 px-3 py-1.5 bg-primary-600 text-white font-bold text-xs rounded-lg hover:bg-primary-800 transition shadow-sm">Buka Tugas</a>
                                         </div>
                                     @endforeach
                                 </div>
@@ -277,7 +277,7 @@
                                             </span>
                                             @if($sesi->isOpen())
                                                 @if(in_array($bimtek->mode_pelaksanaan, ['offline', 'hybrid']))
-                                                    <a href="{{ route('bimtek.absensi.scan-interface', [$bimtek->id, $sesi->id]) }}" class="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition shadow-sm">Scan QR</a>
+                                                    <a href="{{ route('bimtek.absensi.scan-interface', [$bimtek->id, $sesi->id]) }}" class="px-3 py-1.5 bg-primary-600 hover:bg-primary-800 text-white font-bold text-xs rounded-lg transition shadow-sm">Scan QR</a>
                                                 @endif
                                             @endif
                                         </div>

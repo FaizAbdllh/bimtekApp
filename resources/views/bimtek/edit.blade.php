@@ -168,7 +168,7 @@
                                 </div>
 
                                 @if($isEditable)
-                                    <button type="button" class="mt-3 inline-flex items-center px-3 py-1.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 rounded-lg text-xs font-bold transition shadow-sm"
+                                    <button type="button" class="mt-3 inline-flex items-center px-3 py-1.5 border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-bold transition shadow-sm"
                                         @click="items.push({ nama: '', asal_instansi: '' })">
                                         + Tambah Baris Narasumber
                                     </button>
@@ -228,10 +228,10 @@
 
                         {{-- Panel Aksi Form --}}
                         <div class="mt-6 pt-6 border-t border-gray-100 flex justify-end gap-3">
-                            <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 font-bold text-xs rounded-xl hover:bg-gray-50 transition shadow-sm">
+                            <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 font-bold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm">
                                 Batal
                             </a>
-                            <button type="submit" class="inline-flex items-center px-5 py-2 bg-primary-600 text-white font-bold text-xs rounded-xl hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm" {{ !$isEditable ? 'disabled' : '' }}>
+                            <button type="submit" class="inline-flex items-center px-5 py-2 bg-primary-600 text-white font-bold text-xs rounded-xl hover:bg-primary-800 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm" {{ !$isEditable ? 'disabled' : '' }}>
                                 Simpan Perubahan Data
                             </button>
                         </div>
