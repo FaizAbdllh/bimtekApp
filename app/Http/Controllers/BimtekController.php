@@ -206,7 +206,7 @@ class BimtekController extends Controller
             'daftar_pemateri.*.nama' => 'nullable|string|max:255',
             'daftar_pemateri.*.asal_instansi' => 'nullable|string|max:255',
         ]);
-
+    
         $validated['syarat_tugas_wajib'] = $request->boolean('syarat_tugas_wajib');
         $validated['has_tugas'] = $request->boolean('has_tugas');
         $validated['has_sertifikat'] = $request->boolean('has_sertifikat');
@@ -220,7 +220,14 @@ class BimtekController extends Controller
         $majorFields = ['anggaran_disetujui', 'syarat_kehadiran_persen', 'syarat_tugas_persen', 'syarat_tugas_wajib'];
         $changedMajorFields = [];
         foreach ($majorFields as $field) {
-            if ($this->normalizeComparisonValue($bimtek->{$field}) !== $this->normalizeComparisonValue($validated[$field] ?? null)) {
+            if (!array_key_exists($field, $validated)) {
+                continue;
+            }
+
+            if (
+                $this->normalizeComparisonValue($bimtek->{$field})
+                !== $this->normalizeComparisonValue($validated[$field])
+            ) {
                 $changedMajorFields[] = $field;
             }
         }
@@ -237,6 +244,18 @@ class BimtekController extends Controller
             ->values()
             ->map(fn($p) => ['nama' => $p['nama'], 'asal_instansi' => $p['asal_instansi'] ?? null])
             ->all();
+
+        if ($bimtek->mode_pelaksanaan === 'offline') {
+            $validated['virtual_meeting_url'] = null;
+        } elseif (
+            $bimtek->status !== 'persiapan'
+            && array_key_exists('virtual_meeting_url', $validated)
+            && $validated['virtual_meeting_url'] !== $bimtek->virtual_meeting_url
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'Link virtual meeting hanya dapat diubah selama fase Persiapan.');
+        }
 
         $bimtek->update($validated);
 

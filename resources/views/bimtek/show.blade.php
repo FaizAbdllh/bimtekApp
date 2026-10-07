@@ -70,9 +70,31 @@
                                 <div>
                                     <span class="text-gray-400 font-medium block">Tautan Ruang Virtual:</span>
                                     @if($bimtek->virtual_meeting_url)
-                                        <a href="{{ $bimtek->virtual_meeting_url }}" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-semibold block break-all mt-0.5">Buka Ruang Virtual (Zoom/Teams)</a>
-                                    @else
-                                        <span class="text-gray-400 block mt-0.5">{{ in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid']) ? 'Belum ditentukan' : '-' }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ $bimtek->virtual_meeting_url }}"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="text-primary-600 break-all">
+                                                {{ $bimtek->virtual_meeting_url }}
+                                            </a>
+
+                                            @if($canManage)
+                                                <button type="button"
+                                                        onclick="navigator.clipboard.writeText(@js($bimtek->virtual_meeting_url))"
+                                                        class="shrink-0 px-3 py-1.5 bg-gray-700 text-white text-xs font-bold rounded-lg">
+                                                    Salin Link
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @elseif(in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid']))
+                                        <span class="text-gray-400">Belum ditentukan</span>
+
+                                        @if($canManage && $bimtek->status === 'persiapan')
+                                            <a href="{{ route('bimtek.edit', $bimtek->id) }}"
+                                            class="text-primary-600 text-xs font-bold">
+                                                Tambahkan Link
+                                            </a>
+                                        @endif
                                     @endif
                                 </div>
                                 <div>

@@ -266,6 +266,13 @@ class Bimtek extends Model
         // 13. URL virtual meeting
         if (in_array($this->mode_pelaksanaan, ['online', 'hybrid']) && empty($this->virtual_meeting_url)) {$errors[] = 'Pelaksanaan berstatus Online/Hybrid mewajibkan ketersediaan tautan (URL) virtual meeting.';
         }
+        if (
+            in_array($this->mode_pelaksanaan, ['online', 'hybrid'])
+            && !empty($this->virtual_meeting_url)
+            && !filter_var($this->virtual_meeting_url, FILTER_VALIDATE_URL)
+        ) {
+            $errors[] = 'Tautan virtual meeting tidak memiliki format URL yang valid.';
+        }
 
         // 14. Surat Undangan sudah diunggah
         if (empty($this->file_surat_undangan_path)) {$errors[] = 'Dokumen surat undangan resmi belum diunggah.';

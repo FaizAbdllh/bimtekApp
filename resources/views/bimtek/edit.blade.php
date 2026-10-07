@@ -21,6 +21,7 @@
                     
                     @php
                         $isEditable = $bimtek->isEditable();
+                        $isVirtualMeetingEditable = $bimtek->status === 'persiapan';
                     @endphp
 
                     @if(!$isEditable)
@@ -84,18 +85,27 @@
                             </div>
 
                             {{-- Tautan URL Virtual Meeting --}}
-                            <div class="md:col-span-2">
-                                <label for="virtual_meeting_url" class="block text-sm font-semibold text-gray-700 mb-1">Tautan Media Virtual Rapat (Zoom / Google Meet)</label>
-                                <input type="url" name="virtual_meeting_url" id="virtual_meeting_url"
-                                    value="{{ old('virtual_meeting_url', $bimtek->virtual_meeting_url) }}"
-                                    placeholder="https://us02web.zoom.us/j/xxxxxxxx"
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('virtual_meeting_url') border-red-500 @enderror text-sm"
-                                    {{ !$isEditable ? 'readonly bg-gray-50 text-gray-500' : '' }}>
-                                @error('virtual_meeting_url')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                                <p class="text-[11px] text-gray-400 mt-1">Saran: Diisi jika kelas menggunakan mode online/hybrid agar tautan otomatis muncul di beranda akun peserta luar.</p>
-                            </div>
+                            @if(in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid']))
+                                <div class="md:col-span-2">
+                                    <label for="virtual_meeting_url" class="block text-sm font-semibold text-gray-700 mb-1">Tautan Media Virtual Rapat (Zoom / Google Meet)</label>
+                                    <input type="url" name="virtual_meeting_url" id="virtual_meeting_url"
+                                        value="{{ old('virtual_meeting_url', $bimtek->virtual_meeting_url) }}"
+                                        placeholder="https://us02web.zoom.us/j/xxxxxxxx"
+                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('virtual_meeting_url') border-red-500 @enderror text-sm"
+                                        {{ !$isVirtualMeetingEditable ? 'readonly bg-gray-50 text-gray-500' : '' }}>
+                                    @error('virtual_meeting_url')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                    <p class="text-[11px] text-gray-400 mt-1">
+                                        @if($isVirtualMeetingEditable)
+                                            Link wajib diisi untuk mode Online/Hybrid sebelum registrasi dibuka.
+                                        @else
+                                            Link virtual meeting terkunci karena kelas sudah melewati fase Persiapan.
+                                        @endif
+                                    </p>
+                                </div>
+                            @endif
+                            
 
                             {{-- Anggaran Dana Terkunci --}}
                             <div>

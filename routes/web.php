@@ -116,6 +116,8 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/{bimtek}/preview-draft', [BimtekController::class, 'previewDraft'])->name('preview-draft');
     Route::get('/{bimtek}/download-draft', [BimtekController::class, 'downloadDraft'])->name('download-draft');
     Route::patch('/{bimtek}/toggle-tugas', [BimtekController::class, 'toggleTugas'])->name('toggle-tugas');
+    Route::get('/{bimtek}/edit', [BimtekController::class, 'edit'])->name('edit');
+    Route::put('/{bimtek}', [BimtekController::class, 'update'])->name('update');
 
     // Verifikasi Dokumen & Manajemen Peserta
     Route::get('/{bimtek}/verifikasi-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'index'])->name('verifikasi-dokumen.index');
