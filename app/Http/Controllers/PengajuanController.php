@@ -89,7 +89,9 @@ class PengajuanController extends Controller
             $validated['pic_user_id'] = Auth::id();
 
             // Intersepsi status checkbox agar tidak terbuang
-            $validated['butuh_verifikasi_dokumen'] = $request->has('butuh_verifikasi_dokumen') ? 1 : 0;
+            // Verifikasi dokumen hanya berlaku untuk kegiatan eksternal
+            $validated['butuh_verifikasi_dokumen'] =
+                ($request->input('jenis_kegiatan') === 'eksternal' && $request->has('butuh_verifikasi_dokumen')) ? 1 : 0;
 
             $isDraft = $request->has('save_draft');
             $validated['status'] = $isDraft ? 'draft_pic' : 'diajukan';
@@ -257,7 +259,10 @@ class PengajuanController extends Controller
             $validated = $request->validated();
             $isDraft = $request->has('save_draft');
 
-            $validated['butuh_verifikasi_dokumen'] = $request->has('butuh_verifikasi_dokumen') ? 1 : 0;
+            // Verifikasi dokumen hanya berlaku untuk kegiatan eksternal
+            $jenisKegiatan = $request->input('jenis_kegiatan', $pengajuan->jenis_kegiatan);
+            $validated['butuh_verifikasi_dokumen'] =
+                ($jenisKegiatan === 'eksternal' && $request->has('butuh_verifikasi_dokumen')) ? 1 : 0;
 
             if ($isDraft) {
                 $validated['status'] = 'draft_pic';
