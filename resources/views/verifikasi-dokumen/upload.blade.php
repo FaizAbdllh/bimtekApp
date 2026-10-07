@@ -36,7 +36,7 @@
 
             {{-- Tombol Kembali --}}
             <div class="mb-4">
-                <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold text-xs uppercase tracking-wide transition shadow-sm">
+                <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold text-xs uppercase tracking-wide transition shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
@@ -64,7 +64,7 @@
             
             <div class="mb-6 p-4 rounded-xl border-l-4 bg-white shadow-sm {{ $statusColors[$assignment->status_verifikasi ?? 'pending'] ?? 'bg-gray-100 border-gray-400 text-gray-800' }}">
                 <div class="flex items-start">
-                    <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 mr-1.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <div class="flex-1 text-sm">
@@ -115,7 +115,7 @@
             {{-- Instruksi Aturan Unggah --}}
             <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6 shadow-sm shadow-blue-50">
                 <h4 class="font-bold text-blue-900 mb-2 flex items-center text-sm uppercase tracking-wider">
-                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     Petunjuk Resmi Unggah Berkas Syarat
@@ -135,7 +135,7 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 mb-6">
                     <div class="p-6">
                         <h3 class="text-base font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 mr-1.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             {{ $syarat->nama_dokumen }} 
@@ -188,10 +188,10 @@
                                         @if(str_ends_with($dokumen->file_path, '.pdf'))
                                             <a href="{{ route('bimtek.verifikasi-dokumen.preview', ['bimtek' => $bimtek->id, 'userId' => auth()->id(), 'syaratId' => $syarat->id]) }}" 
                                                target="_blank" rel="noopener"
-                                               class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-purple-600 rounded-lg hover:bg-gray-50 transition shadow-sm">Pratinjau</a>
+                                               class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-purple-600 rounded-lg hover:bg-gray-100 transition shadow-sm">Pratinjau</a>
                                         @endif
                                         <a href="{{ route('bimtek.verifikasi-dokumen.download', ['bimtek' => $bimtek->id, 'userId' => auth()->id(), 'syaratId' => $syarat->id]) }}" 
-                                           class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-primary-600 rounded-lg hover:bg-gray-50 transition shadow-sm">Unduh</a>
+                                           class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-primary-600 rounded-lg hover:bg-gray-100 transition shadow-sm">Unduh</a>
                                     </div>
                                 </div>
                             </div>
@@ -215,7 +215,7 @@
                                     @enderror
                                 </div>
 
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl font-bold text-xs uppercase tracking-wide hover:bg-primary-700 transition shadow-sm">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl font-bold text-xs uppercase tracking-wide hover:bg-primary-800 transition shadow-sm">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>

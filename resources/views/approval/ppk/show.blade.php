@@ -9,7 +9,7 @@
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="{{ route('approval.ppk.index') }}" class="text-gray-500 hover:text-primary-600 text-sm font-medium">
+                        <a href="{{ route('approval.ppk.index') }}" class="text-gray-500 hover:text-primary-600 text-sm font-medium transition-colors">
                             Persetujuan Anggaran
                         </a>
                     </li>
@@ -28,7 +28,7 @@
             @php
                 $statusColors = [
                     'disetujui_kepala' => 'bg-yellow-50 border-yellow-100 text-yellow-800',
-                    'disetujui_ppk' => 'bg-primary-50 border-primary-100 text-primary-800',
+                    'disetujui_ppk' => 'bg-green-50 border-green-100 text-green-800',
                     'disetujui_final' => 'bg-green-50 border-green-100 text-green-800',
                 ];
                 $statusLabels = [
@@ -38,12 +38,12 @@
                 ];
             @endphp
             {{-- REFAKTORISASI: Mengubah status_pengajuan menjadi status --}}
-            <div class="mb-6 p-3 rounded-lg border text-sm {{ $statusColors[$pengajuan->status] ?? 'bg-gray-50 border-gray-200 text-gray-800' }}">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="font-semibold">Status Verifikasi Keuangan: {{ $statusLabels[$pengajuan->status] ?? $pengajuan->status }}</span>
+            <div class="mb-6 p-3 rounded-lg border text-sm flex items-start {{ $statusColors[$pengajuan->status] ?? 'bg-gray-50 border-gray-200 text-gray-800' }}">
+                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                    <span class="font-semibold">Status Verifikasi Keuangan:</span> {{ $statusLabels[$pengajuan->status] ?? $pengajuan->status }}
                 </div>
             </div>
 
@@ -55,17 +55,17 @@
                         <div>
                             <h2 class="text-lg font-bold text-primary-800">{{ $pengajuan->judul_rencana }}</h2>
                             {{-- REFAKTORISASI: Mengubah relasi user menjadi pic --}}
-                            <p class="mt-1 text-sm text-gray-500">Diajukan oleh <span class="font-medium text-gray-900">{{ $pengajuan->pic->name ?? '-' }}</span> pada {{ $pengajuan->created_at->format('d M Y, H:i') }} WIB</p>
+                            <p class="mt-1 text-sm text-gray-500">Diajukan oleh <span class="text-gray-700 font-semibold">{{ $pengajuan->pic->name ?? '-' }}</span> pada {{ $pengajuan->created_at->format('d M Y, H:i') }} WIB</p>
                         </div>
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold w-fit {{ $pengajuan->jenis_kegiatan === 'internal' ? 'bg-primary-100 text-primary-800' : 'bg-secondary-100 text-secondary-800' }}">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold w-fit {{ $pengajuan->jenis_kegiatan === 'internal' ? 'bg-primary-100 text-primary-800' : 'bg-secondary-100 text-secondary-800' }}">
                             Sasaran: {{ ucfirst($pengajuan->jenis_kegiatan) }}
                         </span>
                     </div>
                 </div>
 
                 {{-- Detail Informasi Usulan --}}
-                <div class="p-6 space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+                <div class="p-6 space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
                         <div>
                             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Rencana Tempat Kegiatan</h4>
                             {{-- REFAKTORISASI: Mengubah tempat_kegiatan menjadi tempat_kegiatan_rencana --}}
@@ -86,8 +86,8 @@
                     </div>
 
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-5">
-                        <h4 class="text-base font-bold text-gray-800">Deskripsi / Pokok Pemikiran Kegiatan</h4>
-                        <div class="mt-2 p-4 bg-white rounded-lg border border-gray-100 text-sm leading-relaxed text-gray-700 whitespace-pre-line">
+                        <h4 class="text-base font-bold text-gray-800 mb-2">Deskripsi / Pokok Pemikiran Kegiatan</h4>
+                        <div class="p-4 bg-white rounded-lg border border-gray-100 text-sm leading-relaxed text-gray-700 whitespace-pre-line">
                             {{ $pengajuan->deskripsi_rencana ?? 'Tidak ada deskripsi.' }}
                         </div>
                     </div>
@@ -110,29 +110,29 @@
                             <table class="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-center w-12 text-xs font-semibold uppercase tracking-wider text-gray-500">No</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nama Komponen Belanja</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Vol 1</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Satuan 1</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Vol 2</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Satuan 2</th>
-                                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Harga Satuan</th>
-                                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Total Biaya</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">No</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Komponen Belanja</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Vol 1</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Satuan 1</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Vol 2</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Satuan 2</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Harga Satuan</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Biaya</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 text-gray-700">
+                                <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($pengajuan->kebutuhanAnggarans as $i => $anggaran)
                                     <tr class="hover:bg-gray-100 transition-colors">
-                                        <td class="px-4 py-3 text-center text-gray-500">{{ $i + 1 }}</td>
-                                        <td class="px-4 py-3 font-medium text-gray-900">{{ $anggaran->nama_item }}</td>
-                                        <td class="px-4 py-3 text-center font-medium">{{ $anggaran->volume_1 ?? '-' }}</td>
+                                        <td class="px-4 py-3 text-center text-sm text-gray-500">{{ $i + 1 }}</td>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $anggaran->nama_item }}</td>
+                                        <td class="px-4 py-3 text-center text-sm font-medium text-gray-900">{{ $anggaran->volume_1 ?? '-' }}</td>
                                         {{-- REFAKTORISASI: Mengubah satuan_primary menjadi satuan_1 --}}
-                                        <td class="px-4 py-3 text-center text-gray-500">{{ $anggaran->satuan_1 ?? '-' }}</td>
-                                        <td class="px-4 py-3 text-center font-medium">{{ $anggaran->volume_2 ?? '-' }}</td>
+                                        <td class="px-4 py-3 text-center text-sm text-gray-500">{{ $anggaran->satuan_1 ?? '-' }}</td>
+                                        <td class="px-4 py-3 text-center text-sm font-medium text-gray-900">{{ $anggaran->volume_2 ?? '-' }}</td>
                                         {{-- REFAKTORISASI: Mengubah satuan_secondary menjadi satuan_2 --}}
-                                        <td class="px-4 py-3 text-center text-gray-500">{{ $anggaran->satuan_2 ?? '-' }}</td>
-                                        <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($anggaran->harga_satuan ?? 0, 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp {{ number_format($anggaran->total_biaya ?? 0, 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-center text-sm text-gray-500">{{ $anggaran->satuan_2 ?? '-' }}</td>
+                                        <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">Rp {{ number_format($anggaran->harga_satuan ?? 0, 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">Rp {{ number_format($anggaran->total_biaya ?? 0, 0, ',', '.') }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -140,7 +140,7 @@
                         </div>
                         <div class="mt-4 flex justify-end">
                             <div class="bg-white border border-gray-200 rounded-lg p-4 text-right min-w-[240px]">
-                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Usulan Biaya:</p>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Usulan Biaya</p>
                                 <p class="text-2xl font-semibold text-primary-600">Rp {{ number_format($pengajuan->kebutuhanAnggarans->sum('total_biaya'), 0, ',', '.') }}</p>
                             </div>
                         </div>
@@ -150,12 +150,12 @@
                     {{-- Informasi Logistik Rumah Tangga --}}
                     @if($pengajuan->fasilitasLogistiks->count() > 0)
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-5">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 mt-0.5 mr-2 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
                             <div>
-                                <p class="text-base font-bold text-gray-800">Kebutuhan Fasilitas Lapangan: <span class="text-primary-600">{{ $pengajuan->fasilitasLogistiks->count() }} Item</span></p>
+                                <p class="text-sm font-semibold text-gray-800">Kebutuhan Fasilitas Lapangan: <span class="text-primary-600">{{ $pengajuan->fasilitasLogistiks->count() }} Item</span></p>
                                 <p class="text-sm text-gray-500 mt-0.5">* Detail permintaan prasarana ruangan otomatis dialirkan ke meja kerja Koordinator RT setelah pengesahan ini.</p>
                             </div>
                         </div>
@@ -180,29 +180,28 @@
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                     <h4 class="text-base font-bold text-gray-800 mb-4">Lembar Kendali Biaya Pejabat PPK</h4>
                     
-                    {{-- 💡 Deklarasi x-data Alpine.js sudah dibersihkan dan siap bekerja --}}
                     <div x-data="{ action: null }" class="space-y-5">
                         {{-- Pilihan Opsi Aksi --}}
                         <div class="flex flex-wrap gap-3">
                             <button @click="action = 'approve'" type="button" 
-                                class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                                :class="action === 'approve' ? 'bg-primary-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'">
+                                class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                                :class="action === 'approve' ? 'bg-green-700 border-transparent text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
                                 Sahkan & Setujui Biaya
                             </button>
                             <button @click="action = 'revisi'" type="button"
-                                class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                                :class="action === 'revisi' ? 'bg-orange-700 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'">
+                                class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                                :class="action === 'revisi' ? 'bg-orange-700 border-transparent text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
                                 Kembalikan Ke PIC (Revisi Biaya)
                             </button>
                             <button @click="action = 'reject'" type="button"
-                                class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                                :class="action === 'reject' ? 'bg-red-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'">
+                                class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                                :class="action === 'reject' ? 'bg-red-600 border-transparent text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -211,46 +210,61 @@
                         </div>
 
                         {{-- Form Submit - Approve --}}
-                        <form x-show="action === 'approve'" x-cloak action="{{ route('approval.ppk.approve', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-4">
+                        <form x-show="action === 'approve'" x-cloak action="{{ route('approval.ppk.approve', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-5">
                             @csrf
-                            <div class="p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-800 leading-relaxed">
-                                Konfirmasi: Dengan mensahkan pagu ini, sistem otomatis menerbitkan entitas Kelas Pelaksanaan Bimtek aktif yang siap dikelola tim PIC Pokja.
+                            <div class="p-3 rounded-lg border text-sm bg-green-50 border-green-100 text-green-800 flex items-start">
+                                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <span class="font-semibold">Konfirmasi:</span> Dengan mensahkan pagu ini, sistem otomatis menerbitkan entitas Kelas Pelaksanaan Bimtek aktif yang siap dikelola tim PIC Pokja.
+                                </div>
                             </div>
                             <div>
                                 <label for="catatan_approve" class="block text-sm font-semibold text-gray-700">Catatan Pengesahan Belanja (Opsional)</label>
                                 <textarea name="catatan" id="catatan_approve" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Tambahkan nomor instruksi SPM / maklumat anggaran jika diperlukan..."></textarea>
                             </div>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-800 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-700 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                                 Sahkan Pagu Anggaran
                             </button>
                         </form>
 
                         {{-- Form Submit - Minta Revisi --}}
-                        <form x-show="action === 'revisi'" x-cloak action="{{ route('approval.ppk.revisi', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-4">
+                        <form x-show="action === 'revisi'" x-cloak action="{{ route('approval.ppk.revisi', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-5">
                             @csrf
-                            <div class="p-3 bg-orange-50 border border-orange-100 rounded-lg text-sm text-orange-800 leading-relaxed">
-                                Catatan Alur: Berkas usulan biaya akan dikembalikan langsung ke meja draf PIC pengaju. Pasca-revisi, berkas otomatis kembali ke antrean PPK tanpa perlu mengulang tanda tangan Kepala Balai.
+                            <div class="p-3 rounded-lg border text-sm bg-orange-50 border-orange-100 text-orange-800 flex items-start">
+                                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <div>
+                                    <span class="font-semibold">Catatan Alur:</span> Berkas usulan biaya akan dikembalikan langsung ke meja draf PIC pengaju. Pasca-revisi, berkas otomatis kembali ke antrean PPK tanpa perlu mengulang tanda tangan Kepala Balai.
+                                </div>
                             </div>
                             <div>
                                 <label for="catatan_revisi" class="block text-sm font-semibold text-gray-700">Rincian Koreksi Pagu SBM <span class="text-red-500">*</span></label>
                                 <textarea name="catatan" id="catatan_revisi" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Jelaskan komponen harga satuan atau volume belanja apa yang wajib dikurangi PIC..." required></textarea>
                             </div>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-800 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-orange-700 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                                 Kembalikan Berkas Belanja
                             </button>
                         </form>
 
                         {{-- Form Submit - Tolak Usulan --}}
-                        <form x-show="action === 'reject'" x-cloak action="{{ route('approval.ppk.reject', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-4">
+                        <form x-show="action === 'reject'" x-cloak action="{{ route('approval.ppk.reject', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-5">
                             @csrf
-                            <div class="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-800 leading-relaxed">
-                                Peringatan: Penolakan ini bersifat permanen. Seluruh rincian kebutuhan komponen belanja dibatalkan dari sistem DIPA berjalan.
+                            <div class="p-3 rounded-lg border text-sm bg-red-50 border-red-100 text-red-800 flex items-start">
+                                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <div>
+                                    <span class="font-semibold">Peringatan:</span> Penolakan ini bersifat permanen. Seluruh rincian kebutuhan komponen belanja dibatalkan dari sistem DIPA berjalan.
+                                </div>
                             </div>
                             <div>
                                 <label for="catatan_reject" class="block text-sm font-semibold text-gray-700">Alasan Penolakan Anggaran Kegiatan <span class="text-red-500">*</span></label>
                                 <textarea name="catatan" id="catatan_reject" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Jelaskan alasan penolakan rasional (misal: Alokasi pagu sub-kegiatan DIPA tahun berjalan sudah habis)..." required></textarea>
                             </div>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                                 Tolak Komponen Anggaran Belanja
                             </button>
                         </form>

@@ -21,7 +21,7 @@
                 {{-- Decorative shapes --}}
                 <div class="absolute inset-0 overflow-hidden">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary-500 opacity-50 transform rotate-45"></div>
-                    <div class="absolute top-20 -left-10 w-32 h-32 bg-primary-700 opacity-30 transform rotate-12"></div>
+                    <div class="absolute top-20 -left-10 w-32 h-32 bg-primary-500 font-semibold opacity-30 transform rotate-12"></div>
                     <div class="absolute bottom-0 right-1/4 w-24 h-24 bg-primary-400 opacity-20 transform -rotate-12"></div>
                 </div>
                 

@@ -9,7 +9,7 @@
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="{{ route('pengajuan.index') }}" class="text-gray-500 hover:text-primary-600 text-sm font-medium transition-colors">
+                        <a href="{{ route('pengajuan.index') }}" class="text-gray-500 hover:text-primary-600 text-sm font-medium">
                             Pengajuan
                         </a>
                     </li>
@@ -57,7 +57,7 @@
                     : 'bg-gray-100 text-gray-800';
             @endphp
             
-            <div class="mb-6 bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+            <div class="mb-6 w-full bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <h3 class="text-lg font-bold text-gray-800 mb-6">Status Alur Birokrasi</h3>
                 
                 {{-- Container Stepper --}}
@@ -91,7 +91,7 @@
                                 
                                 {{-- Garis Progres Aktif --}}
                                 @if($activeIndex > $stepIndex && !$isDitolak && !$isRevisi)
-                                    <div class="absolute left-1/2 top-5 w-full h-1 bg-primary-600 transform -translate-y-1/2 z-0"></div>
+                                    <div class="absolute left-1/2 top-5 w-full h-1 bg-primary-600 transform -translate-y-1/2 z-0 transition-all duration-500"></div>
                                 @endif
                             @endif
 
