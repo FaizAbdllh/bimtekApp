@@ -60,8 +60,33 @@
         $fasilitasData = [['nama' => '', 'jumlah' => 1, 'satuan' => 'Unit', 'satuanCustom' => '']];
     }
     
-    // 💡 PERBAIKAN 1: Membaca dari relasi tabel syaratDokumens
-    $docTypesData = $pengajuan->syaratDokumens ? $pengajuan->syaratDokumens->pluck('nama_dokumen')->toArray() : [];
+    
+    $oldDocNames = old('syarat_dokumen');
+    $oldDocDescriptions = old('deskripsi_syarat', []);
+
+    if ($oldDocNames !== null) {
+        $docTypesData = collect($oldDocNames)
+            ->values()
+            ->map(function ($name, $index) use ($oldDocDescriptions) {
+                return [
+                    'nama' => is_array($name) ? ($name['nama_dokumen'] ?? '') : $name,
+                    'deskripsi' => is_array($name)
+                        ? ($name['deskripsi_syarat'] ?? '')
+                        : ($oldDocDescriptions[$index] ?? ''),
+                ];
+            })
+            ->filter(fn ($doc) => $doc['nama'] !== '')
+            ->values()
+            ->toArray();
+    } else {
+        $docTypesData = $pengajuan->syaratDokumens
+            ->map(fn ($doc) => [
+                'nama' => $doc->nama_dokumen,
+                'deskripsi' => $doc->deskripsi_syarat ?? '',
+            ])
+            ->values()
+            ->toArray();
+    }
 @endphp
 
 @push('head-scripts')
@@ -91,6 +116,7 @@
             // 💡 PERBAIKAN 2: Sinkronisasi draf syarat dokumen
             docTypes: JSON.parse(JSON.stringify(window.initialDocTypes)),
             newDocType: '',
+            newDocDesc: '',
             predefinedDocType: '',
             predefinedOptions: ['Surat Tugas', 'SPPD', 'Sertifikat Pendidikan', 'Izin Atasan', 'Surat Keterangan Sehat'],
             
@@ -202,22 +228,38 @@
                 const value = this.newDocType.trim();
                 if (!value) return;
 
-                const exists = this.docTypes.some((item) => item.toLowerCase() === value.toLowerCase());
+                const exists = this.docTypes.some(
+                    (item) => item.nama.toLowerCase() === value.toLowerCase()
+                );
+
                 if (!exists) {
-                    this.docTypes.push(value);
+                    this.docTypes.push({
+                        nama: value,
+                        deskripsi: this.newDocDesc.trim()
+                    });
                 }
+
                 this.newDocType = '';
+                this.newDocDesc = '';
             },
 
             addPredefinedDocType() {
                 const value = this.predefinedDocType.trim();
                 if (!value) return;
 
-                const exists = this.docTypes.some((item) => item.toLowerCase() === value.toLowerCase());
+                const exists = this.docTypes.some(
+                    (item) => item.nama.toLowerCase() === value.toLowerCase()
+                );
+
                 if (!exists) {
-                    this.docTypes.push(value);
+                    this.docTypes.push({
+                        nama: value,
+                        deskripsi: this.newDocDesc.trim()
+                    });
                 }
+
                 this.predefinedDocType = '';
+                this.newDocDesc = '';
             },
 
             removeDocType(index) {
@@ -422,16 +464,41 @@
                                 <div id="dokumen_options" class="mt-4 ml-7" x-show="butuhVerifikasi && jenisKegiatan === 'eksternal'" x-cloak>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Dokumen yang Wajib Diupload Peserta:</label>
                                     <div class="space-y-2 mb-3" x-show="docTypes.length">
-                                        <template x-for="(jenis, index) in docTypes" :key="jenis">
-                                            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 bg-white">
-                                                <div class="flex items-center">
-                                                    {{-- 💡 PERBAIKAN 3: Disinkronkan ke name="syarat_dokumen[]" --}}
-                                                    <input type="hidden" name="syarat_dokumen[]" :value="jenis" :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
-                                                    <span class="text-sm font-medium text-gray-900" x-text="jenis"></span>
+                                        <template x-for="(doc, index) in docTypes" :key="index">
+                                            <div class="flex flex-col rounded-lg border border-gray-200 px-3 py-2 bg-white">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center">
+                                                        <input type="hidden"
+                                                            name="syarat_dokumen[]"
+                                                            :value="doc.nama"
+                                                            :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+
+                                                        <input type="hidden"
+                                                            name="deskripsi_syarat[]"
+                                                            :value="doc.deskripsi"
+                                                            :disabled="!butuhVerifikasi || jenisKegiatan === 'internal'">
+
+                                                        <span class="text-sm font-medium text-gray-900"
+                                                            x-text="doc.nama"></span>
+                                                    </div>
+
+                                                    <button type="button"
+                                                            class="text-sm font-medium text-red-600 hover:text-red-800"
+                                                            @click="removeDocType(index)">
+                                                        Hapus
+                                                    </button>
                                                 </div>
-                                                <button type="button" class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors" @click="removeDocType(index)">Hapus</button>
+
+                                                <div class="mt-1 text-sm text-gray-500"
+                                                    x-show="doc.deskripsi"
+                                                    x-text="doc.deskripsi"></div>
                                             </div>
                                         </template>
+                                        <textarea x-model="newDocDesc"
+                                                    rows="2"
+                                                    maxlength="500"
+                                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                                                    placeholder="Contoh: Dokumen harus ditandatangani atasan dan dibubuhi cap resmi."></textarea>
                                     </div>
                                     <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                         <div class="space-y-2">

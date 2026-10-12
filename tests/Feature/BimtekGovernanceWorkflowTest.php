@@ -172,11 +172,10 @@ class BimtekGovernanceWorkflowTest extends TestCase
             'mode_pelaksanaan' => 'online',
             'status' => 'persiapan',
         ]);
+
         $response = $this->actingAs($this->pic)
-            ->put(route('bimtek.update', $this->bimtek), [
-                'judul_final' => 'Bimtek Test',
+            ->patch(route('bimtek.virtual-meeting.update', $this->bimtek), [
                 'virtual_meeting_url' => 'https://zoom.us/j/123456',
-                // field wajib lain
             ]);
 
         $response->assertRedirect();
@@ -197,8 +196,7 @@ class BimtekGovernanceWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($this->pic)
-            ->put(route('bimtek.update', $this->bimtek), [
-                'judul_final' => 'Bimtek Test',
+            ->patch(route('bimtek.virtual-meeting.update', $this->bimtek), [
                 'virtual_meeting_url' => 'https://zoom.us/j/new-link',
             ])
             ->assertRedirect()
@@ -207,6 +205,59 @@ class BimtekGovernanceWorkflowTest extends TestCase
         $this->assertDatabaseHas('bimteks', [
             'id' => $this->bimtek->id,
             'virtual_meeting_url' => 'https://zoom.us/j/old-link',
+        ]);
+    }
+   
+    #[Test]
+    public function pic_can_toggle_certificate_feature(): void
+    {
+        $response = $this->actingAs($this->pic)
+            ->patch(route('bimtek.toggle-sertifikat', $this->bimtek), [
+                'has_sertifikat' => '1',
+            ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('bimteks', [
+            'id' => $this->bimtek->id,
+            'has_sertifikat' => true,
+        ]);
+    }
+    
+    #[Test]
+    public function certificate_feature_cannot_be_changed_after_registration(): void
+    {
+        $this->bimtek->update([
+            'status' => 'registrasi',
+            'has_sertifikat' => false,
+        ]);
+
+        $this->actingAs($this->pic)
+            ->patch(route('bimtek.toggle-sertifikat', $this->bimtek), [
+                'has_sertifikat' => '1',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('bimteks', [
+            'id' => $this->bimtek->id,
+            'has_sertifikat' => false,
+        ]);
+    }
+
+    #[Test]
+    public function pic_can_update_rundown(): void
+    {
+        $response = $this->actingAs($this->pic)
+            ->patch(route('bimtek.rundown.update', $this->bimtek), [
+                'deskripsi_jadwal' => '08.00 Registrasi peserta',
+            ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('bimteks', [
+            'id' => $this->bimtek->id,
+            'deskripsi_jadwal' => '08.00 Registrasi peserta',
         ]);
     }
 }

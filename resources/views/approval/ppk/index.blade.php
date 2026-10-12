@@ -105,7 +105,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                         <a href="{{ route('approval.ppk.show', $pengajuan->id) }}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-800 text-white font-semibold rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                                             @if($pengajuan->status === 'disetujui_kepala')
-                                                Review Pagu
+                                                Review Anggaran
                                             @else
                                                 Lihat Ringkasan
                                             @endif

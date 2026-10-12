@@ -106,7 +106,6 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/', [BimtekController::class, 'index'])->name('index');
     Route::post('/{bimtek}/assign-panitia', [BimtekController::class, 'assignPanitia'])->name('assign-panitia');
     Route::post('/{bimtek}/remove-peserta/{user}', [BimtekController::class, 'removePeserta'])->name('remove-peserta');
-    Route::patch('/{bimtek}/pemateri', [BimtekController::class, 'updatePemateri'])->name('pemateri.update');
     Route::post('/{bimtek}/add-pemateri', [BimtekController::class, 'storePemateri'])->name('add-pemateri');
     Route::delete('/{bimtek}/remove-pemateri/{pemateri}', [BimtekController::class, 'destroyPemateri'])->name('remove-pemateri');
     Route::post('/{bimtek}/ajukan-revisi', [BimtekController::class, 'requestRevisi'])->name('request-revisi');
@@ -116,8 +115,11 @@ Route::middleware(['auth'])->prefix('bimtek')->name('bimtek.')->group(function (
     Route::get('/{bimtek}/preview-draft', [BimtekController::class, 'previewDraft'])->name('preview-draft');
     Route::get('/{bimtek}/download-draft', [BimtekController::class, 'downloadDraft'])->name('download-draft');
     Route::patch('/{bimtek}/toggle-tugas', [BimtekController::class, 'toggleTugas'])->name('toggle-tugas');
+    Route::patch('/{bimtek}/toggle-sertifikat', [BimtekController::class, 'toggleSertifikat'])->name('toggle-sertifikat');
     Route::get('/{bimtek}/edit', [BimtekController::class, 'edit'])->name('edit');
     Route::put('/{bimtek}', [BimtekController::class, 'update'])->name('update');
+    Route::patch('/{bimtek}/virtual-meeting', [BimtekController::class, 'updateVirtualMeeting'])->name('virtual-meeting.update');
+    Route::patch('/{bimtek}/rundown', [BimtekController::class, 'updateRundown'])->name('rundown.update');
 
     // Verifikasi Dokumen & Manajemen Peserta
     Route::get('/{bimtek}/verifikasi-dokumen', [\App\Http\Controllers\VerifikasiDokumenController::class, 'index'])->name('verifikasi-dokumen.index');

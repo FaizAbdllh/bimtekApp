@@ -35,7 +35,51 @@
                     @else
 
                         {{-- JIKA KELAS HYBRID: TAMPILKAN SWITCHER PILIHAN METODE --}}
-                        @if($bimtek->mode_pelaksanaan === 'hybrid')
+                        @if($bimtek->mode_pelaksanaan === 'online')
+                            {{-- JIKA KELAS ONLINE MURNI (HANYA UPLOAD BUKTI) --}}
+                            <div class="space-y-6">
+                                <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-5">
+                                    <h3 class="font-bold text-indigo-900 mb-2 text-xs uppercase tracking-wider">
+                                        Ketentuan Kehadiran Online:
+                                    </h3>
+
+                                    <p class="text-xs text-indigo-800 font-medium leading-relaxed">
+                                        Unggah tangkapan layar saat Anda aktif mengikuti ruang virtual
+                                        Zoom atau Google Meet. Pastikan nama akun atau wajah Anda terlihat jelas.
+                                    </p>
+                                </div>
+
+                                <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek->id, $sesi->id]) }}"
+                                    method="POST"
+                                    enctype="multipart/form-data"
+                                    class="space-y-4">
+                                    @csrf
+
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                                            File Screenshot (JPG, PNG, maksimal 4 MB)
+                                        </label>
+
+                                        <input type="file"
+                                            name="bukti_hadir_online"
+                                            accept="image/png,image/jpeg,image/jpg"
+                                            required
+                                            class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-50 file:text-primary-700 border border-gray-300 rounded-xl">
+
+                                        @error('bukti_hadir_online')
+                                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <button type="submit"
+                                            class="w-full py-3.5 bg-primary-600 hover:bg-primary-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow">
+                                        Kirim Bukti Kehadiran Online
+                                    </button>
+                                </form>
+                            </div>
+
+                        @elseif($bimtek->mode_pelaksanaan === 'hybrid')
+                            {{-- JIKA KELAS HYBRID (PILIH QR ATAU UPLOAD ONLINE) --}}
                             <div x-data="{ method: 'qr' }" class="space-y-6">
                                 <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                                     <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">Pilih Metode Kehadiran Anda</p>
@@ -97,27 +141,46 @@
                                 {{-- PANEL 2: UPLOAD SCREENSHOT ONLINE --}}
                                 <div x-show="method === 'online'" class="space-y-6" style="display: none;">
                                     <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-5">
-                                        <h3 class="font-bold text-indigo-900 mb-2 text-xs uppercase tracking-wider">Ketentuan Kehadiran Online:</h3>
+                                        <h3 class="font-bold text-indigo-900 mb-2 text-xs uppercase tracking-wider">
+                                            Ketentuan Kehadiran Online:
+                                        </h3>
+
                                         <p class="text-xs text-indigo-800 font-medium leading-relaxed">
-                                            Unggah tangkapan layar (*screenshot*) saat Anda aktif mengikuti ruang virtual (Zoom/Meet). Pastikan nama akun atau wajah Anda terlihat jelas pada bukti gambar.
+                                            Unggah tangkapan layar saat Anda aktif mengikuti ruang virtual
+                                            Zoom atau Google Meet. Pastikan nama akun atau wajah Anda terlihat jelas.
                                         </p>
                                     </div>
 
-                                    <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek->id, $sesi->id]) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                    <form action="{{ route('bimtek.absensi.hadir-online', [$bimtek->id, $sesi->id]) }}"
+                                        method="POST"
+                                        enctype="multipart/form-data"
+                                        class="space-y-4">
                                         @csrf
+
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-700 mb-1">File Screenshot (JPG, PNG, maks 4MB)</label>
-                                            <input type="file" name="bukti_hadir_online" accept="image/png,image/jpeg,image/jpg" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 border border-gray-300 rounded-xl">
+                                            <label class="block text-xs font-semibold text-gray-700 mb-1">
+                                                File Screenshot (JPG, PNG, maksimal 4 MB)
+                                            </label>
+
+                                            <input type="file"
+                                                name="bukti_hadir_online"
+                                                accept="image/png,image/jpeg,image/jpg"
+                                                required
+                                                class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-50 file:text-primary-700 border border-gray-300 rounded-xl">
+
                                             @error('bukti_hadir_online')
                                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
-                                        <button type="submit" class="w-full py-3.5 bg-primary-600 hover:bg-primary-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow">
+
+                                        <button type="submit"
+                                                class="w-full py-3.5 bg-primary-600 hover:bg-primary-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow">
                                             Kirim Bukti Kehadiran Online
                                         </button>
                                     </form>
                                 </div>
                             </div>
+
                         @else
                             {{-- JIKA KELAS OFFLINE MURNI (HANYA SCANNER QR) --}}
                             <div class="space-y-6">
@@ -166,7 +229,7 @@
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                             </svg>
                             <div>
-                                <p class="text-xs font-bold text-gray-900 uppercase tracking-wide">Maklumat Validasi Keamanan</p>
+                                <p class="text-xs font-bold text-gray-900 uppercase tracking-wide">Informasi Validasi Keamanan</p>
                                 <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">
                                     Token sandi lembar QR Code presensi diperbarui secara dinamis oleh sistem dan hanya dapat divalidasi jika perangkat Anda terverifikasi dalam kegiatan resmi BBPMP Sumatera Barat.
                                 </p>

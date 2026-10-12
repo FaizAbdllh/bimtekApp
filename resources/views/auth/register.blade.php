@@ -3,7 +3,7 @@
         
         {{-- Header Visual Registrasi --}}
         <div class="text-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">Registrasi Peserta Luar</h2>
+            <h2 class="text-xl font-bold text-gray-800">Form Registrasi Peserta</h2>
             
             @if($bimtek->butuh_verifikasi_dokumen)
                 <p class="text-sm text-gray-500 mt-1">

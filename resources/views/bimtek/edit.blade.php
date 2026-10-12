@@ -84,28 +84,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Tautan URL Virtual Meeting --}}
-                            @if(in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid']))
-                                <div class="md:col-span-2">
-                                    <label for="virtual_meeting_url" class="block text-sm font-semibold text-gray-700 mb-1">Tautan Media Virtual Rapat (Zoom / Google Meet)</label>
-                                    <input type="url" name="virtual_meeting_url" id="virtual_meeting_url"
-                                        value="{{ old('virtual_meeting_url', $bimtek->virtual_meeting_url) }}"
-                                        placeholder="https://us02web.zoom.us/j/xxxxxxxx"
-                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('virtual_meeting_url') border-red-500 @enderror text-sm"
-                                        {{ !$isVirtualMeetingEditable ? 'readonly bg-gray-50 text-gray-500' : '' }}>
-                                    @error('virtual_meeting_url')
-                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                    @enderror
-                                    <p class="text-[11px] text-gray-400 mt-1">
-                                        @if($isVirtualMeetingEditable)
-                                            Link wajib diisi untuk mode Online/Hybrid sebelum registrasi dibuka.
-                                        @else
-                                            Link virtual meeting terkunci karena kelas sudah melewati fase Persiapan.
-                                        @endif
-                                    </p>
-                                </div>
-                            @endif
-                            
 
                             {{-- Anggaran Dana Terkunci --}}
                             <div>
@@ -121,96 +99,7 @@
                                 <p class="text-[11px] text-gray-400 mt-1">Pagu dana dikunci otomatis sesuai keputusan final meja review pejabat PPK.</p>
                             </div>
 
-                            {{-- Status Pelaksanaan Dropdown --}}
-                            <div>
-                                <label for="status" class="block text-sm font-semibold text-gray-400 mb-1">Status Alur Pelaksanaan (Kunci Sistem)</label>
-                                <select id="status" disabled class="w-full rounded-xl border-gray-200 bg-gray-50 text-gray-400 font-medium text-sm py-2">
-                                    @foreach($statusOptions as $value => $label)
-                                        <option value="{{ $value }}" {{ old('status', $bimtek->status) == $value ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <p class="text-[11px] text-gray-400 mt-1">Perubahan status wajib dilakukan via tombol interaktif di halaman detail utama kelas.</p>
-                            </div>
-
-                            {{-- Deskripsi Rundown Acara Aktual --}}
-                            <div class="md:col-span-2">
-                                <label for="deskripsi_jadwal" class="block text-sm font-semibold text-gray-700 mb-1">Deskripsi Ringkas Rundown Jadwal Aktual</label>
-                                <textarea name="deskripsi_jadwal" id="deskripsi_jadwal" rows="4" placeholder="Tuliskan detail jam pelaksanaan materi atau tautan menuju draf berkas eksternal lainnya..."
-                                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('deskripsi_jadwal') border-red-500 @enderror text-sm"
-                                    {{ !$isEditable ? 'readonly bg-gray-50 text-gray-500' : '' }}>{{ old('deskripsi_jadwal', $bimtek->deskripsi_jadwal) }}</textarea>
-                                @error('deskripsi_jadwal')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Sub-Modul Input Array Nama Pemateri (Alpine.js) --}}
-                            <div class="md:col-span-2 pt-4 border-t border-gray-100">
-                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-1">Daftar Pengisi Acara / Pemateri</h3>
-                                <p class="text-xs text-gray-400">Masukkan nama instruktur narasumber beserta instansi asal untuk rekap berkas pertanggungjawaban.</p>
-                            </div>
-
-                            <div class="md:col-span-2" x-data="{ items: @json(old('daftar_pemateri', $bimtek->daftar_pemateri ?? [])) }" x-init="if (items.length === 0) items.push({ nama: '', asal_instansi: '' })">
-                                <div class="space-y-3">
-                                    <template x-for="(item, index) in items" :key="index">
-                                        <div class="grid grid-cols-1 sm:grid-cols-7 gap-3 items-end bg-gray-50/50 border border-gray-100 p-3 rounded-xl shadow-sm">
-                                            <div class="sm:col-span-3">
-                                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Nama Narasumber</label>
-                                                <input type="text" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1.5"
-                                                    :name="'daftar_pemateri[' + index + '][nama]'" x-model="item.nama" placeholder="Nama lengkap & gelar..." required {{ !$isEditable ? 'disabled' : '' }}>
-                                            </div>
-                                            <div class="sm:col-span-3">
-                                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Asal Instansi / Unit Kerja</label>
-                                                <input type="text" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1.5"
-                                                    :name="'daftar_pemateri[' + index + '][asal_instansi]'" x-model="item.asal_instansi" placeholder="Misal: Widyaprada BBPMP Sumbar..." {{ !$isEditable ? 'disabled' : '' }}>
-                                            </div>
-                                            <div class="sm:col-span-1 flex items-end">
-                                                @if($isEditable)
-                                                    <button type="button" class="w-full py-1.5 text-xs font-bold text-red-700 bg-red-50 border border-red-100 hover:bg-red-100 rounded-lg transition"
-                                                        @click="items.splice(index, 1)" x-show="items.length > 1">
-                                                        Hapus
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                @if($isEditable)
-                                    <button type="button" class="mt-3 inline-flex items-center px-3 py-1.5 border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-bold transition shadow-sm"
-                                        @click="items.push({ nama: '', asal_instansi: '' })">
-                                        + Tambah Baris Narasumber
-                                    </button>
-                                @endif
-                            </div>
                             
-                            {{-- Aturan Batas Kelulusan & Konfigurasi Fitur Sertifikasi --}}
-                            <div class="md:col-span-2 pt-4 border-t border-gray-100">
-                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-1">Konfigurasi Hak Fitur Kelas</h3>
-                            </div>
-
-                            <div class="md:col-span-2 space-y-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="has_tugas" value="1"
-                                        {{ old('has_tugas', $bimtek->has_tugas ?? true) ? 'checked' : '' }}
-                                        class="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500"
-                                        {{ !$isEditable ? 'disabled' : '' }}>
-                                    <span class="ml-2 text-sm font-semibold text-gray-700">Aktifkan Modul Unggah Lembar Tugas Peserta</span>
-                                </label>
-                                <p class="text-xs text-gray-400 ml-6">Jika dinonaktifkan, tab Tugas pada dasbor utama peserta akan disembunyikan penuh.</p>
-                            </div>
-
-                            <div class="md:col-span-2 space-y-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="has_sertifikat" value="1"
-                                        {{ old('has_sertifikat', $bimtek->has_sertifikat ?? true) ? 'checked' : '' }}
-                                        class="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500"
-                                        {{ !$isEditable ? 'disabled' : '' }}>
-                                    <span class="ml-2 text-sm font-semibold text-gray-700">Aktifkan Kelulusan Penerbitan E-Sertifikat</span>
-                                </label>
-                                <p class="text-xs text-gray-400 ml-6">Jika dicentang, peserta yang memenuhi kriteria kehadiran dapat langsung mengunduh file sertifikat.</p>
-                            </div>
                         </div>
 
                         {{-- Ringkasan Riwayat Perencanaan Pembuat Awal ( Read-Only Baseline ) --}}
@@ -232,6 +121,10 @@
                                 <div>
                                     <span class="font-bold text-gray-600">Rencana Tempat:</span>
                                     <span class="ml-1 font-medium">{{ $bimtek->tempat_kegiatan_rencana ?? '-' }}</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-gray-600">Total Pagu Dana DIPA Disetujui:</span>
+                                    <span class="ml-1 font-medium">{{ number_format($bimtek->kebutuhanAnggarans->sum('total_biaya') ?? 0, 0, ',', '.') }}</span>
                                 </div>
                             </div>
                         </div>

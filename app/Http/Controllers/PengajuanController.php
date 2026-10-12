@@ -286,20 +286,25 @@ class PengajuanController extends Controller
             // Bersihkan baris lama terlebih dahulu
             DB::table('syarat_dokumens')->where('bimtek_id', $pengajuan->id)->delete();
 
-            if ($validated['butuh_verifikasi_dokumen'] && $request->filled('syarat_dokumen')) {
-                foreach ($request->input('syarat_dokumen') as $doc) {
-                    if (empty($doc)) continue;
+            $documentNames = $request->input('syarat_dokumen', []);
+            $documentDescriptions = $request->input('deskripsi_syarat', []);
 
-                    $namaDokumen = is_array($doc) ? ($doc['nama_dokumen'] ?? '') : $doc;
-                    $deskripsi   = is_array($doc) ? ($doc['deskripsi_syarat'] ?? null) : null;
-                    $isWajib     = is_array($doc) ? (isset($doc['is_wajib']) ? 1 : 0) : 1;
+            if ($validated['butuh_verifikasi_dokumen'] && !empty($documentNames)) {
+                foreach ($documentNames as $index => $document) {
+                    $namaDokumen = is_array($document)
+                        ? ($document['nama_dokumen'] ?? '')
+                        : $document;
 
-                    if (!empty($namaDokumen)) {
+                    $deskripsi = is_array($document)
+                        ? ($document['deskripsi_syarat'] ?? null)
+                        : ($documentDescriptions[$index] ?? null);
+
+                    if ($namaDokumen !== '') {
                         SyaratDokumen::create([
-                            'bimtek_id'        => $pengajuan->id,
-                            'nama_dokumen'     => $namaDokumen,
+                            'bimtek_id' => $pengajuan->id,
+                            'nama_dokumen' => $namaDokumen,
                             'deskripsi_syarat' => $deskripsi,
-                            'is_wajib'         => $isWajib,
+                            'is_wajib' => 1,
                         ]);
                     }
                 }

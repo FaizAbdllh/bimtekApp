@@ -9,7 +9,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class AbsensiController extends Controller
@@ -244,10 +243,7 @@ class AbsensiController extends Controller
             abort(404);
         }
 
-        if ($bimtek->mode_pelaksanaan === 'online') {
-            return Redirect::route('bimtek.absensi.show', [$bimtek->id, $sesi->id])
-                ->with('error', 'Bimtek mode online menggunakan presensi langsung. Silakan klik tombol Hadir Online.');
-        }
+        
 
         $hasAttended = AbsensiPeserta::where('sesi_absensi_id', $sesi->id)
             ->where('user_id', Auth::id())

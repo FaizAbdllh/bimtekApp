@@ -191,16 +191,13 @@ class BimtekController extends Controller
         $validated = $request->validate([
             'judul_final' => 'required|string|max:255',
             'lokasi_aktual' => 'nullable|string|max:255',
-            'virtual_meeting_url' => 'nullable|url|max:500',
             'tanggal_mulai_aktual' => 'nullable|date',
             'tanggal_selesai_aktual' => 'nullable|date|after_or_equal:tanggal_mulai_aktual',
-            'deskripsi_jadwal' => 'nullable|string',
             'status' => 'nullable|in:persiapan,registrasi,persiapan_selesai,berlangsung,selesai,dibatalkan',
             'anggaran_disetujui' => 'nullable|numeric|min:0',
             'syarat_kehadiran_persen' => 'nullable|integer|min:0|max:100',
             'syarat_tugas_persen' => 'nullable|integer|min:0|max:100',
             'has_tugas' => 'boolean',
-            'has_sertifikat' => 'boolean',
             'syarat_tugas_wajib' => 'boolean',
             'daftar_pemateri' => 'nullable|array',
             'daftar_pemateri.*.nama' => 'nullable|string|max:255',
@@ -209,7 +206,6 @@ class BimtekController extends Controller
     
         $validated['syarat_tugas_wajib'] = $request->boolean('syarat_tugas_wajib');
         $validated['has_tugas'] = $request->boolean('has_tugas');
-        $validated['has_sertifikat'] = $request->boolean('has_sertifikat');
 
         // Mencegah bypass status ilegal lewat form input standar
         if (isset($validated['status']) && $validated['status'] !== $bimtek->status) {
@@ -557,9 +553,14 @@ class BimtekController extends Controller
     
     public function toggleTugas(Request $request, Bimtek $bimtek)
     {
+        $this->authorizePicPanitia($bimtek);
+
         // Kunci Validasi: Hanya bisa diubah saat fase persiapan
-        if (!$bimtek->isEditable()) {
-            return back()->with('error', 'Konfigurasi penugasan tidak dapat diubah karena kelas sudah melewati fase persiapan.');
+        if ($bimtek->status !== 'persiapan') {
+            return back()->with(
+                'error',
+                'Konfigurasi fitur hanya dapat diubah selama fase Persiapan.'
+            );
         }
 
         // Ambil nilai dari input hidden alpine.js (1 atau 0)
@@ -575,6 +576,98 @@ class BimtekController extends Controller
 
         return back()->with('success', $pesan);
     }
+
+    public function toggleSertifikat(Request $request, Bimtek $bimtek): RedirectResponse
+    {
+        $this->authorizePicPanitia($bimtek);
+
+        if ($bimtek->status !== 'persiapan') {
+            return back()->with(
+                'error',
+                'Konfigurasi sertifikat hanya dapat diubah selama fase Persiapan.'
+            );
+        }
+
+        $hasSertifikat = $request->boolean('has_sertifikat');
+
+        $bimtek->update([
+            'has_sertifikat' => $hasSertifikat,
+        ]);
+
+        return back()->with(
+            'success',
+            $hasSertifikat
+                ? 'Fitur e-sertifikat berhasil diaktifkan.'
+                : 'Fitur e-sertifikat berhasil dinonaktifkan.'
+        );
+    }
+
+    public function updateVirtualMeeting(Request $request, Bimtek $bimtek): RedirectResponse
+    {
+        // Hanya PIC atau panitia yang boleh menambahkan link
+        $this->authorizePicPanitia($bimtek);
+
+        // Link hanya boleh ditambahkan pada fase Persiapan
+        if ($bimtek->status !== 'persiapan') {
+            return back()->with(
+                'error',
+                'Link virtual meeting hanya dapat ditambahkan selama fase Persiapan.'
+            );
+        }
+
+        // Hanya relevan untuk kegiatan Online atau Hybrid
+        if (! in_array($bimtek->mode_pelaksanaan, ['online', 'hybrid'])) {
+            return back()->with(
+                'error',
+                'Link virtual meeting hanya berlaku untuk kegiatan Online atau Hybrid.'
+            );
+        }
+
+        // Validasi URL
+        $validated = $request->validate([
+            'virtual_meeting_url' => 'required|url|max:500',
+        ], [
+            'virtual_meeting_url.required' => 'Link virtual meeting wajib diisi.',
+            'virtual_meeting_url.url' => 'Format link virtual meeting tidak valid.',
+            'virtual_meeting_url.max' => 'Link virtual meeting terlalu panjang.',
+        ]);
+
+        
+
+        $bimtek->update([
+            'virtual_meeting_url' => $validated['virtual_meeting_url'],
+        ]);
+
+        return back()->with(
+            'success',
+            'Link virtual meeting berhasil ditambahkan.'
+        );
+    }
+
+    public function updateRundown(Request $request, Bimtek $bimtek): RedirectResponse
+    {
+        $this->authorizePicPanitia($bimtek);
+
+        if (! $bimtek->isEditable()) {
+            return back()->with(
+                'error',
+                'Rundown hanya dapat diubah selama tahap Persiapan, Registrasi, atau Persiapan Selesai.'
+            );
+        }
+
+        $validated = $request->validate([
+            'deskripsi_jadwal' => 'nullable|string|max:10000',
+        ], [
+            'deskripsi_jadwal.max' => 'Deskripsi rundown terlalu panjang.',
+        ]);
+
+        $bimtek->update([
+            'deskripsi_jadwal' => $validated['deskripsi_jadwal'] ?? null,
+        ]);
+
+        return back()->with('success', 'Rundown pelaksanaan berhasil diperbarui.');
+    }
+
     /**
      * Access Gate Protections (Refaktorisasi Basis Relasi Terpisah)
      */
