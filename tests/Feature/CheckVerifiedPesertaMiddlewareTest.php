@@ -109,22 +109,39 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $response->assertOk();
     }
 
+    
     #[Test]
     public function invited_peserta_redirected_to_upload_form_from_absensi()
     {
         $response = $this->actingAs($this->pesertaInvited)
             ->get(route('bimtek.absensi.index', $this->bimtekWithVerification));
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(
+            route(
+                'bimtek.verifikasi-dokumen.upload-form',
+                $this->bimtekWithVerification
+            )
+        );
+
+        $response->assertSessionHas(
+            'info',
+            'Silakan unggah dokumen persyaratan terlebih dahulu.'
+        );
     }
 
+
     #[Test]
-    public function pending_peserta_redirected_to_upload_form_from_tugas()
+    public function pending_peserta_redirected_to_dashboard()
     {
         $response = $this->actingAs($this->pesertaPending)
             ->get(route('bimtek.tugas.index', $this->bimtekWithVerification));
 
         $response->assertRedirect(route('dashboard'));
+
+        $response->assertSessionHas(
+            'info',
+            'Dokumen Anda sedang menunggu pemeriksaan panitia.'
+        );
     }
 
     #[Test]
@@ -174,7 +191,16 @@ class CheckVerifiedPesertaMiddlewareTest extends TestCase
         $response = $this->actingAs($this->pesertaInvited)
             ->get(route('bimtek.tugas.show', [$this->bimtekWithVerification, $tugas]));
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(
+            route(
+                'bimtek.verifikasi-dokumen.upload-form',
+                $this->bimtekWithVerification
+            )
+        );
+        $response->assertSessionHas(
+            'info',
+            'Silakan unggah dokumen persyaratan terlebih dahulu.'
+        );
     }
 
     #[Test]

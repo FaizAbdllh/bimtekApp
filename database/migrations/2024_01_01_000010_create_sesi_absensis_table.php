@@ -21,6 +21,8 @@ return new class extends Migration
             
             // Payload string QR Code (Hanya menyimpan data string QR-nya saja)
             $table->text('qr_code')->nullable();
+            $table->timestamp('qr_generated_at')->nullable();
+            $table->timestamp('qr_expires_at')->nullable();
             
             // FK ke users (PIC/Panitia yang membuka sesi)
             $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');

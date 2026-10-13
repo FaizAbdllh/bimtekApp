@@ -89,6 +89,7 @@ class VerifikasiDokumenControllerTest extends TestCase
     #[Test]
     public function non_peserta_gets_403_on_upload_form()
     {
+        /** @var \App\Models\User $otherUser */
         $otherUser = User::factory()->create(['role_id' => $this->rolePeserta->id]);
 
         $response = $this->actingAs($otherUser)

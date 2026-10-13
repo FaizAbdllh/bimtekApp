@@ -4,7 +4,9 @@ namespace Tests\Unit;
 
 use App\Models\Bimtek;
 use App\Models\DokumenPersyaratanPeserta;
+use App\Models\SyaratDokumen;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,17 +15,47 @@ use Tests\TestCase;
 class DokumenPersyaratanPesertaTest extends TestCase
 {
     use RefreshDatabase;
+   
+
+    private function prepareDokumenData(): array
+    {
+        $rolePeserta = Role::create([
+            'nama_peran' => 'Peserta Eksternal',
+        ]);
+
+        $bimtek = Bimtek::factory()->create();
+
+        $user = User::factory()->create([
+            'role_id' => $rolePeserta->id,
+        ]);
+
+        $syaratDokumen = SyaratDokumen::create([
+            'bimtek_id' => $bimtek->id,
+            'nama_dokumen' => 'Surat Tugas',
+            'is_wajib' => true,
+        ]);
+
+        $bimtek->peserta()->attach($user->id, [
+            'status_verifikasi' => 'invited',
+        ]);
+
+        return [
+            'bimtek' => $bimtek,
+            'user' => $user,
+            'syarat_dokumen' => $syaratDokumen,
+            'role_peserta' => $rolePeserta,
+        ];
+    }
 
     #[Test]
     public function it_belongs_to_bimtek()
     {
-        $bimtek = Bimtek::factory()->create();
-        $user = User::factory()->create();
+        $data = $this->prepareDokumenData();
 
         $dokumen = DokumenPersyaratanPeserta::create([
-            'bimtek_id' => $bimtek->id,
-            'user_id' => $user->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'bimtek_id' => $data['bimtek']->id,
+            'user_id' => $data['user']->id,
+            'syarat_dokumen_id' => $data['syarat_dokumen']->id,
             'file_path' => 'test/file.pdf',
             'file_name' => 'file.pdf',
             'status' => 'pending',
@@ -31,19 +63,18 @@ class DokumenPersyaratanPesertaTest extends TestCase
         ]);
 
         $this->assertInstanceOf(Bimtek::class, $dokumen->bimtek);
-        $this->assertEquals($bimtek->id, $dokumen->bimtek->id);
+        $this->assertEquals($data['bimtek']->id, $dokumen->bimtek->id);
     }
 
     #[Test]
     public function it_belongs_to_user_uploader()
     {
-        $bimtek = Bimtek::factory()->create();
-        $user = User::factory()->create();
+        $data = $this->prepareDokumenData();
 
         $dokumen = DokumenPersyaratanPeserta::create([
-            'bimtek_id' => $bimtek->id,
-            'user_id' => $user->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'bimtek_id' => $data['bimtek']->id,
+            'user_id' => $data['user']->id,
+            'syarat_dokumen_id' => $data['syarat_dokumen']->id,
             'file_path' => 'test/file.pdf',
             'file_name' => 'file.pdf',
             'status' => 'pending',
@@ -51,20 +82,22 @@ class DokumenPersyaratanPesertaTest extends TestCase
         ]);
 
         $this->assertInstanceOf(User::class, $dokumen->user);
-        $this->assertEquals($user->id, $dokumen->user->id);
+        $this->assertEquals($data['user']->id, $dokumen->user->id);
     }
+
 
     #[Test]
     public function it_belongs_to_verifier()
     {
-        $bimtek = Bimtek::factory()->create();
-        $user = User::factory()->create();
-        $verifier = User::factory()->create();
+        $data = $this->prepareDokumenData();
+        $verifier = User::factory()->create([
+            'role_id' => $data['role_peserta']->id,
+        ]);
 
         $dokumen = DokumenPersyaratanPeserta::create([
-            'bimtek_id' => $bimtek->id,
-            'user_id' => $user->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'bimtek_id' => $data['bimtek']->id,
+            'user_id' => $data['user']->id,
+            'syarat_dokumen_id' => $data['syarat_dokumen']->id,
             'file_path' => 'test/file.pdf',
             'file_name' => 'file.pdf',
             'status' => 'approved',
@@ -117,42 +150,52 @@ class DokumenPersyaratanPesertaTest extends TestCase
         $this->assertEquals($expectedUrl, $dokumen->file_url);
     }
 
+
     #[Test]
     public function casts_uploaded_at_as_datetime()
     {
-        $bimtek = Bimtek::factory()->create();
-        $user = User::factory()->create();
+        $data = $this->prepareDokumenData();
 
         $dokumen = DokumenPersyaratanPeserta::create([
-            'bimtek_id' => $bimtek->id,
-            'user_id' => $user->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'bimtek_id' => $data['bimtek']->id,
+            'user_id' => $data['user']->id,
+            'syarat_dokumen_id' => $data['syarat_dokumen']->id,
             'file_path' => 'test/file.pdf',
             'file_name' => 'file.pdf',
             'status' => 'pending',
             'uploaded_at' => '2026-02-04 10:00:00',
         ]);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $dokumen->uploaded_at);
+        $this->assertInstanceOf(
+            \Illuminate\Support\Carbon::class,
+            $dokumen->uploaded_at
+        );
     }
+
 
     #[Test]
     public function casts_verified_at_as_datetime()
     {
-        $bimtek = Bimtek::factory()->create();
-        $user = User::factory()->create();
+        $data = $this->prepareDokumenData();
+        $verifier = User::factory()->create([
+            'role_id' => $data['role_peserta']->id,
+        ]);
 
         $dokumen = DokumenPersyaratanPeserta::create([
-            'bimtek_id' => $bimtek->id,
-            'user_id' => $user->id,
-            'jenis_dokumen' => 'surat_tugas',
+            'bimtek_id' => $data['bimtek']->id,
+            'user_id' => $data['user']->id,
+            'syarat_dokumen_id' => $data['syarat_dokumen']->id,
             'file_path' => 'test/file.pdf',
             'file_name' => 'file.pdf',
             'status' => 'approved',
+            'verified_by' => $verifier->id,
             'verified_at' => '2026-02-04 11:00:00',
             'uploaded_at' => now(),
         ]);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $dokumen->verified_at);
+        $this->assertInstanceOf(
+            \Illuminate\Support\Carbon::class,
+            $dokumen->verified_at
+        );
     }
 }

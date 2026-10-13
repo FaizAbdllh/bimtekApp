@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Bimtek;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +16,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
+        if ($request->filled('invite_code')) {
+            session(['pending_invite_code' => $request->query('invite_code')]);
+        }
+
         return view('auth.login');
     }
 
@@ -32,7 +38,47 @@ class AuthenticatedSessionController extends Controller
         // Log aktivitas login
         \App\Models\LogSistem::info('Login berhasil', auth()->id());
 
-        // Redirect berdasarkan role
+        $inviteCode = $request->session()->pull('pending_invite_code');
+
+        if ($inviteCode) {
+            $bimtek = Bimtek::where('invite_code', $inviteCode)->first();
+
+            if ($bimtek && $bimtek->status === 'registrasi') {
+                $user = Auth::user();
+
+                $isParticipant = DB::table('bimtek_pesertas')
+                    ->where('bimtek_id', $bimtek->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
+
+                if (! $isParticipant) {
+                    DB::table('bimtek_pesertas')->insert([
+                        'bimtek_id' => $bimtek->id,
+                        'user_id' => $user->id,
+                        'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen
+                            ? 'invited'
+                            : 'verified',
+                        'notified_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                $status = DB::table('bimtek_pesertas')
+                    ->where('bimtek_id', $bimtek->id)
+                    ->where('user_id', $user->id)
+                    ->value('status_verifikasi');
+
+                if ($bimtek->butuh_verifikasi_dokumen && $status !== 'verified') {
+                    return redirect()
+                        ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
+                        ->with('success', 'Akun berhasil dihubungkan ke bimtek.');
+                }
+
+                return redirect()->route('bimtek.show', $bimtek->id);
+            }
+        }
+
         return $this->redirectBasedOnRole();
     }
 

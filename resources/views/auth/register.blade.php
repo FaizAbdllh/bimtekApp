@@ -127,6 +127,15 @@
                     {{ $bimtek->butuh_verifikasi_dokumen ? 'Daftar & Ajukan Berkas' : 'Daftar Akun Baru' }}
                 </button>
             </div>
+            <div class="pt-4 border-t border-gray-200 text-center">
+                <p class="text-sm text-gray-500">
+                    Sudah memiliki akun?
+                    <a href="{{ route('login', ['invite_code' => $inviteCode]) }}"
+                    class="font-semibold text-primary-600 hover:text-primary-800">
+                        Login untuk mengikuti bimtek ini
+                    </a>
+                </p>
+            </div>
         </form>
 
         {{-- Footer Pindah Jalur ke Login --}}

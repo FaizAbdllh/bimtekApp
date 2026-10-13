@@ -84,8 +84,9 @@ class ActivationController extends Controller
                 ->exists();
 
             if ($existingInBimtek) {
-                return redirect()->route('login')
-                    ->with('info', 'NIP atau Email Anda sudah terdaftar di kegiatan Bimtek ini. Silakan login ke akun Anda.');
+                return redirect()
+                    ->route('login', ['invite_code' => $bimtek->invite_code])
+                    ->with('info', 'Akun Anda sudah terdaftar di kegiatan ini. Silakan login untuk melanjutkan.');
             }
 
             // Cari apakah akun usernya sudah ada secara global di platform
@@ -95,38 +96,36 @@ class ActivationController extends Controller
                 $userQuery->orWhere('nip', $nip);
             }
 
+            
             $user = $userQuery->first();
 
-            $isNewUser = false;
+            
 
             if ($user) {
-                // Jika user sudah ada (misal diinput admin sebelumnya), perbarui informasi dan password-nya
-                // agar peserta bisa login menggunakan password yang baru saja mereka daftarkan.
-                $user->update([
-                    'name'          => $request->name,
-                    'nip'           => $nip,
-                    'asal_instansi' => $request->asal_instansi,
-                    'password'      => Hash::make($request->password),
-                    'is_active'     => 1,
-                ]);
-            } else {
-                // Jika benar-benar baru, buat akun baru
-                $rolePeserta = Role::where('nama_peran', 'Peserta Eksternal')
-                    ->orWhere('nama_peran', 'Peserta')
-                    ->first();
-
-                $user = User::create([
-                    'name'          => $request->name,
-                    'email'         => $request->email,
-                    'password'      => Hash::make($request->password),
-                    'nip'           => $nip,
-                    'asal_instansi' => $request->asal_instansi,
-                    'role_id'       => $rolePeserta?->id,
-                    'is_active'     => 1, 
-                ]);
-
-                $isNewUser = true;
+                return redirect()
+                    ->route('login', ['invite_code' => $bimtek->invite_code])
+                    ->with(
+                        'info',
+                        'Akun Anda sudah tersedia. Silakan login untuk melanjutkan pendaftaran.'
+                    );
             }
+
+            // Jika benar-benar baru, buat akun baru
+            $rolePeserta = Role::where('nama_peran', 'Peserta Eksternal')
+                ->orWhere('nama_peran', 'Peserta')
+                ->first();
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'nip' => $nip,
+                'asal_instansi' => $request->asal_instansi,
+                'role_id' => $rolePeserta?->id,
+                'is_active' => 1,
+            ]);
+
+            
 
             // Hubungkan user ke tabel bridge peserta Bimtek (menggunakan Composite PK: bimtek_id & user_id)
             // Kita gunakan updateOrInsert agar aman dari duplikasi baris
@@ -166,18 +165,76 @@ class ActivationController extends Controller
             }
 
             // 5. Arahan (Redirect) dan Auto-Login
-            if ($isNewUser || $user) {
-                Auth::login($user); // Login menggunakan instance user yang valid
-                
-                $msg = $bimtek->butuh_verifikasi_dokumen 
-                    ? 'Pendaftaran akun berhasil! Berkas administrasi Anda sedang dalam antrean pemeriksaan panitia.' 
-                    : 'Pendaftaran berhasil! Selamat datang di Dasbor.';
-                
-                return redirect()->route('dashboard')->with('success', $msg);
+            
+            if (! $user instanceof User) {
+                return redirect()
+                    ->route('login')
+                    ->with('error', 'Akun peserta gagal dibuat.');
             }
+
+            Auth::login($user);
+
+            $msg = $bimtek->butuh_verifikasi_dokumen
+                ? 'Pendaftaran akun berhasil! Berkas administrasi Anda sedang dalam antrean pemeriksaan panitia.'
+                : 'Pendaftaran berhasil! Selamat datang di Dasbor.';
+
+            return redirect()
+                ->route('dashboard')
+                ->with('success', $msg);
 
             return redirect()->route('login')
                 ->with('success', 'Pendaftaran kelas berhasil. Silakan login untuk melihat status.');
         });
+    }
+
+    public function joinExisting(Request $request)
+    {
+        $validated = $request->validate([
+            'invite_code' => 'required|string',
+        ]);
+
+        $bimtek = Bimtek::where('invite_code', $validated['invite_code'])
+            ->firstOrFail();
+
+        if ($bimtek->status !== 'registrasi') {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Masa registrasi bimtek ini telah ditutup.');
+        }
+
+        $user = Auth::user();
+
+        $isParticipant = DB::table('bimtek_pesertas')
+            ->where('bimtek_id', $bimtek->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (! $isParticipant) {
+            DB::table('bimtek_pesertas')->insert([
+                'bimtek_id' => $bimtek->id,
+                'user_id' => $user->id,
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen
+                    ? 'invited'
+                    : 'verified',
+                'notified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $status = DB::table('bimtek_pesertas')
+            ->where('bimtek_id', $bimtek->id)
+            ->where('user_id', $user->id)
+            ->value('status_verifikasi');
+
+        if ($bimtek->butuh_verifikasi_dokumen && $status !== 'verified') {
+            return redirect()
+                ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
+                ->with('success', 'Akun berhasil didaftarkan sebagai peserta.');
+        }
+
+        return redirect()
+            ->route('bimtek.show', $bimtek->id)
+            ->with('success', 'Anda berhasil bergabung sebagai peserta.');
     }
 }

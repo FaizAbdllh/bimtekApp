@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Validation\Rule;
 
 class VerifikasiDokumenController extends Controller
 {
@@ -57,9 +58,20 @@ class VerifikasiDokumenController extends Controller
     public function upload(Request $request, Bimtek $bimtek): RedirectResponse
     {
         $user = Auth::user();
+        $isPeserta = $bimtek->peserta()
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (! $isPeserta) {
+            abort(403, 'Anda bukan peserta resmi dari kegiatan bimtek ini.');
+        }
 
         $validated = $request->validate([
-            'syarat_dokumen_id' => 'required|exists:syarat_dokumens,id',
+            'syarat_dokumen_id' => [
+                'required',
+                Rule::exists('syarat_dokumens', 'id')
+                    ->where(fn ($query) => $query->where('bimtek_id', $bimtek->id)),
+            ],
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ], [
             'file.max' => 'Ukuran file maksimal 5MB.',

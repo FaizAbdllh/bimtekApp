@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -97,8 +98,15 @@ class PesertaControllerVerificationTest extends TestCase
         $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtekWithVerification->id,
             'user_id' => $this->existingUser->id,
-            'status_verifikasi' => 'pending',
+            'status_verifikasi' => 'invited',
         ]);
+
+        $this->assertNotNull(
+            DB::table('bimtek_pesertas')
+                ->where('bimtek_id', $this->bimtekWithVerification->id)
+                ->where('user_id', $this->existingUser->id)
+                ->value('notified_at')
+        );
 
     }
 
@@ -161,7 +169,7 @@ class PesertaControllerVerificationTest extends TestCase
         $this->assertDatabaseHas('bimtek_pesertas', [
             'bimtek_id' => $this->bimtekWithVerification->id,
             'user_id' => $newUser->id,
-            'status_verifikasi' => 'pending',
+            'status_verifikasi' => 'invited',
         ]);
     }
 

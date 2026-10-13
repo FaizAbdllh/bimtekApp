@@ -54,21 +54,39 @@ class CheckVerifiedPeserta
 
         $statusVerifikasi = $pivot->status_verifikasi ?? 'invited';
 
-        // 5. Logika Gembok Cerdas
-        if ($statusVerifikasi === 'pending') {
-            // Jika masih antre, kembalikan ke Dasbor
-            return redirect()->route('dashboard')
-                ->with('error', 'Akses dikunci! Anda harus menunggu panitia menyetujui berkas Anda sebelum bisa masuk ke kelas.');
-        } elseif ($statusVerifikasi === 'rejected') {
-            // Jika ditolak, paksa lari ke form perbaikan (upload ulang)
-            return redirect()->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
-                ->with('error', 'Berkas Anda sebelumnya ditolak panitia. Silakan unggah perbaikan dokumen untuk masuk ke kelas.');
-        } elseif ($statusVerifikasi !== 'verified') {
-            // Pengaman darurat untuk status tidak dikenal
-            return redirect()->route('dashboard')->with('error', 'Akses ditolak.');
+        // 5. Logika akses berdasarkan status verifikasi
+        if ($statusVerifikasi === 'invited') {
+            // Peserta sudah ditambahkan, tetapi belum mengunggah dokumen
+            return redirect()
+                ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
+                ->with('info', 'Silakan unggah dokumen persyaratan terlebih dahulu.');
         }
 
-        // Jika statusnya 'verified', gembok terbuka!
+        if ($statusVerifikasi === 'pending') {
+            // Dokumen sudah diunggah dan sedang menunggu pemeriksaan panitia
+            return redirect()
+                ->route('dashboard')
+                ->with('info', 'Dokumen Anda sedang menunggu pemeriksaan panitia.');
+        }
+
+        if ($statusVerifikasi === 'rejected') {
+            // Dokumen ditolak dan peserta harus mengunggah perbaikan
+            return redirect()
+                ->route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id)
+                ->with(
+                    'error',
+                    'Berkas Anda sebelumnya ditolak panitia. Silakan unggah perbaikan dokumen.'
+                );
+        }
+
+        if ($statusVerifikasi !== 'verified') {
+            // Pengaman untuk status kosong atau tidak dikenal
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Akses ditolak karena status verifikasi tidak valid.');
+        }
+
+        // Status verified: izinkan request diteruskan
         return $next($request);
     }
 }

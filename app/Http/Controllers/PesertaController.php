@@ -90,7 +90,8 @@ class PesertaController extends Controller
             }
 
             $pivotData = [
-                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'invited' : 'verified',
+                'notified_at' => now(),
             ];
 
             $bimtek->peserta()->attach($userId, $pivotData);
@@ -161,7 +162,8 @@ class PesertaController extends Controller
         ]);
 
         $pivotData = [
-            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
+            'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'invited' : 'verified',
+            'notified_at' => now(),
         ];
 
         $bimtek->peserta()->attach($user->id, $pivotData);
@@ -302,7 +304,8 @@ class PesertaController extends Controller
             }
 
             $pivotData = [
-                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified',
+                'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'invited' : 'verified',
+                'notified_at' => now(),
             ];
 
             $bimtek->peserta()->attach($user->id, $pivotData);
@@ -432,7 +435,8 @@ class PesertaController extends Controller
             $bimtek->panitia()->detach($user->id);
             if (! $isPeserta) {
                 $bimtek->peserta()->attach($user->id, [
-                    'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'pending' : 'verified'
+                    'status_verifikasi' => $bimtek->butuh_verifikasi_dokumen ? 'invited' : 'verified',
+                    'notified_at' => now(),
                 ]);
             }
         }

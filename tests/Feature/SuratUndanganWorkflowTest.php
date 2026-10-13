@@ -74,26 +74,56 @@ class SuratUndanganWorkflowTest extends TestCase
         ]);
     }
 
+
     #[Test]
     public function pic_and_panitia_can_replace_the_same_invitation_file(): void
     {
-        $this->actingAs($this->pic)->post(route('bimtek.upload-draft', $this->bimtek), [
-            'surat_draft' => UploadedFile::fake()->create('old.pdf', 100, 'application/pdf'),
-        ]);
+        $this->actingAs($this->pic)->post(
+            route('bimtek.upload-draft', $this->bimtek),
+            [
+                'surat_draft' => UploadedFile::fake()->create(
+                    'old.pdf',
+                    100,
+                    'application/pdf'
+                ),
+            ]
+        );
 
-        $oldPath = $this->bimtek->fresh()->file_surat_undangan_path;
+        $oldPath = $this->bimtek
+            ->fresh()
+            ->file_surat_undangan_path;
 
-        $response = $this->actingAs($this->panitia)->post(route('bimtek.upload-final', $this->bimtek), [
-            'surat_draft' => UploadedFile::fake()->create('new.pdf', 100, 'application/pdf'),
-        ]);
+        $response = $this->actingAs($this->panitia)->post(
+            route('bimtek.upload-undangan', $this->bimtek),
+            [
+                'surat_draft' => UploadedFile::fake()->create(
+                    'new.pdf',
+                    100,
+                    'application/pdf'
+                ),
+            ]
+        );
 
-        $response->assertRedirect()->assertSessionHas('success');
+        $response
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
         $bimtek = $this->bimtek->fresh();
 
-        $this->assertNotSame($oldPath, $bimtek->file_surat_undangan_path);
-        $this->assertSame($this->panitia->id, $bimtek->file_surat_undangan_uploaded_by);
+        $this->assertNotSame(
+            $oldPath,
+            $bimtek->file_surat_undangan_path
+        );
+
+        $this->assertSame(
+            $this->panitia->id,
+            $bimtek->file_surat_undangan_uploaded_by
+        );
+
         Storage::disk('public')->assertMissing($oldPath);
-        Storage::disk('public')->assertExists($bimtek->file_surat_undangan_path);
+        Storage::disk('public')->assertExists(
+            $bimtek->file_surat_undangan_path
+        );
     }
 
     #[Test]

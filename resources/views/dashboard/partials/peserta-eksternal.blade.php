@@ -120,19 +120,17 @@
                         {{-- 💡 GEMBOK VISUAL: Aksi (Call to Action) --}}
                         <div class="pt-3 border-t border-gray-200 flex justify-end items-center">
                             @if($statusVerif === 'verified')
-                                <a href="{{ route('bimtek.show', $bimtek->id) }}" class="inline-flex items-center text-primary-600 hover:text-primary-800 text-sm font-medium transition-colors">
-                                    Masuk Kelas 
-                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                <a href="{{ route('bimtek.show', $bimtek->id) }}">
+                                    Masuk Kelas
                                 </a>
-                            @elseif($statusVerif === 'rejected')
-                                <a href="{{ route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                    Revisi Berkas
+                            @elseif(in_array($statusVerif, ['invited', 'rejected']))
+                                <a href="{{ route('bimtek.verifikasi-dokumen.upload-form', $bimtek->id) }}"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold">
+                                    {{ $statusVerif === 'invited' ? 'Unggah Dokumen' : 'Revisi Berkas' }}
                                 </a>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 text-gray-400 text-sm font-medium cursor-not-allowed" title="Menunggu persetujuan panitia">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                    Kelas Terkunci
+                            @elseif($statusVerif === 'pending')
+                                <span class="text-yellow-600 text-sm font-medium">
+                                    Menunggu pemeriksaan panitia
                                 </span>
                             @endif
                         </div>

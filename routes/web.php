@@ -28,6 +28,9 @@ Route::get('/', function () {
 // Halaman Formulir Pendaftaran Mandiri Peserta Luar (Undangan)
 Route::get('/register', [ActivationController::class, 'showRegistrationForm'])->name('register.invite');
 Route::post('/register', [ActivationController::class, 'submitRegistration'])->name('register.submit');
+Route::post('/register/join', [ActivationController::class, 'joinExisting'])
+    ->middleware('auth')
+    ->name('register.join');
 
 
 // =========================================================================
