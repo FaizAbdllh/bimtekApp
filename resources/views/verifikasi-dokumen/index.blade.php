@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        Verifikasi Dokumen Peserta - {{ $bimtek->judul_final ?? $bimtek->judul_rencana }}
+        Verifikasi Dokumen Peserta 
     </x-slot>
 
     <div class="py-6">
@@ -11,7 +11,7 @@
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
-                    Kembali ke Dasbor Kelas
+                    Kembali
                 </a>
                 <div class="mt-4">
                     <h2 class="text-lg font-bold text-gray-800">Meja Pemeriksaan Berkas Syarat Peserta</h2>
@@ -53,7 +53,7 @@
                             <tr>
                                 <th class="px-6 py-3 text-center w-12 text-xs font-semibold uppercase tracking-wider text-gray-500">No</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Informasi Anggota</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Kelulusan</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Status Akun</th>
                                 
                                 {{-- Kolom Header Dinamis Berdasarkan Dokumen Syarat --}}
                                 @foreach($bimtek->syaratDokumens as $syarat)
@@ -79,9 +79,9 @@
                                         @if($item['status_verifikasi'] === 'invited')
                                             <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Belum Unggah</span>
                                         @elseif($item['status_verifikasi'] === 'pending')
-                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">Menunggu</span>
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">Menunggu Verifikasi</span>
                                         @elseif($item['status_verifikasi'] === 'verified')
-                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Sah / Lulus</span>
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Terverifikasi</span>
                                         @else
                                             <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Ditolak</span>
                                         @endif

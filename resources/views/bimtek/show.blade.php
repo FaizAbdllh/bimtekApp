@@ -291,7 +291,7 @@
                             {{-- Tautan Registrasi Mandiri / Shared Link --}}
                             @if($canManage && $bimtek->mode_pelaksanaan !== 'internal')
                                 <div class="mt-4 pt-4 border-t border-gray-200">
-                                    <span class="text-base font-bold text-gray-800 mb-3">Tautan Pendaftaran Mandiri Peserta Luar:</span>
+                                    <span class="text-base font-bold text-gray-800 mb-3">Link Registrasi Peserta :</span>
                                     @if($bimtek->invite_code)
                                         <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
                                             <input id="invite-link" class="flex-1 min-w-0 rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-700" readonly 
@@ -302,7 +302,7 @@
                                         <form action="{{ route('bimtek.generate-invite', $bimtek->id) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 bg-primary-600 hover:bg-primary-800 text-white">
-                                                Aktifkan Link & Token Registrasi Mandiri
+                                                Generate Link Registrasi
                                             </button>
                                         </form>
                                     @endif

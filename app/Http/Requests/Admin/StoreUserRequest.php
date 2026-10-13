@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
+
 class StoreUserRequest extends FormRequest
 {
     /**
@@ -26,7 +27,7 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', Password::min(8)],
-            'nip' => ['nullable', 'string', 'max:18', 'unique:users,nip'],
+            'nip' => ['nullable', 'digits:18', 'unique:users,nip'],
             'asal_instansi' => ['nullable', 'string', 'max:255'],
             'role_id' => ['required', 'exists:roles,id'],
         ];
@@ -46,6 +47,7 @@ class StoreUserRequest extends FormRequest
             'email.unique' => 'Email sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
+            'nip.digits' => 'NIP harus terdiri dari tepat 18 angka.',
             'nip.unique' => 'NIP sudah terdaftar.',
             'role_id.required' => 'Role wajib dipilih.',
             'role_id.exists' => 'Role tidak valid.',

@@ -69,7 +69,7 @@
                     <p class="mt-2 text-2xl font-semibold text-gray-800">{{ $bimtek->pic ? 1 : 0 }}</p>
                 </div>
                 <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-4">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Jajaran Panitia</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Panitia</p>
                     <p class="mt-2 text-2xl font-semibold text-gray-800">{{ $bimtek->panitia->count() }}</p>
                 </div>
                 <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-4">
@@ -253,7 +253,7 @@
                 {{-- Panel PIC --}}
                 <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
                     <div class="p-6">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Penanggung Jawab Utama Kelas (PIC)</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Penanggung Jawab</h3>
                         @if($bimtek->pic)
                             <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                                 <div class="w-10 h-10 rounded-full bg-primary-100 text-primary-800 flex items-center justify-center font-semibold text-sm shrink-0">
@@ -263,7 +263,7 @@
                                     <p class="font-medium text-gray-900 truncate">{{ $bimtek->pic->name }}</p>
                                     <p class="text-sm text-gray-500 truncate">{{ $bimtek->pic->email }}</p>
                                 </div>
-                                <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-800 shrink-0">PIC Utama</span>
+                                <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-800 shrink-0">PIC </span>
                             </div>
                         @else
                             <div class="text-center py-8">
@@ -279,7 +279,7 @@
                 {{-- Panel Panitia --}}
                 <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
                     <div class="p-6">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Anggota Tim Pelaksana (Panitia Pokja)</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Panitia Pelaksana</h3>
                         <div class="space-y-3">
                             @forelse($bimtek->panitia as $panitia)
                                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">

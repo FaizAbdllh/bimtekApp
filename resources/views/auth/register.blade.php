@@ -32,9 +32,6 @@
             </div>
         @endif
 
-        {{-- Form Pendaftaran Mandiri --}}
-        <form method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data" class="space-y-5">
-        {{-- Form Pendaftaran Mandiri --}}
         <form method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data" class="space-y-5">
             @csrf
 
@@ -64,7 +61,17 @@
                 <label for="nip" class="block text-sm font-semibold text-gray-700">
                     Nomor Induk Pegawai (NIP) <span class="text-xs font-normal text-gray-500">(Isi '-' jika non-ASN)</span>
                 </label>
-                <input type="text" name="nip" id="nip" value="{{ old('nip') }}" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm @error('nip') border-red-500 @enderror" placeholder="1995xxxxxxxxxxxxxx" required>
+                <input type="text"
+                        name="nip"
+                        id="nip"
+                        value="{{ old('nip') }}"
+                        inputmode="numeric"
+                        maxlength="18"
+                        pattern="([0-9]{18}|-)"
+                        title="Masukkan tepat 18 angka atau tanda - jika tidak memiliki NIP"
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm @error('nip') border-red-500 @enderror"
+                        placeholder="18 angka atau - jika non-ASN"
+                        required>
                 @error('nip') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
 

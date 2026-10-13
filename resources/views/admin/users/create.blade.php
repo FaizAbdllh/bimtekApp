@@ -117,6 +117,8 @@
                             <input type="text"
                                    name="nip"
                                    id="nip"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{18}"
                                    value="{{ old('nip') }}"
                                    maxlength="18"
                                    placeholder="Nomor Induk Pegawai (opsional)"

@@ -162,7 +162,7 @@
                                     Kembali ke Daftar
                                 </a>
                                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-800 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-                                    Simpan Perubahan Checklist
+                                    Simpan Perubahan
                                 </button>
                             </div>
                         </form>

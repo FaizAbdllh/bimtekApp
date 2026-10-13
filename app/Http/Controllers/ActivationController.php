@@ -48,14 +48,18 @@ class ActivationController extends Controller
             'invite_code'   => 'required',
             'name'          => 'required|string|max:255',
             'email'         => 'required|email',
-            'nip'           => 'required|string',
+            'nip'           => ['required', 'regex:/^(?:[0-9]{18}|-)$/',],
             'asal_instansi' => 'required|string',
             'password'      => 'required|string|min:8|confirmed',
             'dokumen'       => 'nullable|array', 
             'dokumen.*'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ], [
+            'nip.required' => 'NIP wajib diisi.',
+            'nip.regex' => 'NIP harus terdiri dari tepat 18 angka atau tanda - jika tidak memiliki NIP.',
         ]);
 
         $bimtek = Bimtek::where('invite_code', $request->invite_code)->firstOrFail();
+        $nip = $request->input('nip') === '-' ? null : $request->input('nip');
 
         // 2. PROTEKSI STATE MACHINE (Mencegah Akses Pendaftaran di Luar Fase Registrasi)
         if ($bimtek->status !== 'registrasi') {
@@ -63,16 +67,19 @@ class ActivationController extends Controller
         }
 
         // Gunakan DB Transaction untuk menjaga konsistensi data antara tabel users dan bimtek_pesertas
-        return DB::transaction(function () use ($request, $bimtek) {
+        return DB::transaction(function () use ($request, $bimtek, $nip) {
             
             // Cek apakah user sudah terdaftar di Bimtek ini secara spesifik
             // Kita cek berdasarkan relasi ke tabel bimtek_pesertas terlebih dahulu
             $existingInBimtek = DB::table('bimtek_pesertas')
                 ->join('users', 'bimtek_pesertas.user_id', '=', 'users.id')
                 ->where('bimtek_pesertas.bimtek_id', $bimtek->id)
-                ->where(function ($query) use ($request) {
-                    $query->where('users.email', $request->email)
-                        ->orWhere('users.nip', $request->nip);
+                ->where(function ($query) use ($request, $nip) {
+                    $query->where('users.email', $request->email);
+
+                    if ($nip !== null) {
+                        $query->orWhere('users.nip', $nip);
+                    }
                 })
                 ->exists();
 
@@ -82,9 +89,13 @@ class ActivationController extends Controller
             }
 
             // Cari apakah akun usernya sudah ada secara global di platform
-            $user = User::where('email', $request->email)
-                ->orWhere('nip', $request->nip)
-                ->first();
+            $userQuery = User::where('email', $request->email);
+
+            if ($nip !== null) {
+                $userQuery->orWhere('nip', $nip);
+            }
+
+            $user = $userQuery->first();
 
             $isNewUser = false;
 
@@ -93,7 +104,7 @@ class ActivationController extends Controller
                 // agar peserta bisa login menggunakan password yang baru saja mereka daftarkan.
                 $user->update([
                     'name'          => $request->name,
-                    'nip'           => $request->nip,
+                    'nip'           => $nip,
                     'asal_instansi' => $request->asal_instansi,
                     'password'      => Hash::make($request->password),
                     'is_active'     => 1,
@@ -108,7 +119,7 @@ class ActivationController extends Controller
                     'name'          => $request->name,
                     'email'         => $request->email,
                     'password'      => Hash::make($request->password),
-                    'nip'           => $request->nip,
+                    'nip'           => $nip,
                     'asal_instansi' => $request->asal_instansi,
                     'role_id'       => $rolePeserta?->id,
                     'is_active'     => 1, 

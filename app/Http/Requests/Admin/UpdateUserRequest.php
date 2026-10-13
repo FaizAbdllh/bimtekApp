@@ -31,7 +31,7 @@ class UpdateUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['nullable', 'string', Password::min(8)],
-            'nip' => ['nullable', 'string', 'max:18', Rule::unique('users', 'nip')->ignore($userId)],
+            'nip' => ['nullable', 'digits:18', Rule::unique('users', 'nip')->ignore($userId)],
             'asal_instansi' => ['nullable', 'string', 'max:255'],
             'role_id' => ['required', 'exists:roles,id'],
         ];
