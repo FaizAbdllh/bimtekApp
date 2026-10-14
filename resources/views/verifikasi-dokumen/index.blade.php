@@ -140,7 +140,7 @@
 
     {{-- MODUL EKSEKUSI: PERBAIKAN maxWidth="2xl" --}}
     @foreach($pesertaList as $item)
-        <x-modal name="panel-verifikasi-{{ $item['user']->id }}" :show="false" maxWidth="2xl">
+        <x-modal name="panel-verifikasi-{{ $item['user']->id }}" :show="(int) session('open_modal') === (int) $item['user']->id "maxWidth="2xl">
             <div class="bg-gray-50 overflow-hidden rounded-xl">
                 
                 {{-- Modal Header --}}

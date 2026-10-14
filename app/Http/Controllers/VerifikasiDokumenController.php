@@ -171,14 +171,13 @@ class VerifikasiDokumenController extends Controller
 
         $this->updatePesertaStatusVerifikasi($bimtek, $dokumen->user_id);
 
-        return redirect()
-            ->route('bimtek.verifikasi-dokumen.index', $bimtek->id)
-            ->with('success', 'Dokumen dinyatakan sah dan disetujui.');
+        return $this->redirectSetelahAksi(
+            $bimtek,
+            $dokumen->user_id,
+            'Dokumen dinyatakan sah dan disetujui.'
+        );
     }
 
-    /**
-     * Aksi Penolakan Dokumen oleh Panitia (Disertai catatan koreksi).
-     */
     public function reject(Request $request, Bimtek $bimtek, string $userId, string $syaratId): RedirectResponse
     {
         $this->authorizePicPanitia($bimtek);
@@ -214,9 +213,31 @@ class VerifikasiDokumenController extends Controller
             Log::error('Gagal mengirim email notifikasi penolakan dokumen: '.$e->getMessage());
         }
 
-        return redirect()
+        return $this->redirectSetelahAksi(
+            $bimtek,
+            $dokumen->user_id,
+            'Dokumen ditolak. Sistem telah mengirimkan email instruksi perbaikan kepada peserta.'
+        );
+    }
+
+    /**
+     * Kembali ke halaman index. Modal peserta dibuka lagi selama
+     * masih ada dokumen berstatus pending; tertutup jika semuanya sudah ditindak.
+     */
+    private function redirectSetelahAksi(Bimtek $bimtek, int|string $userId, string $message): RedirectResponse
+    {
+        $masihPending = DokumenPersyaratanPeserta::where('bimtek_id', $bimtek->id)
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->exists();
+
+        $redirect = redirect()
             ->route('bimtek.verifikasi-dokumen.index', $bimtek->id)
-            ->with('success', 'Dokumen ditolak. Sistem telah mengirimkan email instruksi perbaikan kepada peserta.');
+            ->with('success', $message);
+
+        return $masihPending
+            ? $redirect->with('open_modal', $userId)
+            : $redirect;
     }
 
     /**

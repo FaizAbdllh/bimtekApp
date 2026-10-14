@@ -43,7 +43,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div>
-                    <span class="font-semibold">Status Verifikasi Keuangan:</span> {{ $statusLabels[$pengajuan->status] ?? $pengajuan->status }}
+                    <span class="font-semibold">Status Verifikasi Anggaran :</span> {{ $statusLabels[$pengajuan->status] ?? $pengajuan->status }}
                 </div>
             </div>
 
@@ -189,7 +189,7 @@
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
-                                Sahkan & Setujui Biaya
+                                Setujui Usulan Anggaran
                             </button>
                             <button @click="action = 'revisi'" type="button"
                                 class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -197,7 +197,7 @@
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
-                                Kembalikan Ke PIC (Revisi Biaya)
+                                Minta Revisi Anggaran
                             </button>
                             <button @click="action = 'reject'" type="button"
                                 class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -212,60 +212,39 @@
                         {{-- Form Submit - Approve --}}
                         <form x-show="action === 'approve'" x-cloak action="{{ route('approval.ppk.approve', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-5">
                             @csrf
-                            <div class="p-3 rounded-lg border text-sm bg-green-50 border-green-100 text-green-800 flex items-start">
-                                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <div>
-                                    <span class="font-semibold">Konfirmasi:</span> Dengan mensahkan pagu ini, sistem otomatis menerbitkan entitas Kelas Pelaksanaan Bimtek aktif yang siap dikelola tim PIC Pokja.
-                                </div>
-                            </div>
+                            
                             <div>
-                                <label for="catatan_approve" class="block text-sm font-semibold text-gray-700">Catatan Pengesahan Belanja (Opsional)</label>
+                                <label for="catatan_approve" class="block text-sm font-semibold text-gray-700">Catatan Persetujuan (Opsional)</label>
                                 <textarea name="catatan" id="catatan_approve" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Tambahkan nomor instruksi SPM / maklumat anggaran jika diperlukan..."></textarea>
                             </div>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-700 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
-                                Sahkan Pagu Anggaran
+                                Setujui
                             </button>
                         </form>
 
                         {{-- Form Submit - Minta Revisi --}}
                         <form x-show="action === 'revisi'" x-cloak action="{{ route('approval.ppk.revisi', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-5">
                             @csrf
-                            <div class="p-3 rounded-lg border text-sm bg-orange-50 border-orange-100 text-orange-800 flex items-start">
-                                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                <div>
-                                    <span class="font-semibold">Catatan Alur:</span> Berkas usulan biaya akan dikembalikan langsung ke meja draf PIC pengaju. Pasca-revisi, berkas otomatis kembali ke antrean PPK tanpa perlu mengulang tanda tangan Kepala Balai.
-                                </div>
-                            </div>
+                            
                             <div>
-                                <label for="catatan_revisi" class="block text-sm font-semibold text-gray-700">Rincian Koreksi Pagu SBM <span class="text-red-500">*</span></label>
+                                <label for="catatan_revisi" class="block text-sm font-semibold text-gray-700">Rincian Koreksi Anggaran <span class="text-red-500">*</span></label>
                                 <textarea name="catatan" id="catatan_revisi" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Jelaskan komponen harga satuan atau volume belanja apa yang wajib dikurangi PIC..." required></textarea>
                             </div>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-orange-700 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
-                                Kembalikan Berkas Belanja
+                                Minta Revisi Anggaran
                             </button>
                         </form>
 
                         {{-- Form Submit - Tolak Usulan --}}
                         <form x-show="action === 'reject'" x-cloak action="{{ route('approval.ppk.reject', $pengajuan->id) }}" method="POST" class="space-y-5 border-t border-gray-200 pt-5">
                             @csrf
-                            <div class="p-3 rounded-lg border text-sm bg-red-50 border-red-100 text-red-800 flex items-start">
-                                <svg class="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                <div>
-                                    <span class="font-semibold">Peringatan:</span> Penolakan ini bersifat permanen. Seluruh rincian kebutuhan komponen belanja dibatalkan dari sistem DIPA berjalan.
-                                </div>
-                            </div>
+                            
                             <div>
-                                <label for="catatan_reject" class="block text-sm font-semibold text-gray-700">Alasan Penolakan Anggaran Kegiatan <span class="text-red-500">*</span></label>
+                                <label for="catatan_reject" class="block text-sm font-semibold text-gray-700">Alasan Penolakan Usulan Anggaran Kegiatan <span class="text-red-500">*</span></label>
                                 <textarea name="catatan" id="catatan_reject" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Jelaskan alasan penolakan rasional (misal: Alokasi pagu sub-kegiatan DIPA tahun berjalan sudah habis)..." required></textarea>
                             </div>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
-                                Tolak Komponen Anggaran Belanja
+                                Tolak Usulan Anggaran
                             </button>
                         </form>
                     </div>

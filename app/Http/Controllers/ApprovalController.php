@@ -220,7 +220,7 @@ class ApprovalController extends Controller
 
         return redirect()
             ->route('approval.ppk.index')
-            ->with('success', 'Usulan kegiatan telah disetujui final oleh PPK dan siap memasuki tahap Persiapan Kelompok Kerja.');
+            ->with('success', 'Usulan kegiatan telah disetujui dan usulan anggaran telah disahkan oleh PPK.');
     }
 
     /**

@@ -148,7 +148,7 @@
 
                             @if($bimtek->deskripsi_rencana)
                                 <div class="mt-4 pt-4 border-t border-gray-200">
-                                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 block">
+                                    <span class="text-base font-bold text-gray-800">
                                         Latar Belakang Kegiatan
                                     </span>
 
@@ -161,7 +161,7 @@
                             @if($canManage || $bimtek->deskripsi_jadwal)
                                 <div class="mt-4 pt-4 border-t border-gray-200">
                                     <div class="flex items-center justify-between gap-3">
-                                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        <span class="text-base font-bold text-gray-800">
                                             Detail Pelaksanaan Kegiatan
                                         </span>
 
@@ -291,7 +291,7 @@
                             {{-- Tautan Registrasi Mandiri / Shared Link --}}
                             @if($canManage && $bimtek->mode_pelaksanaan !== 'internal')
                                 <div class="mt-4 pt-4 border-t border-gray-200">
-                                    <span class="text-base font-bold text-gray-800 mb-3">Link Registrasi Peserta :</span>
+                                    <span class="text-base font-bold text-gray-800 mb-3">Link Registrasi Peserta</span>
                                     @if($bimtek->invite_code)
                                         <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
                                             <input id="invite-link" class="flex-1 min-w-0 rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-700" readonly 

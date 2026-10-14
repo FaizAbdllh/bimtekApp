@@ -204,7 +204,7 @@
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
-                                Setujui Usulan
+                                Setujui
                             </button>
                             <button @click="action = 'revisi'" type="button"
                                 class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -212,7 +212,7 @@
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
-                                Kembalikan (Revisi)
+                                Minta Revisi
                             </button>
                             <button @click="action = 'reject'" type="button"
                                 class="inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -220,7 +220,7 @@
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
-                                Tolak Usulan
+                                Tolak Pengajuan
                             </button>
                         </div>
 
@@ -232,7 +232,7 @@
                                 <textarea name="catatan" id="catatan_approve" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Tambahkan instruksi strategis khusus kepanitiaan jika diperlukan..."></textarea>
                             </div>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-700 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
-                                Sahkan Disposisi Setuju
+                                Beri Persetujuan
                             </button>
                         </form>
 
@@ -256,7 +256,7 @@
                                 <textarea name="catatan" id="catatan_reject" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm" placeholder="Tuliskan alasan penolakan rasional berdasarkan hasil evaluasi DIPA instansi..." required></textarea>
                             </div>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
-                                Tolak Usulan Kegiatan Permanen
+                                Tolak Usulan Kegiatan
                             </button>
                         </form>
                     </div>
